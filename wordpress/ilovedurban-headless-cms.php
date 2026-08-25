@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.1.0
+ * Version:      1.2.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -221,7 +221,9 @@ add_action( 'admin_menu', 'ild_admin_menu' );
 function ild_admin_menu(): void {
 	add_menu_page(
 		'I Love Durban Content',
-		'ILD Content',
+		// Spelled out rather than abbreviated: this sidebar may sit next to
+		// another headless-CMS plugin, and "ILD" is not self-explanatory.
+		'I Love Durban',
 		'edit_posts',
 		ILD_MENU,
 		'ild_settings_page',
