@@ -249,16 +249,31 @@ function MobileDrawer({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  /*
+   * Backdrop and panel are each positioned against the viewport directly,
+   * rather than the panel being absolute inside a fixed wrapper. Nesting made
+   * the panel inherit any error in the wrapper's box — and when that box came
+   * out wider than the viewport, the panel slid off-screen while the backdrop
+   * still covered everything and swallowed taps, so the menu looked like it had
+   * broken the page rather than simply failed to open.
+   */
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
+    <div className="lg:hidden">
       <button
         type="button"
         onClick={onClose}
         aria-label="Close menu"
-        className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+        // Deliberately no backdrop-blur here. backdrop-filter on a full-screen
+        // fixed overlay is a known source of rendering glitches in mobile
+        // Safari, and it already caused one bug in this component by making the
+        // header a containing block. A plain dim costs nothing and cannot
+        // misbehave.
+        className="fixed inset-0 z-50 bg-ink/50"
       />
 
-      <div className="absolute inset-y-0 right-0 flex w-[min(22rem,88vw)] flex-col bg-white shadow-lift">
+      {/* dvh rather than inset-y-0: mobile browsers change the visible height as
+          their toolbars collapse, and dvh tracks that where vh does not. */}
+      <div className="fixed right-0 top-0 z-50 flex h-[100dvh] w-[min(22rem,88vw)] max-w-full flex-col bg-white shadow-lift">
         <div className="flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line px-4">
           <Logo />
           <button

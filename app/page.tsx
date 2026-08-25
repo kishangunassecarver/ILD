@@ -5,6 +5,7 @@ import { SponsorTower } from "@/components/ads/SponsorTower";
 import { DealCard } from "@/components/cards/DealCard";
 import { EventCard } from "@/components/cards/EventCard";
 import { AppPromo } from "@/components/home/AppPromo";
+import { FeaturedBusinesses } from "@/components/home/FeaturedBusinesses";
 import { TopPicks, type PickGroup } from "@/components/home/TopPicks";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { Icon } from "@/components/ui/Icon";
@@ -59,6 +60,8 @@ export default function HomePage() {
             ))}
           </Rail>
         </section>
+
+        <FeaturedBusinesses />
 
         {groups.length > 0 && <TopPicks groups={groups} />}
 

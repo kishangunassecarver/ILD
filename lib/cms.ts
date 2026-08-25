@@ -233,6 +233,22 @@ export function activeFilters(hub: Hub): string[] {
   return hub.filters.filter((f) => populated.has(f));
 }
 
+/**
+ * Businesses for the home-page spotlight.
+ *
+ * Featured entries first, then the best-rated of the rest. Topping up matters:
+ * this is the only place on the home page that shows businesses at all, so a
+ * directory with a few listings and none of them flagged would otherwise leave
+ * the page with no businesses on it — which is exactly what happened when the
+ * first real listing replaced the seed data.
+ */
+export function spotlightListings(limit = 8): Listing[] {
+  const rank = (a: Listing, b: Listing) => b.rating - a.rating || a.name.localeCompare(b.name);
+  const featured = LISTINGS.filter((l) => l.featured).sort(rank);
+  const rest = LISTINGS.filter((l) => !l.featured).sort(rank);
+  return [...featured, ...rest].slice(0, limit);
+}
+
 export function featuredListings(limit = 8): Listing[] {
   return LISTINGS.filter((l) => l.featured)
     .sort(byPromise)
