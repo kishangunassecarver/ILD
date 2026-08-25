@@ -26,7 +26,7 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
           <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-white/60">
             Title partner
           </p>
-          <p className="font-display text-lg leading-none tracking-wide text-white">
+          <p className="font-display text-lg font-extrabold leading-none tracking-tight text-white">
             {sponsor.name}
           </p>
           <p className="hidden text-xs font-medium text-white/80 sm:block">{sponsor.headline}</p>
@@ -66,7 +66,7 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
             </p>
           )}
 
-          <p className="mt-3 font-display text-4xl leading-none tracking-wide text-white sm:text-5xl lg:text-6xl">
+          <p className="mt-3 font-display text-4xl font-extrabold leading-none tracking-tight text-white sm:text-5xl lg:text-6xl">
             {sponsor.name}
           </p>
 
@@ -86,7 +86,7 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
         <div className="hidden justify-center lg:flex">
           <div className="w-[13rem] rounded-[1.75rem] border border-white/25 bg-white/10 p-2.5 shadow-lift backdrop-blur">
             <div className="rounded-[1.35rem] bg-ink/50 px-4 py-8 text-center">
-              <p className="font-display text-2xl leading-tight tracking-wide text-white">
+              <p className="font-display text-2xl font-extrabold leading-tight tracking-tight text-white">
                 {sponsor.subhead ?? sponsor.headline}
               </p>
               <div className="mx-auto mt-5 h-1 w-12 rounded-full bg-gold" aria-hidden />

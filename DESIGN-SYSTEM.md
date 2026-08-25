@@ -24,9 +24,21 @@ appear, and they come from the sponsor's own `art` gradient.
 
 ## Type
 
-- **Inter Variable** for everything readable. `font-feature-settings: "cv11", "ss01"`.
-- **Bebas Neue** (`font-display`) for the logo lockup, sponsor names and the hub
-  tile labels — condensed caps, used sparingly.
+**Plus Jakarta Sans Variable**, throughout. One family, self-hosted via
+Fontsource — geometric-humanist, and legible at the small sizes a directory
+full of dense cards actually runs at.
+
+`font-display` is still a separate token in `tailwind.config.ts` even though it
+points at the same face. It marks the places where type is doing a branding job
+rather than a reading one — the logo lockup, sponsor names, hub tile labels,
+the 404 — so those can be moved to a distinct display face later by editing one
+line rather than hunting through eight components.
+
+Those places need `font-extrabold` and negative tracking to carry weight. They
+previously used Bebas Neue, a condensed caps-only face at a single weight, which
+supplied both for free — and silently upper-cased anything passed to it.
+Sponsor names now render as they are typed, which is what you want for a
+wordmark like "Hollywoodbets".
 
 Sizes stay small and dense, as a directory should: `text-xs` for supporting
 detail, `text-sm` for card titles and body, `section-title` (`text-xl`/`1.375rem`

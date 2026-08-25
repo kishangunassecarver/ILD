@@ -77,7 +77,7 @@ export default function HomePage() {
                 <Tile seed={`hub-${hub.slug}`} className="h-28">
                   <div className="absolute inset-0 flex items-end justify-between gap-3 p-4">
                     <div>
-                      <p className="font-display text-2xl leading-none tracking-wide text-white">
+                      <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-white">
                         {hub.label}
                       </p>
                       <p className="mt-1 text-[0.6875rem] text-white/75">

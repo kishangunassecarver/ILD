@@ -10,7 +10,7 @@ export default function NotFound() {
           <Compass className="h-5 w-5 text-brand-500" aria-hidden />
         </span>
 
-        <p className="mt-4 font-display text-4xl leading-none tracking-wide text-ink">404</p>
+        <p className="mt-4 font-display text-4xl font-extrabold leading-none tracking-tight text-ink">404</p>
         <h1 className="mt-2 text-lg font-bold text-ink">This page has moved on</h1>
         <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">
           The link is broken or the listing has come down. The city is still here though — start

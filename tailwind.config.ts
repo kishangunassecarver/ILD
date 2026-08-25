@@ -39,8 +39,22 @@ const config: Config = {
         muted: "#667085",
       },
       fontFamily: {
-        sans: ["'Inter Variable'", "Inter", "system-ui", "-apple-system", "sans-serif"],
-        display: ["'Bebas Neue'", "'Inter Variable'", "sans-serif"],
+        // One family throughout. `display` exists as a separate token so the
+        // logo, sponsor names and hub tiles can be restyled later without
+        // touching every call site — it just points at the same face for now.
+        sans: [
+          "'Plus Jakarta Sans Variable'",
+          "'Plus Jakarta Sans'",
+          "system-ui",
+          "-apple-system",
+          "sans-serif",
+        ],
+        display: [
+          "'Plus Jakarta Sans Variable'",
+          "'Plus Jakarta Sans'",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       borderRadius: {
         card: "0.875rem",

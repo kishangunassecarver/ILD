@@ -17,7 +17,7 @@ export function Leaderboard() {
 
       <div className="relative flex flex-wrap items-center gap-x-6 gap-y-4 px-5 py-5 sm:px-6">
         <div className="min-w-[8rem]">
-          <p className="font-display text-2xl leading-none tracking-wide text-white">
+          <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-white">
             {sponsor.name}
           </p>
           {sponsor.eyebrow && (

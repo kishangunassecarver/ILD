@@ -1,5 +1,4 @@
-@import "@fontsource-variable/inter/index.css";
-@import "@fontsource/bebas-neue/400.css";
+@import "@fontsource-variable/plus-jakarta-sans/index.css";
 
 @tailwind base;
 @tailwind components;
@@ -18,7 +17,6 @@
 
   body {
     @apply bg-paper text-ink antialiased;
-    font-feature-settings: "cv11", "ss01";
   }
 
   ::selection {

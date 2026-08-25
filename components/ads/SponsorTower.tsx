@@ -21,7 +21,7 @@ export function SponsorTower({ className }: { className?: string }) {
 
       <div className="relative flex flex-col gap-4 p-5 text-center">
         <div>
-          <p className="font-display text-2xl leading-none tracking-wide text-white">
+          <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-white">
             {sponsor.name}
           </p>
           {sponsor.subhead && (

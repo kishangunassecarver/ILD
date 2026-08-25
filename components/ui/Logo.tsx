@@ -24,7 +24,10 @@ export function Logo({
       className={cn("group inline-flex flex-col leading-none", className)}
       aria-label="I Love Durban — home"
     >
-      <span className="flex items-baseline gap-[0.15em] font-display text-[1.75rem] tracking-[0.01em] sm:text-[2rem]">
+      {/* Bebas Neue carried the lockup on being condensed caps at a single
+          weight. Plus Jakarta Sans needs real weight and negative tracking to
+          hold the same authority at this size. */}
+      <span className="flex items-baseline gap-[0.12em] font-display text-[1.6rem] font-extrabold tracking-[-0.02em] sm:text-[1.85rem]">
         <span className={onDark ? "text-white" : "text-ink"}>I</span>
         <Heart
           className="h-[0.85em] w-[0.85em] translate-y-[0.06em] fill-brand-500 text-brand-500 transition-transform duration-300 group-hover:scale-110"
