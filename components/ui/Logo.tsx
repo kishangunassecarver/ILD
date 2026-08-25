@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { SITE } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,7 +38,7 @@ export function Logo({
           onDark ? "text-white/60" : "text-muted"
         )}
       >
-        The Heartbeat of Our City
+        {SITE.strapline}
       </span>
     </Link>
   );

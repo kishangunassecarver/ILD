@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.4.0
+ * Version:      1.5.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -159,7 +159,8 @@ function ild_schema(): array {
 function ild_settings_schema(): array {
 	return array(
 		'Site copy'     => array(
-			'site.tagline'           => array( 'type' => 'text', 'label' => 'Tagline' ),
+			'site.strapline'         => array( 'type' => 'text', 'label' => 'Strapline — the small line under the logo. Keep it short; it is set in tracked-out capitals.' ),
+			'site.tagline'           => array( 'type' => 'text', 'label' => 'Browser tab tagline — shown in the browser tab and on shared links, not on the page itself.' ),
 			'site.description'       => array( 'type' => 'textarea', 'label' => 'Site description (also used for SEO)' ),
 			'site.searchPlaceholder' => array( 'type' => 'text', 'label' => 'Search box placeholder' ),
 			'site.popularSearches'   => array( 'type' => 'lines', 'label' => 'Popular search chips — one per line' ),

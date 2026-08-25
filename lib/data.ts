@@ -29,7 +29,10 @@ import type {
 
 export const SITE = {
   name: "I Love Durban",
+  /** Browser tab title and social sharing cards. Not shown on the page itself. */
   tagline: "The Heartbeat of Our City",
+  /** The small line under the logo lockup. Kept short — it is set in tracked-out caps. */
+  strapline: "The Heartbeat of Our City",
   description:
     "Durban's biggest lifestyle and business platform. Discover the best places to eat, stay and play — and support the local businesses that make this city ours.",
   url: "https://ilovedurban.co.za",
