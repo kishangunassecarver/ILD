@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.0.0
+ * Version:      1.1.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -427,6 +427,23 @@ function ild_posts( string $type ): array {
 	);
 }
 
+/**
+ * Decode one string for the JSON payload.
+ *
+ * WordPress stores and returns copy with HTML entities encoded — "&amp;",
+ * "&#8217;", "&hellip;". The site renders through React, which escapes strings
+ * on output, so an un-decoded "&amp;" reaches the page as the literal text
+ * "&amp;" rather than "&". Decode once, here, and the JSON carries real
+ * characters. Decoding is idempotent for text that has no entities in it.
+ */
+function ild_text( $value ): string {
+	$value = html_entity_decode( (string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+	// Editors paste non-breaking spaces without meaning to, and they break
+	// line wrapping in a way that is very hard to spot in the admin.
+	return trim( str_replace( "\xc2\xa0", ' ', $value ) );
+}
+
 /** Turn one stored meta value into whatever the JSON contract expects. */
 function ild_cast( string $raw, array $field ) {
 	$raw = trim( $raw );
@@ -445,13 +462,13 @@ function ild_cast( string $raw, array $field ) {
 			if ( '' === $raw ) {
 				return array();
 			}
-			return array_values( array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', $raw ) ), 'strlen' ) );
+			return array_values( array_filter( array_map( 'ild_text', preg_split( '/\r\n|\r|\n/', $raw ) ), 'strlen' ) );
 
 		case 'paras':
 			if ( '' === $raw ) {
 				return array();
 			}
-			return array_values( array_filter( array_map( 'trim', preg_split( '/(\r\n|\r|\n){2,}/', $raw ) ), 'strlen' ) );
+			return array_values( array_filter( array_map( 'ild_text', preg_split( '/(\r\n|\r|\n){2,}/', $raw ) ), 'strlen' ) );
 
 		case 'pipe':
 			if ( '' === $raw ) {
@@ -463,7 +480,7 @@ function ild_cast( string $raw, array $field ) {
 				if ( '' === $line ) {
 					continue;
 				}
-				$parts = array_map( 'trim', explode( '|', $line ) );
+				$parts = array_map( 'ild_text', explode( '|', $line ) );
 				$row   = array();
 				foreach ( $field['cols'] as $i => $col ) {
 					$row[ $col ] = $parts[ $i ] ?? '';
@@ -473,7 +490,7 @@ function ild_cast( string $raw, array $field ) {
 			return $rows;
 
 		default:
-			return $raw;
+			return ild_text( $raw );
 	}
 }
 
@@ -485,7 +502,7 @@ function ild_entry( WP_Post $post, array $config ): array {
 		$entry['slug'] = $post->post_name;
 	}
 
-	$entry[ $config['title_as'] ] = get_the_title( $post );
+	$entry[ $config['title_as'] ] = ild_text( get_the_title( $post ) );
 
 	foreach ( $config['fields'] as $key => $field ) {
 		$value = ild_cast( (string) get_post_meta( $post->ID, '_ild_' . $key, true ), $field );
@@ -515,22 +532,22 @@ function ild_blog_posts(): array {
 
 	foreach ( ild_posts( 'post' ) as $post ) {
 		$content = wp_strip_all_tags( str_replace( array( '</p>', '<br />', '<br>' ), "\n\n", apply_filters( 'the_content', $post->post_content ) ) );
-		$body    = array_values( array_filter( array_map( 'trim', preg_split( '/(\r\n|\r|\n){2,}/', $content ) ), 'strlen' ) );
+		$body    = array_values( array_filter( array_map( 'ild_text', preg_split( '/(\r\n|\r|\n){2,}/', $content ) ), 'strlen' ) );
 
 		if ( ! $body ) {
 			continue;
 		}
 
 		$terms    = get_the_terms( $post, 'category' );
-		$category = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Durban';
+		$category = ( $terms && ! is_wp_error( $terms ) ) ? ild_text( $terms[0]->name ) : 'Durban';
 
 		$entry = array(
 			'slug'     => $post->post_name,
-			'title'    => get_the_title( $post ),
+			'title'    => ild_text( get_the_title( $post ) ),
 			'date'     => get_the_date( 'Y-m-d', $post ),
-			'author'   => get_the_author_meta( 'display_name', (int) $post->post_author ),
+			'author'   => ild_text( get_the_author_meta( 'display_name', (int) $post->post_author ) ),
 			'category' => $category,
-			'excerpt'  => wp_strip_all_tags( get_the_excerpt( $post ) ),
+			'excerpt'  => ild_text( wp_strip_all_tags( get_the_excerpt( $post ) ) ),
 			'body'     => $body,
 		);
 
