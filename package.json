@@ -1,0 +1,34 @@
+{
+  "name": "ilovedurban",
+  "version": "1.0.0",
+  "private": true,
+  "description": "I Love Durban — the heartbeat of our city. Discover, connect, support local.",
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "node scripts/fetch-wp-content.mjs",
+    "content": "node scripts/fetch-wp-content.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.1.1",
+    "@fontsource/bebas-neue": "^5.1.0",
+    "lucide-react": "^0.469.0",
+    "next": "^15.3.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.125.0"
+  }
+}
