@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.3.0
+ * Version:      1.4.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -234,6 +234,22 @@ function ild_admin_menu(): void {
 	add_submenu_page( ILD_MENU, 'Site Copy & Deploy', 'Site Copy & Deploy', 'edit_posts', ILD_MENU, 'ild_settings_page' );
 }
 
+/**
+ * The form input name for a settings key.
+ *
+ * Settings keys are dotted ("site.tagline") because that is the shape the JSON
+ * payload needs. They cannot be used as form field names as-is: PHP silently
+ * rewrites "." to "_" in $_POST keys, so a field posted as "ild_site.tagline"
+ * arrives as "ild_site_tagline" and a lookup by the original name finds
+ * nothing — which read as "saving does nothing", because every field was then
+ * stored as an empty string.
+ *
+ * Encoding the dot as a double underscore keeps the round trip lossless.
+ */
+function ild_field_name( string $key ): string {
+	return 'ild_' . str_replace( '.', '__', $key );
+}
+
 function ild_settings_page(): void {
 	if ( ! current_user_can( 'edit_posts' ) ) {
 		wp_die( 'You do not have permission to edit this content.' );
@@ -246,8 +262,15 @@ function ild_settings_page(): void {
 
 		foreach ( ild_settings_schema() as $fields ) {
 			foreach ( $fields as $key => $field ) {
-				$posted           = isset( $_POST[ 'ild_' . $key ] ) ? wp_unslash( $_POST[ 'ild_' . $key ] ) : '';
-				$settings[ $key ] = sanitize_textarea_field( $posted );
+				$name = ild_field_name( $key );
+
+				// A field absent from the POST is left alone rather than blanked:
+				// only fields the form actually rendered should be overwritten.
+				if ( ! isset( $_POST[ $name ] ) ) {
+					continue;
+				}
+
+				$settings[ $key ] = sanitize_textarea_field( wp_unslash( $_POST[ $name ] ) );
 			}
 		}
 
@@ -278,7 +301,7 @@ function ild_settings_page(): void {
 
 		foreach ( $fields as $key => $field ) {
 			$value = $settings[ $key ] ?? '';
-			$name  = 'ild_' . $key;
+			$name  = ild_field_name( $key );
 
 			echo '<tr><th scope="row"><label for="' . esc_attr( $name ) . '">' . esc_html( $field['label'] ) . '</label></th><td>';
 
