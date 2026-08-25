@@ -53,8 +53,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
 
-        <Newsletter />
-        <Footer />
+        {/* Wrapped so the floating bottom nav can watch for this whole block
+            and step aside once any of it is on screen — the newsletter's email
+            field sits right where the bar would otherwise cover it. */}
+        <div id="site-footer">
+          <Newsletter />
+          <Footer />
+        </div>
+
         <BottomNav />
       </body>
     </html>

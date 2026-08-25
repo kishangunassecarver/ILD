@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
@@ -13,44 +13,43 @@ import { cn } from "@/lib/utils";
  * Below `lg` only — the desktop header already carries the full mega menu, and
  * a second persistent nav there would duplicate it and cover content.
  *
- * It hides itself while the page is scrolling down and comes back on the way
- * up, which is the convention people expect from a bar that sits over content:
- * it stays out of the way while you are reading and is there the moment you
- * look for it.
+ * The bar stays put the whole way down the page and only steps aside once the
+ * footer block comes into view, where it would otherwise sit on top of the
+ * newsletter field and the footer links. Watching the footer directly rather
+ * than guessing from scroll position means it behaves the same on a short page
+ * and a long one.
  */
 export function BottomNav() {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
-  const lastY = useRef(0);
 
   useEffect(() => {
     if (!BOTTOM_NAV.visible) return;
 
-    lastY.current = window.scrollY;
-    let frame = 0;
+    const footer = document.getElementById("site-footer");
+    // No footer on this page: stay visible. Failing towards "shown" keeps
+    // navigation reachable either way.
+    if (!footer) return;
 
-    const onScroll = () => {
-      // Coalesce to one measurement per frame; scroll fires far more often.
-      if (frame) return;
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        const y = window.scrollY;
-        const delta = y - lastY.current;
+    /*
+     * An IntersectionObserver rather than a scroll handler: it is the API built
+     * for this question, it costs nothing while the footer is far away, and it
+     * keeps working when the layout shifts under you — images finishing loading,
+     * a filter changing the page height — which a cached scroll measurement
+     * would not.
+     */
+    if (typeof IntersectionObserver === "undefined") return;
 
-        // Ignore small jitter, and never hide near the top of the page.
-        if (Math.abs(delta) > 6 && y > 120) setHidden(delta > 0);
-        else if (y <= 120) setHidden(false);
+    const observer = new IntersectionObserver(
+      ([entry]) => setHidden(entry.isIntersecting),
+      // The small negative margin means the bar clears out just before the
+      // footer's top edge arrives, rather than overlapping it for a moment.
+      { rootMargin: "0px 0px -24px 0px", threshold: 0 }
+    );
 
-        lastY.current = y;
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [pathname]);
 
   if (!BOTTOM_NAV.visible || BOTTOM_NAV.items.length === 0) return null;
 
