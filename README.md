@@ -112,29 +112,37 @@ ship (TikTok, X).
 
 The site is a static export, so it deploys anywhere static files are served.
 
-1. **Push to GitHub**
+**As deployed:** the GitHub repo is connected to **Cloudflare Workers Builds**
+(not Pages), so Cloudflare reads `wrangler.jsonc` from this repo — which means
+`assets.directory = ./out` and `not_found_handling = "404-page"` are already
+configured, and `app/not-found.tsx` is served for unknown paths without any
+dashboard setup.
 
-   ```bash
-   git init && git add -A && git commit -m "I Love Durban — initial build"
-   git remote add origin https://github.com/YOUR-USERNAME/ilovedurban.git
-   git branch -M main && git push -u origin main
-   ```
+Build settings: build command `npm run build`, output directory `out`.
+Every `git push` to `main` redeploys, and so does publishing in WordPress, via
+the deploy hook.
 
-2. **Connect Cloudflare Pages**
+### Setting WORDPRESS_URL
 
-   Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to
-   Git** → pick the repo, then:
+`WORDPRESS_URL` is a **build-time** variable — `scripts/fetch-wp-content.mjs`
+reads it during `npm run build`. The site never reads it at runtime, because a
+static export has no server. So it goes in the build configuration, not the
+Worker's runtime bindings:
 
-   - Framework preset: **Next.js (Static HTML Export)**
-   - Build command: `npm run build`
-   - Build output directory: `out`
+- **Settings → Build → Build variables and secrets** ← correct
+- Settings → Variables & Secrets ← runtime; a static-assets-only Worker has no
+  script, so Cloudflare rejects variables here with *"Variables cannot be added
+  to a Worker that only has static assets"*
 
-   Add `WORDPRESS_URL` under **Settings → Variables and Secrets** once the CMS
-   is up. Every `git push` redeploys; so does publishing in WordPress, via the
-   deploy hook.
+Leave it unset until WordPress is actually live. Unset means the build uses the
+seed content in `lib/data.ts`, which is the safe default — and the build log
+says which source it used on every deploy.
 
-`wrangler.jsonc` is here as an alternative if you would rather deploy the
-`out/` directory directly with `npm run deploy`.
+### Deploying without Git
+
+`npm run deploy` builds and pushes `out/` straight up with wrangler. Useful for
+a quick preview, but it skips the Git pipeline, so the WordPress deploy hook has
+nothing to trigger.
 
 ## Notes
 

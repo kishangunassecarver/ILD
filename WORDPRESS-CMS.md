@@ -118,13 +118,22 @@ half real data and half sample data is worse than either.
 ## Part 4 — Connect the two services
 
 **a. Tell the site where WordPress lives.** In the Cloudflare dashboard, open
-your project → **Settings → Variables and Secrets** → add:
+your project → **Settings → Build → Build variables and secrets** → add:
 
 ```
 WORDPRESS_URL = https://cms.ilovedurban.co.za
 ```
 
-(no trailing slash, and `https://`). Redeploy. The build log will show:
+(no trailing slash, and `https://`).
+
+> This is a *build* variable, not a runtime one. The site reads it during
+> `npm run build` and bakes the result in; nothing reads it once the site is
+> live. Adding it under **Settings → Variables & Secrets** instead will be
+> rejected with *"Variables cannot be added to a Worker that only has static
+> assets"* — that Worker has no script, so it has nowhere to read runtime
+> variables from. Correct behaviour, wrong menu.
+
+Redeploy. The build log will show:
 
 ```
 [cms] loaded from cms.ilovedurban.co.za: site, listings (48), events (12), ...
