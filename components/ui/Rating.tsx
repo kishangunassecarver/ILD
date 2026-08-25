@@ -13,6 +13,17 @@ export function Rating({
   price?: string;
   className?: string;
 }) {
+  // A listing with no rating yet — a new business, or one nobody has reviewed —
+  // should show nothing rather than a damning "0.0 (0)".
+  if (!(rating > 0)) {
+    if (!price) return null;
+    return (
+      <div className={className}>
+        <span className="text-xs font-medium text-muted">{price}</span>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <span className="inline-flex items-center gap-1 text-xs">

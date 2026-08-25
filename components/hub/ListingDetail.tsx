@@ -40,9 +40,11 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
           </span>
         )}
         <div className="absolute inset-x-0 bottom-0 p-5">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white/75">
-            {listing.category}
-          </p>
+          {listing.category && (
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white/75">
+              {listing.category}
+            </p>
+          )}
           <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
             {listing.name}
           </h1>

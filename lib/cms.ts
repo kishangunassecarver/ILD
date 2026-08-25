@@ -77,26 +77,119 @@ export const HUBS: Hub[] = defaults.HUBS.map((hub) => {
   return mergeFields(hub, override);
 });
 
+/*
+ * Normalisation at the boundary.
+ *
+ * WordPress omits every field an editor left blank — deliberately, so that a
+ * partly-filled entry keeps the built-in wording rather than blanking it. That
+ * means an entry can arrive missing things the TypeScript types declare as
+ * required, and the types would be quietly lying about the data.
+ *
+ * So coerce here, once: give every declared field a value of the right type,
+ * and drop only entries that cannot be salvaged. Skipping this is not
+ * theoretical — a single listing published without a Category crashed site
+ * search on `category.toLowerCase()`.
+ */
+
+function str(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function num(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function list(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+function normaliseListing(raw: Partial<Listing> | null | undefined): Listing | null {
+  // A listing with no slug, no name, or no valid hub has no page to live on.
+  if (!raw || !present(raw.slug) || !present(raw.name)) return null;
+  if (!HUBS.some((h) => h.slug === raw.hub)) return null;
+
+  return {
+    ...raw,
+    slug: raw.slug,
+    name: raw.name,
+    hub: raw.hub as HubSlug,
+    category: str(raw.category),
+    area: str(raw.area),
+    rating: num(raw.rating),
+    reviews: num(raw.reviews),
+    blurb: str(raw.blurb),
+    tags: list(raw.tags),
+  };
+}
+
+function normaliseEvent(raw: Partial<Event> | null | undefined): Event | null {
+  if (!raw || !present(raw.slug) || !present(raw.title) || !present(raw.date)) return null;
+
+  return {
+    ...raw,
+    slug: raw.slug,
+    title: raw.title,
+    date: raw.date,
+    venue: str(raw.venue),
+    area: str(raw.area),
+    category: str(raw.category) || "Events",
+    blurb: str(raw.blurb),
+  };
+}
+
+function normaliseDeal(raw: Partial<Deal> | null | undefined): Deal | null {
+  if (!raw || !present(raw.slug) || !present(raw.title)) return null;
+
+  return {
+    ...raw,
+    slug: raw.slug,
+    title: raw.title,
+    business: str(raw.business) || raw.title,
+    badge: str(raw.badge) || "OFFER",
+    validUntil: str(raw.validUntil),
+    category: str(raw.category) || "Deals",
+    area: str(raw.area),
+    blurb: str(raw.blurb),
+  };
+}
+
+function normalisePost(raw: Partial<Post> | null | undefined): Post | null {
+  if (!raw || !present(raw.slug) || !present(raw.title) || !present(raw.body)) return null;
+
+  return {
+    ...raw,
+    slug: raw.slug,
+    title: raw.title,
+    date: str(raw.date),
+    author: str(raw.author),
+    category: str(raw.category) || "Durban",
+    excerpt: str(raw.excerpt),
+    body: list(raw.body),
+  };
+}
+
 /**
  * Listings, events and deals are wholesale replacements: if WordPress returns
  * any, it owns the whole collection. Editors are told this explicitly, because
  * a half-migrated directory is worse than either extreme.
  */
-export const LISTINGS: Listing[] = use(overrides.listings, defaults.LISTINGS).filter(
-  (l) => present(l?.slug) && present(l?.name) && HUBS.some((h) => h.slug === l.hub)
-);
+export const LISTINGS: Listing[] = use(overrides.listings, defaults.LISTINGS)
+  .map(normaliseListing)
+  .filter((l): l is Listing => l !== null);
 
 export const EVENTS: Event[] = use(overrides.events, defaults.EVENTS)
-  .filter((e) => present(e?.slug) && present(e?.title) && present(e?.date))
+  .map(normaliseEvent)
+  .filter((e): e is Event => e !== null)
   .sort((a, b) => a.date.localeCompare(b.date));
 
-export const DEALS: Deal[] = use(overrides.deals, defaults.DEALS).filter(
-  (d) => present(d?.slug) && present(d?.title)
-);
+export const DEALS: Deal[] = use(overrides.deals, defaults.DEALS)
+  .map(normaliseDeal)
+  .filter((d): d is Deal => d !== null);
 
 /** Newest first — the one collection where recency is the whole ordering. */
 export const POSTS: Post[] = use(overrides.posts, defaults.POSTS)
-  .filter((p) => present(p?.slug) && present(p?.title) && present(p?.body))
+  .map(normalisePost)
+  .filter((p): p is Post => p !== null)
   .sort((a, b) => b.date.localeCompare(a.date));
 
 /* -------------------------------------------------------------------------

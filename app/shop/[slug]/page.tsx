@@ -4,9 +4,21 @@ import { getListing, listingsIn } from "@/lib/cms";
 
 const HUB = "shop" as const;
 
+/**
+ * Sentinel slug for a hub with nothing published in it.
+ *
+ * Under `output: export` a dynamic route whose generateStaticParams returns an
+ * empty array fails the build outright — "missing generateStaticParams()". So a
+ * hub the editors have not populated yet would take down the entire site rather
+ * than simply showing an empty hub page. Emitting one throwaway param keeps the
+ * route valid; the page 404s for it and nothing ever links to it.
+ */
+const NONE = "__no-listings";
+
 /** One static page per listing — the export has no server to resolve slugs. */
 export function generateStaticParams() {
-  return listingsIn(HUB).map((listing) => ({ slug: listing.slug }));
+  const listings = listingsIn(HUB);
+  return listings.length ? listings.map((listing) => ({ slug: listing.slug })) : [{ slug: NONE }];
 }
 
 export async function generateMetadata({
@@ -25,5 +37,7 @@ export async function generateMetadata({
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  // ListingDetail calls notFound() for anything it cannot resolve, which covers
+  // the sentinel above without needing a special case here.
   return <ListingDetail hub={HUB} slug={slug} />;
 }
