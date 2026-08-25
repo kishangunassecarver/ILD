@@ -1,12 +1,17 @@
 import {
   Award,
   BedDouble,
+  Briefcase,
   Calendar,
   Compass,
   Heart,
+  House,
   MapPin,
+  Megaphone,
+  Search,
   ShoppingBag,
   Sparkles,
+  Store,
   Tag,
   Ticket,
   Utensils,
@@ -33,7 +38,15 @@ const ICONS: Record<IconName, LucideIcon> = {
   "shopping-bag": ShoppingBag,
   wrench: Wrench,
   "map-pin": MapPin,
+  home: House,
+  search: Search,
+  megaphone: Megaphone,
+  briefcase: Briefcase,
+  store: Store,
 };
+
+/** Names an editor may type into the CMS, for the admin field's help text. */
+export const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
 export function Icon({
   name,

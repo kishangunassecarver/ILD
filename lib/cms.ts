@@ -14,7 +14,7 @@
  */
 import rawOverrides from "./content.generated.json";
 import * as defaults from "./data";
-import type { Deal, Event, Hub, HubSlug, Listing, Post, Sponsor } from "./types";
+import type { BottomNavItem, Deal, Event, Hub, HubSlug, Listing, Post, Sponsor } from "./types";
 
 /** Design-coupled: nav structure, tokens and footer stay in code. */
 export { NAV, QUICK_ACTIONS, FOOTER, SOCIALS, TOP_PICK_TABS } from "./data";
@@ -27,6 +27,7 @@ type Overrides = {
   deals?: Deal[];
   posts?: Post[];
   sponsors?: Sponsor[];
+  bottomNav?: { visibility?: string; items?: BottomNavItem[] };
   appPromo?: Partial<typeof defaults.APP_PROMO>;
   newsletter?: Partial<typeof defaults.NEWSLETTER>;
   stats?: typeof defaults.STATS;
@@ -67,6 +68,22 @@ export const NEWSLETTER = mergeFields(defaults.NEWSLETTER, overrides.newsletter)
 export const STATS = use(overrides.stats, defaults.STATS);
 export const BUSINESS_PLANS = use(overrides.businessPlans, defaults.BUSINESS_PLANS);
 export const SPONSORS = use(overrides.sponsors, defaults.SPONSORS);
+
+/**
+ * The floating bottom navigation.
+ *
+ * Editors can hide the bar entirely, or replace the items wholesale. An item
+ * needs a label and a link to be worth rendering; the icon falls back to a map
+ * pin if the name is not one the site knows, so a typo degrades rather than
+ * breaks. See components/ui/Icon.tsx for the list.
+ */
+export const BOTTOM_NAV = {
+  visible: (overrides.bottomNav?.visibility ?? defaults.BOTTOM_NAV.visibility) !== "hide",
+  items: use(
+    overrides.bottomNav?.items?.filter((i) => present(i?.label) && present(i?.href)),
+    defaults.BOTTOM_NAV.items
+  ) as BottomNavItem[],
+};
 
 /**
  * Hubs are structural — the routes are files on disk, so an editor cannot add

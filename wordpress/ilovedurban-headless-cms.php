@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.5.0
+ * Version:      1.6.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -79,6 +79,9 @@ function ild_schema(): array {
 				'address'   => array( 'type' => 'text', 'label' => 'Address' ),
 				'phone'     => array( 'type' => 'text', 'label' => 'Phone' ),
 				'website'   => array( 'type' => 'text', 'label' => 'Website (https://…)' ),
+				'googleRating'  => array( 'type' => 'number', 'label' => 'Google rating out of 5 (e.g. 4.6) — shown as an attributed "Google rating" block' ),
+				'googleReviews' => array( 'type' => 'int', 'label' => 'Number of Google reviews' ),
+				'googleUrl'     => array( 'type' => 'text', 'label' => 'Google Maps link for this business (the "See reviews on Google" button)' ),
 				'hours'     => array( 'type' => 'lines', 'label' => 'Opening hours — one line per row' ),
 				'amenities' => array( 'type' => 'lines', 'label' => 'Good to know — one per line' ),
 			),
@@ -131,7 +134,8 @@ function ild_schema(): array {
 				'body'      => array( 'type' => 'textarea', 'label' => 'Body copy (sidebar only)' ),
 				'cta'       => array( 'type' => 'text', 'label' => 'Button label' ),
 				'href'      => array( 'type' => 'text', 'label' => 'Link' ),
-				'art'       => array( 'type' => 'text', 'label' => 'Gradient classes (ask the developers — e.g. "from-[#3B1E7A] via-[#5B2AA8] to-[#8E2DE2]")' ),
+				'logo'      => array( 'type' => 'text', 'label' => 'Logo URL — upload to the Media Library and paste the file URL here. Transparent PNG or SVG; it sits on the panel background. Leave blank to set the partner name in type instead.' ),
+				'art'       => array( 'type' => 'text', 'label' => 'Gradient classes (ask the developers — e.g. "from-[#3B1E7A] via-[#5B2AA8] to-[#8E2DE2]"). Used on its own, or underneath a background image.' ),
 			),
 		),
 		'ild_plan'     => array(
@@ -182,6 +186,18 @@ function ild_settings_schema(): array {
 				'type'  => 'pipe',
 				'label' => 'Stats — one per line: 4 200+|Local businesses listed',
 				'cols'  => array( 'value', 'label' ),
+			),
+		),
+		'Bottom navigation bar' => array(
+			'bottomNav.visibility' => array(
+				'type'    => 'select',
+				'label'   => 'Show the floating bottom bar? (phones and tablets only — desktop uses the main menu)',
+				'options' => array( 'show', 'hide' ),
+			),
+			'bottomNav.items'      => array(
+				'type'  => 'pipe',
+				'label' => 'Bar items — one per line: Label|/link|icon. Icons: home, compass, search, tag, calendar, heart, map-pin, sparkles, award, utensils, bed, ticket, shopping-bag, wrench, megaphone, briefcase, store. Five fits comfortably; six starts to crowd.',
+				'cols'  => array( 'label', 'href', 'icon' ),
 			),
 		),
 	);
@@ -308,6 +324,14 @@ function ild_settings_page(): void {
 
 			if ( 'text' === $field['type'] ) {
 				echo '<input type="text" class="large-text" id="' . esc_attr( $name ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '" />';
+			} elseif ( 'select' === $field['type'] ) {
+				echo '<select id="' . esc_attr( $name ) . '" name="' . esc_attr( $name ) . '">';
+				// A blank first option means "leave it to the site's default".
+				echo '<option value="">— use the site default —</option>';
+				foreach ( $field['options'] as $option ) {
+					echo '<option value="' . esc_attr( $option ) . '" ' . selected( $value, $option, false ) . '>' . esc_html( $option ) . '</option>';
+				}
+				echo '</select>';
 			} else {
 				echo '<textarea class="large-text code" rows="5" id="' . esc_attr( $name ) . '" name="' . esc_attr( $name ) . '">' . esc_textarea( $value ) . '</textarea>';
 			}

@@ -32,6 +32,7 @@ const ALLOWED = new Set([
   "deals",
   "posts",
   "sponsors",
+  "bottomNav",
   "appPromo",
   "newsletter",
   "stats",

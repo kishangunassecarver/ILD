@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Check, Clock, Globe, MapPin, Phone, Tag } from "lucide-react";
 import { ListingCard } from "@/components/cards/ListingCard";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { GoogleRating } from "@/components/ui/GoogleRating";
 import { Rating } from "@/components/ui/Rating";
 import { SaveButton } from "@/components/ui/SaveButton";
 import { Tile } from "@/components/ui/Tile";
@@ -111,6 +112,16 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
+          {listing.googleRating ? (
+            <section className="panel p-5">
+              <GoogleRating
+                rating={listing.googleRating}
+                reviews={listing.googleReviews}
+                url={listing.googleUrl}
+              />
+            </section>
+          ) : null}
+
           <section className="panel p-5">
             <h2 className="text-sm font-bold text-ink">Visit</h2>
 

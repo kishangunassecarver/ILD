@@ -1,3 +1,4 @@
+import { SponsorBackdrop, SponsorMark } from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
 
 /**
@@ -26,9 +27,11 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
           <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-white/60">
             Title partner
           </p>
-          <p className="font-display text-lg font-extrabold leading-none tracking-tight text-white">
-            {sponsor.name}
-          </p>
+          <SponsorMark
+            sponsor={sponsor}
+            height="max-h-6"
+            typeClassName="font-display text-lg font-extrabold leading-none tracking-tight text-white"
+          />
           <p className="hidden text-xs font-medium text-white/80 sm:block">{sponsor.headline}</p>
           <a
             href={sponsor.href}
@@ -48,6 +51,8 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
       aria-label={`${sponsor.name} — title partner`}
       className={`relative overflow-hidden bg-gradient-to-br ${sponsor.art}`}
     >
+      <SponsorBackdrop sponsor={sponsor} />
+
       {/* Decorative city glow. */}
       <div
         className="pointer-events-none absolute -right-24 -top-32 h-[26rem] w-[26rem] rounded-full bg-white/15 blur-3xl"
@@ -66,9 +71,12 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
             </p>
           )}
 
-          <p className="mt-3 font-display text-4xl font-extrabold leading-none tracking-tight text-white sm:text-5xl lg:text-6xl">
-            {sponsor.name}
-          </p>
+          <SponsorMark
+            sponsor={sponsor}
+            height="max-h-14 sm:max-h-20 lg:max-h-24"
+            typeClassName="font-display text-4xl font-extrabold leading-none tracking-tight text-white sm:text-5xl lg:text-6xl"
+            className={sponsor.logo ? "mt-3 mx-auto lg:mx-0" : "mt-3"}
+          />
 
           <p className="mt-4 text-lg font-semibold text-white sm:text-xl">{sponsor.headline}</p>
 

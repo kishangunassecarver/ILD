@@ -1,3 +1,4 @@
+import { SponsorBackdrop, SponsorMark } from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ export function SponsorTower({ className }: { className?: string }) {
         className
       )}
     >
+      <SponsorBackdrop sponsor={sponsor} />
+
       <div
         className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-[#12B5CB]/25 blur-3xl"
         aria-hidden
@@ -21,9 +24,12 @@ export function SponsorTower({ className }: { className?: string }) {
 
       <div className="relative flex flex-col gap-4 p-5 text-center">
         <div>
-          <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-white">
-            {sponsor.name}
-          </p>
+          <SponsorMark
+            sponsor={sponsor}
+            height="max-h-10"
+            typeClassName="font-display text-2xl font-extrabold leading-none tracking-tight text-white"
+            className={sponsor.logo ? "mx-auto object-center" : undefined}
+          />
           {sponsor.subhead && (
             <p className="mt-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-white/60">
               {sponsor.subhead}

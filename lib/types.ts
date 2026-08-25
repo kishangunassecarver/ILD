@@ -18,6 +18,13 @@ export interface NavItem {
   feature?: { title: string; body: string; href: string; cta: string };
 }
 
+/** An item in the floating bottom navigation bar. All items carry equal weight. */
+export interface BottomNavItem {
+  label: string;
+  href: string;
+  icon: IconName;
+}
+
 /** The coloured pills directly under the title-partner banner. */
 export interface QuickAction {
   label: string;
@@ -38,7 +45,12 @@ export type IconName =
   | "ticket"
   | "shopping-bag"
   | "wrench"
-  | "map-pin";
+  | "map-pin"
+  | "home"
+  | "search"
+  | "megaphone"
+  | "briefcase"
+  | "store";
 
 /**
  * A business, venue or attraction. One shape serves every hub — a restaurant,
@@ -75,6 +87,16 @@ export interface Listing {
   amenities?: string[];
   /** Absolute image URL from the CMS media library. Falls back to generated art. */
   image?: string;
+
+  /**
+   * Google rating, shown as its own attributed block rather than merged into
+   * the site's own `rating` — a number sourced from Google has to be labelled
+   * as Google's and linked back to it.
+   */
+  googleRating?: number;
+  googleReviews?: number;
+  /** The listing's Google Maps page, for the "See reviews on Google" link. */
+  googleUrl?: string;
 }
 
 export type HubSlug = "eat-drink" | "stay" | "things-to-do" | "shop" | "services";
@@ -135,10 +157,23 @@ export interface Sponsor {
   body?: string;
   cta: string;
   href: string;
-  /** Tailwind gradient classes for the panel background. */
+  /**
+   * Tailwind gradient classes for the panel background. Used when no
+   * background image is supplied, and as the base layer underneath one.
+   */
   art: string;
   /** Small print above the headline, e.g. "Proudly brought to you by". */
   eyebrow?: string;
+  /**
+   * The partner's wordmark, shown instead of setting `name` in type. Supply a
+   * transparent PNG or SVG — it renders on the panel's own background.
+   */
+  logo?: string;
+  /**
+   * Background photograph, from the sponsor's featured image in WordPress.
+   * Covers the panel with a scrim over it so the copy stays legible.
+   */
+  image?: string;
 }
 
 /**

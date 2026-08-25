@@ -11,6 +11,7 @@
  * verified data from WordPress before the site goes public — see README.md.
  */
 import type {
+  BottomNavItem,
   Deal,
   Event,
   FooterColumn,
@@ -176,6 +177,26 @@ export const NAV: NavItem[] = [
   { label: "Shop", href: "/shop" },
   { label: "Services", href: "/services" },
 ];
+
+/**
+ * The floating bottom navigation bar.
+ *
+ * `visibility` is a string rather than a boolean because it is set from a
+ * WordPress dropdown: an unchecked checkbox is indistinguishable from an
+ * untouched field once blank values are dropped from the payload, so "hide"
+ * has to be something an editor can positively say.
+ */
+export const BOTTOM_NAV: { visibility: "show" | "hide"; items: BottomNavItem[] } = {
+  visibility: "show",
+  // Five reads comfortably at 390px; six starts to crowd the labels.
+  items: [
+    { label: "Home", href: "/", icon: "home" },
+    { label: "Explore", href: "/discover", icon: "compass" },
+    { label: "Deals", href: "/deals", icon: "tag" },
+    { label: "Events", href: "/events", icon: "calendar" },
+    { label: "Saved", href: "/saved", icon: "heart" },
+  ],
+};
 
 /** The rail of icon links directly beneath the title-partner banner. */
 export const QUICK_ACTIONS: QuickAction[] = [
