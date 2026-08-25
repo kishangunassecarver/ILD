@@ -6,13 +6,14 @@ import { Newsletter } from "@/components/layout/Newsletter";
 import { QuickActions } from "@/components/layout/QuickActions";
 import { SiteBanner } from "@/components/layout/SiteBanner";
 import { SITE } from "@/lib/cms";
+import { IS_PREVIEW, SITE_URL } from "@/lib/site-url";
 
 /**
  * Metadata is deliberately not editable from WordPress — it is SEO
  * configuration rather than page copy. See WORDPRESS-CMS.md.
  */
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: `${SITE.name} — ${SITE.tagline}`,
     template: `%s · ${SITE.name}`,
@@ -27,7 +28,9 @@ export const metadata: Metadata = {
     locale: "en_ZA",
   },
   twitter: { card: "summary_large_image" },
-  robots: { index: true, follow: true },
+  // Preview builds carry noindex as well as the robots.txt block, so a crawler
+  // that reached a page directly still will not index it.
+  robots: IS_PREVIEW ? { index: false, follow: false } : { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

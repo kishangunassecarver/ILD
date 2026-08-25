@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { DEALS, EVENTS, HUBS, LISTINGS, POSTS, SITE } from "@/lib/cms";
+import { DEALS, EVENTS, HUBS, LISTINGS, POSTS } from "@/lib/cms";
+import { SITE_URL } from "@/lib/site-url";
 
 /**
  * Emitted as sitemap.xml at build time.
@@ -11,8 +12,7 @@ import { DEALS, EVENTS, HUBS, LISTINGS, POSTS, SITE } from "@/lib/cms";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = SITE.url.replace(/\/+$/, "");
-  const at = (path: string) => `${base}${path}`;
+  const at = (path: string) => `${SITE_URL}${path}`;
 
   const marketing = [
     { path: "/", priority: 1 },
