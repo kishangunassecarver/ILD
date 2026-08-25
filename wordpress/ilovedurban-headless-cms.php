@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.2.0
+ * Version:      1.3.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -607,7 +607,16 @@ function ild_rest_content(): WP_REST_Response {
 		$payload['posts'] = $posts;
 	}
 
-	$response = new WP_REST_Response( $payload );
+	/*
+	 * Cast the top level to an object.
+	 *
+	 * PHP cannot tell an empty list from an empty map, so an empty $payload
+	 * would encode as "[]" rather than "{}" — and the site's fetch script
+	 * rejects arrays as a malformed response. Casting pins the container to an
+	 * object. Only the top level is cast, so the collections nested inside it
+	 * stay as JSON arrays.
+	 */
+	$response = new WP_REST_Response( (object) $payload );
 	// The build fetches this once; a short cache absorbs retries without going stale.
 	$response->header( 'Cache-Control', 'public, max-age=60' );
 

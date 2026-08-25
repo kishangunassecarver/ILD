@@ -88,6 +88,15 @@ async function main() {
     return;
   }
 
+  // A CMS with nothing published in it is a normal state, not a fault. PHP
+  // encodes an empty map as "[]", so accept an empty array as "no content"
+  // rather than reporting a malformed response and alarming whoever reads the
+  // build log. A *populated* array is still wrong — the payload is a map.
+  if (Array.isArray(payload) && payload.length === 0) {
+    await write({}, `${url.host} has no published content yet — using default content`);
+    return;
+  }
+
   if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
     await write({}, "WordPress returned an unexpected shape — using default content");
     return;
