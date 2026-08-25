@@ -15,6 +15,17 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /*
+   * Nothing on this site scrolls the page sideways — the carousels have their
+   * own overflow containers. Clamping it here stops a single mis-sized element
+   * from widening the layout viewport, which on mobile pushes fixed, viewport-
+   * anchored elements (the menu drawer) outside the visible area.
+   */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-paper text-ink antialiased;
   }

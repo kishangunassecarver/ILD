@@ -271,9 +271,21 @@ function MobileDrawer({
         className="fixed inset-0 z-50 bg-ink/50"
       />
 
-      {/* dvh rather than inset-y-0: mobile browsers change the visible height as
-          their toolbars collapse, and dvh tracks that where vh does not. */}
-      <div className="fixed right-0 top-0 z-50 flex h-[100dvh] w-[min(22rem,88vw)] max-w-full flex-col bg-white shadow-lift">
+      {/*
+       * Anchored left and sized in viewport units on phones, rather than
+       * right-aligned.
+       *
+       * A right-aligned fixed panel only lands on screen if its containing
+       * block is exactly as wide as the viewport. On a real Android device that
+       * was not true — the overlay dimmed the page while the panel sat somewhere
+       * off to the right, so the menu looked like it had broken the site. The
+       * left edge is reliably at zero, and 100vw is the viewport by definition,
+       * so this cannot land off-screen however the containing block is measured.
+       *
+       * dvh rather than vh so the height tracks mobile toolbars as they
+       * collapse. The right-hand drawer returns at sm and up.
+       */}
+      <div className="fixed left-0 top-0 z-50 flex h-[100dvh] w-[100vw] max-w-[100vw] flex-col bg-white shadow-lift sm:left-auto sm:right-0 sm:w-[22rem]">
         <div className="flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line px-4">
           <Logo />
           <button
