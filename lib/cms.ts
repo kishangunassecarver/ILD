@@ -318,6 +318,29 @@ export function getPage(path: string): Page | undefined {
   return PAGES.find((p) => p.path === path.replace(/^\/+|\/+$/g, ""));
 }
 
+/**
+ * The section a page belongs to, and everything else in it.
+ *
+ * Computed here rather than sent by the CMS: PAGES already holds every page, so
+ * asking WordPress to repeat each article's 30-odd siblings would multiply the
+ * payload for information the site can work out from a path.
+ */
+export function pageSection(path: string): { section?: Page; siblings: Page[] } {
+  const clean = path.replace(/^\/+|\/+$/g, "");
+  const slash = clean.indexOf("/");
+
+  if (slash === -1) return { siblings: [] };
+
+  const sectionPath = clean.slice(0, slash);
+
+  return {
+    section: PAGES.find((p) => p.path === sectionPath),
+    siblings: PAGES.filter((p) => p.path.startsWith(`${sectionPath}/`)).sort((a, b) =>
+      a.title.localeCompare(b.title)
+    ),
+  };
+}
+
 /** Newest first — the one collection where recency is the whole ordering. */
 export const POSTS: Post[] = use(overrides.posts, defaults.POSTS)
   .map(normalisePost)

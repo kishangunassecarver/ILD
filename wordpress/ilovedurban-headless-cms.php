@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.0.0
+ * Version:      3.1.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -920,6 +920,29 @@ function ild_extract_article( string $html ): array {
 	);
 }
 
+/**
+ * A summary taken from the extracted article.
+ *
+ * WordPress auto-generates an excerpt from the whole raw page when none is set,
+ * which on these Elementor pages means it starts with the word "Menu" — it is
+ * reading the navigation widget — and ends in a "[…]" marker. Taking the opening
+ * of the actual prose instead gives a summary worth showing on a card.
+ */
+function ild_excerpt_from( string $html, int $length = 160 ): string {
+	$text = ild_text( wp_strip_all_tags( $html ) );
+	$text = preg_replace( '/\s+/', ' ', $text );
+
+	if ( mb_strlen( $text ) <= $length ) {
+		return $text;
+	}
+
+	$cut = mb_substr( $text, 0, $length );
+	$gap = mb_strrpos( $cut, ' ' );
+
+	// Trim to a word boundary rather than mid-word.
+	return rtrim( false !== $gap ? mb_substr( $cut, 0, $gap ) : $cut, ' ,.;:' ) . '…';
+}
+
 /** The extracted article if the markup matched, otherwise the page as it came. */
 function ild_article_or_raw( string $html ): string {
 	$extracted = ild_extract_article( $html );
@@ -976,7 +999,7 @@ function ild_import_page( array $remote, int $parent_id, string $source, bool $i
 			'post_name'    => $slug,
 			'post_parent'  => $parent_id,
 			'post_content' => $content,
-			'post_excerpt' => ild_text( wp_strip_all_tags( $remote['excerpt']['rendered'] ?? '' ) ),
+			'post_excerpt' => ild_excerpt_from( '' !== $extracted['html'] ? $extracted['html'] : $raw ),
 			'menu_order'   => (int) ( $remote['menu_order'] ?? 0 ),
 		),
 		true
@@ -1099,7 +1122,7 @@ function ild_import_from_source( string $base, array $parent_slugs, bool $with_p
 						'post_title'   => ild_text( $remote['title']['rendered'] ?? $slug ),
 						'post_name'    => $slug,
 						'post_content' => ild_article_or_raw( (string) ( $remote['content']['rendered'] ?? '' ) ),
-						'post_excerpt' => ild_text( wp_strip_all_tags( $remote['excerpt']['rendered'] ?? '' ) ),
+						'post_excerpt' => ild_excerpt_from( (string) ( $remote['content']['rendered'] ?? '' ) ),
 						'post_date'    => (string) ( $remote['date'] ?? '' ),
 					),
 					true
@@ -1755,17 +1778,24 @@ function ild_repair_imported( string $base, array $parent_slugs ): array {
 
 				$extracted = ild_extract_article( (string) ( $child['content']['rendered'] ?? '' ) );
 
-				if ( '' === $extracted['image'] ) {
-					continue;
-				}
-
 				// Leave a genuine local Featured Image alone; only the remote
 				// stand-in is being corrected.
-				if ( get_post_thumbnail_id( $local[0]->ID ) ) {
+				if ( '' === $extracted['image'] || get_post_thumbnail_id( $local[0]->ID ) ) {
+					$summary = ild_excerpt_from( '' !== $extracted['html'] ? $extracted['html'] : (string) ( $child['content']['rendered'] ?? '' ) );
+					if ( '' !== $summary ) {
+						wp_update_post( array( 'ID' => $local[0]->ID, 'post_excerpt' => $summary ) );
+					}
 					continue;
 				}
 
 				update_post_meta( $local[0]->ID, '_ild_page_image', esc_url_raw( $extracted['image'] ) );
+
+				// Replace the auto-excerpt that starts with "Menu" and ends "[…]".
+				$summary = ild_excerpt_from( '' !== $extracted['html'] ? $extracted['html'] : (string) ( $child['content']['rendered'] ?? '' ) );
+				if ( '' !== $summary ) {
+					wp_update_post( array( 'ID' => $local[0]->ID, 'post_excerpt' => $summary ) );
+				}
+
 				$repaired++;
 			}
 

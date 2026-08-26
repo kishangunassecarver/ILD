@@ -18,7 +18,14 @@ export function Leaderboard() {
         aria-hidden
       />
 
-      <div className="relative flex flex-wrap items-center gap-x-6 gap-y-4 px-5 py-5 sm:px-6">
+      {/*
+       * A min-height rather than more padding: the band keeps its depth
+       * whatever length of headline a partner sends, and short of this a
+       * background photograph has no room to read as anything.
+       *
+       * 128px at desktop, up from a measured 83px.
+       */}
+      <div className="relative flex min-h-[7rem] flex-wrap items-center gap-x-6 gap-y-4 px-5 py-6 sm:min-h-[8rem] sm:px-6">
         <div className="min-w-[8rem]">
           <SponsorMark
             sponsor={sponsor}
