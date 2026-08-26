@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      1.6.0
+ * Version:      2.0.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -206,6 +206,227 @@ function ild_settings_schema(): array {
 /* -------------------------------------------------------------------------
  * Post types
  * ---------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------
+ * Menus — managed in Appearance → Menus
+ * ---------------------------------------------------------------------- */
+
+add_action( 'after_setup_theme', 'ild_register_menus' );
+function ild_register_menus(): void {
+	register_nav_menus(
+		array(
+			'ild_primary' => 'I Love Durban — main menu (top level → column heading → links)',
+			'ild_footer'  => 'I Love Durban — footer (top level → column heading, children → links)',
+		)
+	);
+}
+
+/**
+ * Build a nested tree from a flat WordPress menu.
+ *
+ * wp_get_nav_menu_items() returns a flat list with menu_item_parent pointers.
+ * Depth carries meaning on this site: for the main menu, level one is a nav
+ * item, level two is a column heading in its dropdown, and level three are the
+ * links under that heading.
+ */
+function ild_menu_tree( string $location ): array {
+	$locations = get_nav_menu_locations();
+	if ( empty( $locations[ $location ] ) ) {
+		return array();
+	}
+
+	$items = wp_get_nav_menu_items( $locations[ $location ] );
+	if ( ! $items ) {
+		return array();
+	}
+
+	$by_parent = array();
+	foreach ( $items as $item ) {
+		$by_parent[ (int) $item->menu_item_parent ][] = $item;
+	}
+
+	$build = function ( int $parent ) use ( &$build, $by_parent ): array {
+		$out = array();
+
+		foreach ( $by_parent[ $parent ] ?? array() as $item ) {
+			$node = array(
+				'label'    => ild_text( $item->title ),
+				// Site-relative where possible, so the JSON does not hard-code
+				// the CMS hostname into every link.
+				'href'     => ild_relative_url( $item->url ),
+				'children' => $build( (int) $item->ID ),
+			);
+
+			if ( ! $node['children'] ) {
+				unset( $node['children'] );
+			}
+
+			$out[] = $node;
+		}
+
+		return $out;
+	};
+
+	return $build( 0 );
+}
+
+/** Strip the site's own origin so links stay relative to the front end. */
+function ild_relative_url( string $url ): string {
+	$home = untrailingslashit( home_url() );
+
+	if ( 0 === strpos( $url, $home ) ) {
+		$path = substr( $url, strlen( $home ) );
+		return '' === $path ? '/' : $path;
+	}
+
+	return $url;
+}
+
+/** Main menu → the NavItem[] shape the site's header expects. */
+function ild_primary_nav(): array {
+	$out = array();
+
+	foreach ( ild_menu_tree( 'ild_primary' ) as $top ) {
+		$entry   = array( 'label' => $top['label'], 'href' => $top['href'] );
+		$columns = array();
+		$loose   = array();
+
+		foreach ( $top['children'] ?? array() as $second ) {
+			if ( ! empty( $second['children'] ) ) {
+				$columns[] = array(
+					'heading' => $second['label'],
+					'links'   => array_map(
+						fn( $l ) => array( 'label' => $l['label'], 'href' => $l['href'] ),
+						$second['children']
+					),
+				);
+			} else {
+				// A second-level item with no children of its own is a plain
+				// link; collect them into one unnamed column.
+				$loose[] = array( 'label' => $second['label'], 'href' => $second['href'] );
+			}
+		}
+
+		if ( $loose ) {
+			$columns[] = array( 'heading' => 'Explore', 'links' => $loose );
+		}
+
+		if ( $columns ) {
+			$entry['columns'] = $columns;
+		}
+
+		$out[] = $entry;
+	}
+
+	return $out;
+}
+
+/** Footer menu → FooterColumn[]: top level are headings, children are links. */
+function ild_footer_nav(): array {
+	$out = array();
+
+	foreach ( ild_menu_tree( 'ild_footer' ) as $column ) {
+		if ( empty( $column['children'] ) ) {
+			continue;
+		}
+
+		$out[] = array(
+			'heading' => $column['label'],
+			'links'   => array_map(
+				fn( $l ) => array( 'label' => $l['label'], 'href' => $l['href'] ),
+				$column['children']
+			),
+		);
+	}
+
+	return $out;
+}
+
+/* -------------------------------------------------------------------------
+ * Pages — authored in the ordinary Pages screen
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Top-level paths that belong to the site's own routes.
+ *
+ * A WordPress page whose path starts with one of these is skipped: the built-in
+ * route would win anyway, and generating both would be a silent conflict that
+ * only shows up as a page mysteriously not updating.
+ */
+function ild_reserved_paths(): array {
+	return array(
+		'eat-drink', 'stay', 'things-to-do', 'shop', 'services',
+		'events', 'deals', 'blog', 'discover', 'search', 'saved',
+		'join', 'rewards', 'list-your-business', 'about', 'contact',
+		'help', 'terms', 'privacy', 'sitemap.xml', 'robots.txt',
+	);
+}
+
+/**
+ * Sections whose children are generated from a collection, so nothing may live
+ * beneath them. Everywhere else only the exact path is taken, which is why a
+ * child page such as about/our-team is fine.
+ */
+function ild_reserved_namespaces(): array {
+	return array( 'eat-drink', 'stay', 'things-to-do', 'shop', 'services', 'events', 'deals', 'blog' );
+}
+
+function ild_path_collides( string $path ): bool {
+	if ( '' === $path || in_array( $path, ild_reserved_paths(), true ) ) {
+		return true;
+	}
+
+	foreach ( ild_reserved_namespaces() as $namespace ) {
+		if ( 0 === strpos( $path, $namespace . '/' ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function ild_pages(): array {
+	$out = array();
+
+	$pages = get_posts(
+		array(
+			'post_type'        => 'page',
+			'post_status'      => 'publish',
+			'numberposts'      => 200,
+			'orderby'          => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
+			'suppress_filters' => false,
+		)
+	);
+
+	foreach ( $pages as $page ) {
+		$path = trim( (string) get_page_uri( $page ), '/' );
+
+		if ( ild_path_collides( $path ) ) {
+			continue;
+		}
+
+		$html = apply_filters( 'the_content', $page->post_content );
+		if ( '' === trim( wp_strip_all_tags( $html ) ) ) {
+			continue;
+		}
+
+		$entry = array(
+			'path'    => $path,
+			'title'   => ild_text( get_the_title( $page ) ),
+			'html'    => $html,
+			'excerpt' => ild_text( wp_strip_all_tags( get_the_excerpt( $page ) ) ),
+		);
+
+		$image = get_the_post_thumbnail_url( $page, 'full' );
+		if ( $image ) {
+			$entry['image'] = $image;
+		}
+
+		$out[] = $entry;
+	}
+
+	return $out;
+}
 
 add_action( 'init', 'ild_register_types' );
 function ild_register_types(): void {
@@ -655,6 +876,21 @@ function ild_rest_content(): WP_REST_Response {
 		$payload['posts'] = $posts;
 	}
 
+	$pages = ild_pages();
+	if ( $pages ) {
+		$payload['pages'] = $pages;
+	}
+
+	$nav = ild_primary_nav();
+	if ( $nav ) {
+		$payload['nav'] = $nav;
+	}
+
+	$footer = ild_footer_nav();
+	if ( $footer ) {
+		$payload['footer'] = $footer;
+	}
+
 	/*
 	 * Cast the top level to an object.
 	 *
@@ -675,10 +911,17 @@ function ild_rest_content(): WP_REST_Response {
  * Deploy hook
  * ---------------------------------------------------------------------- */
 
+/** Editing a menu changes the site, so it should rebuild like content does. */
+add_action( 'wp_update_nav_menu', 'ild_on_menu_change' );
+function ild_on_menu_change(): void {
+	ild_trigger_deploy( 'menu updated' );
+}
+
 add_action( 'transition_post_status', 'ild_on_transition', 10, 3 );
 function ild_on_transition( string $new_status, string $old_status, WP_Post $post ): void {
-	$watched = array_keys( ild_schema() );
+	$watched   = array_keys( ild_schema() );
 	$watched[] = 'post';
+	$watched[] = 'page';
 
 	if ( ! in_array( $post->post_type, $watched, true ) ) {
 		return;

@@ -14,10 +14,22 @@
  */
 import rawOverrides from "./content.generated.json";
 import * as defaults from "./data";
-import type { BottomNavItem, Deal, Event, Hub, HubSlug, Listing, Post, Sponsor } from "./types";
+import type {
+  BottomNavItem,
+  Deal,
+  Event,
+  FooterColumn,
+  Hub,
+  HubSlug,
+  Listing,
+  NavItem,
+  Page,
+  Post,
+  Sponsor,
+} from "./types";
 
-/** Design-coupled: nav structure, tokens and footer stay in code. */
-export { NAV, QUICK_ACTIONS, FOOTER, SOCIALS, TOP_PICK_TABS } from "./data";
+/** Still code-owned: icon-backed shortcuts and home-page tab structure. */
+export { QUICK_ACTIONS, SOCIALS, TOP_PICK_TABS } from "./data";
 
 type Overrides = {
   site?: Partial<typeof defaults.SITE>;
@@ -28,6 +40,9 @@ type Overrides = {
   posts?: Post[];
   sponsors?: Sponsor[];
   bottomNav?: { visibility?: string; items?: BottomNavItem[] };
+  nav?: NavItem[];
+  footer?: FooterColumn[];
+  pages?: Page[];
   appPromo?: Partial<typeof defaults.APP_PROMO>;
   newsletter?: Partial<typeof defaults.NEWSLETTER>;
   stats?: typeof defaults.STATS;
@@ -202,6 +217,103 @@ export const EVENTS: Event[] = use(overrides.events, defaults.EVENTS)
 export const DEALS: Deal[] = use(overrides.deals, defaults.DEALS)
   .map(normaliseDeal)
   .filter((d): d is Deal => d !== null);
+
+/**
+ * Navigation, managed in WordPress under Appearance → Menus.
+ *
+ * A menu with nothing assigned to its location falls back to the structure in
+ * lib/data.ts, so the site is never left without navigation — the single worst
+ * thing an editor could do to it by accident.
+ */
+export const NAV: NavItem[] = use(
+  overrides.nav?.filter((item) => present(item?.label) && present(item?.href)),
+  defaults.NAV
+);
+
+export const FOOTER: FooterColumn[] = use(
+  overrides.footer?.filter((c) => present(c?.heading) && present(c?.links)),
+  defaults.FOOTER
+);
+
+/**
+ * Top-level paths owned by the site's own route files.
+ *
+ * This list must stay in step with the directories in `app/`. It is the real
+ * guard, not a convenience: under `output: export` a catch-all page writes the
+ * same `out/<path>/index.html` as a built-in route and **silently overwrites
+ * it** — a WordPress page called "Events" replaced the whole events hub in
+ * testing. The plugin refuses to emit colliding paths too, but the site cannot
+ * depend on the CMS behaving.
+ */
+const RESERVED_TOP_LEVEL = new Set([
+  "about",
+  "blog",
+  "contact",
+  "deals",
+  "discover",
+  "eat-drink",
+  "events",
+  "help",
+  "join",
+  "list-your-business",
+  "privacy",
+  "rewards",
+  "saved",
+  "search",
+  "services",
+  "shop",
+  "stay",
+  "terms",
+  "things-to-do",
+  "sitemap.xml",
+  "robots.txt",
+]);
+
+/**
+ * Sections whose child paths are generated from a collection, so the whole
+ * namespace underneath them is off limits — /eat-drink/anything is a listing.
+ *
+ * Everything else is only reserved at the exact path, which is why a child page
+ * like /about/our-team is perfectly fine: /about is a route file, but nothing
+ * generates paths beneath it.
+ */
+const RESERVED_NAMESPACES = [
+  "eat-drink",
+  "stay",
+  "things-to-do",
+  "shop",
+  "services",
+  "events",
+  "deals",
+  "blog",
+];
+
+function collidesWithRoute(path: string): boolean {
+  if (RESERVED_TOP_LEVEL.has(path)) return true;
+  return RESERVED_NAMESPACES.some((ns) => path.startsWith(`${ns}/`));
+}
+
+/**
+ * Pages authored in WordPress, served by the catch-all route.
+ *
+ * No defaults: an empty list simply means nobody has written any.
+ */
+export const PAGES: Page[] = (overrides.pages ?? [])
+  .filter((p) => present(p?.path) && present(p?.title) && present(p?.html))
+  .map((p) => ({ ...p, path: p.path.replace(/^\/+|\/+$/g, "") }))
+  .filter((p) => {
+    if (!collidesWithRoute(p.path)) return true;
+    // Surfaces in the build log, so a shadowed page is diagnosable rather than
+    // just mysteriously absent.
+    console.warn(
+      `[cms] skipping WordPress page "/${p.path}" — that path belongs to a built-in section of the site. Rename or move the page.`
+    );
+    return false;
+  });
+
+export function getPage(path: string): Page | undefined {
+  return PAGES.find((p) => p.path === path.replace(/^\/+|\/+$/g, ""));
+}
 
 /** Newest first — the one collection where recency is the whole ordering. */
 export const POSTS: Post[] = use(overrides.posts, defaults.POSTS)

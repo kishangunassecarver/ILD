@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { DEALS, EVENTS, HUBS, LISTINGS, POSTS } from "@/lib/cms";
+import { DEALS, EVENTS, HUBS, LISTINGS, PAGES, POSTS } from "@/lib/cms";
 import { SITE_URL } from "@/lib/site-url";
 
 /**
@@ -37,5 +37,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...EVENTS.map((e) => ({ url: at(`/events/${e.slug}`), priority: 0.7 })),
     ...DEALS.map((d) => ({ url: at(`/deals/${d.slug}`), priority: 0.6 })),
     ...POSTS.map((p) => ({ url: at(`/blog/${p.slug}`), lastModified: p.date, priority: 0.6 })),
+    ...PAGES.map((p) => ({ url: at(`/${p.path}`), priority: 0.5 })),
   ];
 }

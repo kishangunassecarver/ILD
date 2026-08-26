@@ -163,13 +163,69 @@ No code, no GitHub, no terminal.
 Unpublishing and deleting published entries also trigger a rebuild, so taking a
 listing down is the same two clicks as putting one up.
 
+## Menus
+
+Both menus are managed in the ordinary **Appearance → Menus** screen, with
+drag-and-drop and nesting. Two menu locations are registered:
+
+**I Love Durban — main menu.** Nesting depth carries meaning:
+
+| Level | Becomes |
+|---|---|
+| Top level | A item in the header bar |
+| Second level | A column heading inside that item's dropdown |
+| Third level | The links under that heading |
+
+A second-level item with no children of its own is treated as a plain link and
+collected into a column headed "Explore". An item with no children at all is
+just a link in the bar, with no dropdown.
+
+**I Love Durban — footer.** Simpler: top level are the column headings, their
+children are the links. A heading with no children is skipped.
+
+Use **Custom Links** for anything that is not a page — `/eat-drink`, `/deals`,
+`/events` and so on. Links to your own WordPress site are rewritten to be
+relative automatically, so the CMS hostname never ends up in the front end.
+
+**If a menu location has nothing assigned, the site falls back to the built-in
+navigation.** Deleting a menu cannot leave the site without navigation.
+
+Editing a menu triggers a rebuild, the same as publishing content.
+
+## Pages
+
+Write them in the ordinary **Pages** screen. Publishing a page called
+"Durban July Guide" puts it at `/durban-july-guide`; a page nested under a
+parent lands at `/parent/child`. The full block editor works — headings, lists,
+links, images, tables, quotes — and the site styles it to match.
+
+Add the page to a menu (Appearance → Menus → Pages) for it to be linked from
+anywhere.
+
+**Some paths are taken by the site's own sections** and a page cannot use them:
+the five hubs, `events`, `deals`, `blog`, `discover`, `search`, `saved`, `join`,
+`rewards`, `list-your-business`, `about`, `contact`, `help`, `terms` and
+`privacy`. Anything *underneath* a hub is taken too — `/eat-drink/anything` is
+always a listing.
+
+A page on a taken path is skipped, and the build log says which and why:
+
+```
+[cms] skipping WordPress page "/events" — that path belongs to a built-in
+section of the site. Rename or move the page.
+```
+
+Child pages elsewhere are fine: `/about/our-team` works, because nothing else
+generates paths under `/about`.
+
+> One caution worth knowing: page content is published as HTML, so anyone who
+> can publish a page can put arbitrary markup on the live site. Keep publish
+> rights to people you trust, with two-factor on their accounts.
+
 ## What is *not* editable from WordPress
 
 Deliberately left in code, because it is design or structure rather than content:
 
-- **Navigation and the mega menus** (`NAV` in `lib/data.ts`) — the link
-  structure has to match the routes that exist.
-- **The footer columns** (`FOOTER`) — same reason.
 - **Quick-action shortcuts** (`QUICK_ACTIONS`) — icons are components, not data.
 - **Brand colours, spacing and type** (`tailwind.config.ts`).
 - **Browser tab titles and search-engine descriptions** — SEO configuration,

@@ -192,6 +192,23 @@ export interface Post {
   image?: string;
 }
 
+/**
+ * A page authored in WordPress, rendered by the catch-all route.
+ *
+ * `path` is the full URL path without leading or trailing slashes, so a child
+ * page under a parent arrives as "about/our-team". `html` is WordPress's own
+ * rendered content — see components/pages/CmsPage.tsx for the trust boundary.
+ */
+export interface Page {
+  path: string;
+  title: string;
+  html: string;
+  excerpt?: string;
+  image?: string;
+  /** Hides the page's own <h1>, for pages whose content supplies its own. */
+  hideTitle?: boolean;
+}
+
 export interface Stat {
   value: string;
   label: string;

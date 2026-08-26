@@ -5,7 +5,8 @@
   "description": "I Love Durban — the heartbeat of our city. Discover, connect, support local.",
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/fetch-wp-content.mjs",
+    "prebuild": "node scripts/check-reserved-routes.mjs && node scripts/fetch-wp-content.mjs",
+    "check:routes": "node scripts/check-reserved-routes.mjs",
     "content": "node scripts/fetch-wp-content.mjs",
     "build": "next build",
     "start": "next start",
