@@ -17,8 +17,7 @@
     {
       "binding": "DB",
       "database_name": "ilovedurban",
-      // Replaced by the real id from `wrangler d1 create ilovedurban`.
-      "database_id": "REPLACE_WITH_DATABASE_ID"
+      "database_id": "6b0144ca-3be6-4d1b-a9f8-b490f8b10626"
     }
   ],
   "vars": {
