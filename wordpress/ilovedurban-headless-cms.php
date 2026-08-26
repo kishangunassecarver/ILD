@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.1.0
+ * Version:      2.2.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -82,6 +82,8 @@ function ild_schema(): array {
 				'googleRating'  => array( 'type' => 'number', 'label' => 'Google rating out of 5 (e.g. 4.6) — shown as an attributed "Google rating" block' ),
 				'googleReviews' => array( 'type' => 'int', 'label' => 'Number of Google reviews' ),
 				'googleUrl'     => array( 'type' => 'text', 'label' => 'Google Maps link for this business (the "See reviews on Google" button)' ),
+				'imageUrl'    => array( 'type' => 'text', 'label' => 'Image URL — an alternative to setting a Featured Image, for photos hosted elsewhere. The Featured Image wins if both are set.' ),
+				'imageCredit' => array( 'type' => 'text', 'label' => 'Photo credit — required for anything not shot by us or supplied by the business. e.g. "Photo: J. Doe / CC BY-SA 4.0"' ),
 				'hours'     => array( 'type' => 'lines', 'label' => 'Opening hours — one line per row' ),
 				'amenities' => array( 'type' => 'lines', 'label' => 'Good to know — one per line' ),
 			),
@@ -740,8 +742,8 @@ function ild_starter_page(): void {
 	echo '<form method="post" style="margin-top:1.5em">';
 	wp_nonce_field( 'ild_import_seed' );
 	echo '<p><label><input type="checkbox" name="ild_placeholders" value="1" /> ';
-	echo 'Also import the placeholder star ratings and review counts</label><br />';
-	echo '<span class="description">The venue names, areas and descriptions are real. The ratings and review counts in the built-in content are <strong>invented</strong>, to make the layouts look right during design. Leave this unticked and listings arrive without ratings, ready for real numbers. Tick it only for demos — and replace them before launch.</span></p>';
+	echo 'Also import demo photographs and placeholder ratings</label><br />';
+	echo '<span class="description"><strong>For demos only.</strong> The venue names, areas and descriptions are real. The ratings and review counts are <strong>invented</strong>, and the photographs are generic stock from Lorem Picsum — <strong>not</strong> the venues\' own pictures, because republishing those from their websites would be copyright infringement. Leave this unticked for a real build: listings then arrive with no ratings and no photo, and the site shows a generated gradient instead of an empty space. Replace all of it with photos the businesses supply, licensed Google Places images, or a commissioned shoot.</span></p>';
 	submit_button( 'Import starter content', 'primary', 'ild_import' );
 	echo '</form></div>';
 }
@@ -1063,10 +1065,19 @@ function ild_entry( WP_Post $post, array $config ): array {
 		$entry[ $key ] = $value;
 	}
 
+	/*
+	 * A Featured Image wins, but an image URL is accepted as a fallback so a
+	 * photo hosted elsewhere — a licensed stock URL, a business's own CDN — can
+	 * be used without first pulling it into the media library.
+	 */
 	$image = get_the_post_thumbnail_url( $post, 'full' );
+	if ( ! $image && ! empty( $entry['imageUrl'] ) ) {
+		$image = $entry['imageUrl'];
+	}
 	if ( $image ) {
 		$entry['image'] = $image;
 	}
+	unset( $entry['imageUrl'] );
 
 	return $entry;
 }

@@ -40,6 +40,12 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
             Featured
           </span>
         )}
+        {listing.imageCredit && (
+          <p className="absolute bottom-1.5 right-3 text-[0.625rem] text-white/60">
+            {listing.imageCredit}
+          </p>
+        )}
+
         <div className="absolute inset-x-0 bottom-0 p-5">
           {listing.category && (
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white/75">

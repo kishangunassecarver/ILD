@@ -116,6 +116,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/the-cargo-hold/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 1209
       }
@@ -150,6 +152,8 @@
         "Outdoor seating"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/osteria-65/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 612
       }
@@ -184,6 +188,8 @@
         "Kids menu"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/butcher-block/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 956
       }
@@ -217,6 +223,8 @@
         "Wheelchair access"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/the-ocean-terrace/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 512
       }
@@ -245,6 +253,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/cafe-1999/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.4,
         "reviews": 734
       }
@@ -278,6 +288,8 @@
         "Halaal"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/little-gujarat/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 1841
       }
@@ -307,6 +319,8 @@
         "Wi-Fi"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/freedom-cafe/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 623
       }
@@ -335,6 +349,8 @@
         "Outdoor seating"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/unity-brasserie/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.3,
         "reviews": 1102
       }
@@ -363,6 +379,8 @@
         "Kids menu"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/spiga-doro/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.2,
         "reviews": 1387
       }
@@ -392,6 +410,8 @@
         "Booking required"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/the-chairman/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 498
       }
@@ -420,6 +440,8 @@
         "Wi-Fi"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/green-mango/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.4,
         "reviews": 287
       }
@@ -448,6 +470,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/afros-and-arabs/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.3,
         "reviews": 812
       }
@@ -485,6 +509,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/the-oyster-box/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.8,
         "reviews": 3204
       }
@@ -513,6 +539,8 @@
         "Gym"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/beverly-hills-hotel/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 2187
       }
@@ -540,6 +568,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/southern-sun-elangeni/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.3,
         "reviews": 4102
       }
@@ -567,6 +597,8 @@
         "Airport shuttle"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/hilton-durban/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.4,
         "reviews": 2760
       }
@@ -593,6 +625,8 @@
         "Garden"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/teremok-marine/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 486
       }
@@ -619,6 +653,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/coco-de-mer/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 331
       }
@@ -646,6 +682,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/ballito-beach-apartments/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.4,
         "reviews": 592
       }
@@ -672,6 +710,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/the-benjamin/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.4,
         "reviews": 704
       }
@@ -707,6 +747,8 @@
         "Lockers"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/ushaka-marine-world/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 8940
       }
@@ -737,6 +779,8 @@
         "Wheelchair access (SkyCar)"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/moses-mabhida-skycar/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 3411
       }
@@ -768,6 +812,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/durban-botanic-gardens/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 5206
       }
@@ -798,6 +844,8 @@
         "Wheelchair access"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/golden-mile-promenade/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 6120
       }
@@ -827,6 +875,8 @@
         "Wheelchair access (partial)"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/umgeni-river-bird-park/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 1876
       }
@@ -856,6 +906,8 @@
         "Shop"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/phansi-museum/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.8,
         "reviews": 412
       }
@@ -886,6 +938,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/mitchell-park/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.4,
         "reviews": 2233
       }
@@ -915,6 +969,8 @@
         "Vegetarian option"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/durban-street-food-tour/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.9,
         "reviews": 386
       }
@@ -944,6 +1000,8 @@
         "Nearby parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/addington-tidal-pool/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.2,
         "reviews": 904
       }
@@ -973,6 +1031,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/zimbali-spa/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 641
       }
@@ -1005,6 +1065,8 @@
         "Baby facilities"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/gateway-theatre-of-shopping/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 12480
       }
@@ -1035,6 +1097,8 @@
         "Cash preferred"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/victoria-street-market/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.3,
         "reviews": 3921
       }
@@ -1065,6 +1129,8 @@
         "Family friendly"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/i-heart-market/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 1188
       }
@@ -1094,6 +1160,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/essenwood-market/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 1642
       }
@@ -1122,6 +1190,8 @@
         "Gift wrapping"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/the-corner-cafe-store/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 274
       }
@@ -1150,6 +1220,8 @@
         "Card payments"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/adams-booksellers/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 508
       }
@@ -1178,6 +1250,8 @@
         "Alarm installation"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/blue-security/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 2140
       }
@@ -1205,6 +1279,8 @@
         "Guaranteed work"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/coastal-plumbing-co/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 318
       }
@@ -1233,6 +1309,8 @@
         "Parking"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/mangwanani-spa/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.5,
         "reviews": 1904
       }
@@ -1260,6 +1338,8 @@
         "Collection & delivery"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/umhlanga-auto/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.6,
         "reviews": 452
       }
@@ -1286,6 +1366,8 @@
         "Fixed monthly fees"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/harbour-accounting/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.8,
         "reviews": 196
       }
@@ -1313,6 +1395,8 @@
         "KZN wide"
       ],
       "__placeholders": {
+        "imageUrl": "https://picsum.photos/seed/east-coast-events/1600/900",
+        "imageCredit": "Demo image — Lorem Picsum",
         "rating": 4.7,
         "reviews": 231
       }

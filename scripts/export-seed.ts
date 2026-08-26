@@ -36,8 +36,28 @@ const out = path.join(root, "wordpress", "seed-content.json");
  */
 const PLACEHOLDER_FIELDS = ["rating", "reviews"] as const;
 
+/**
+ * A demo photograph for a listing.
+ *
+ * Lorem Picsum, which exists for exactly this and serves real, openly licensed
+ * photographs. Seeded by slug so a listing keeps the same picture across
+ * imports and builds rather than reshuffling.
+ *
+ * These are deliberately NOT the venues' own photographs. Taking those from a
+ * business's website and republishing them here would be copyright
+ * infringement, on a site whose entire pitch is supporting those businesses.
+ * They are demo furniture — replace them with the real thing (supplied by the
+ * business, licensed from Google Places, or commissioned) before launch.
+ */
+function demoImage(slug: string): string {
+  return `https://picsum.photos/seed/${encodeURIComponent(slug)}/1600/900`;
+}
+
 function splitListing(listing: (typeof LISTINGS)[number]) {
-  const placeholders: Record<string, unknown> = {};
+  const placeholders: Record<string, unknown> = {
+    imageUrl: demoImage(listing.slug),
+    imageCredit: "Demo image — Lorem Picsum",
+  };
   const rest: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(listing)) {

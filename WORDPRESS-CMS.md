@@ -111,6 +111,29 @@ field under *Page Attributes* (lowest first).
   310k|Monthly visitors
   ```
 
+### Images
+
+Two ways to give a listing a picture, and the first wins if both are set:
+
+1. **Featured Image** — the normal WordPress way. Upload once, reuse anywhere.
+2. **Image URL** — for a photo hosted somewhere else, so you can paste a
+   licensed URL without pulling the file into the media library.
+
+**Landscape, around 1600×900 or wider.** Card and hero tiles are wide bands, so
+a square or portrait photo gets cropped to a thin horizontal slice through the
+middle. A square logo makes a poor hero.
+
+**Photo credit** is a separate field, and it is not optional for anything you
+did not shoot or receive from the business. It renders quietly in the corner of
+the hero.
+
+> **Do not take photographs from a business's own website.** They belong to that
+> business or its photographer, and republishing them here is copyright
+> infringement — on a platform whose pitch to those same businesses is that it
+> supports them. The routes that work: ask the business (the claim-your-listing
+> flow exists for this), licensed Google Places photos, Creative Commons images
+> from Wikimedia for landmarks, or a commissioned shoot you own outright.
+
 ### Things worth knowing
 
 **Listings** need a **Hub** (one of the five fixed hubs) and a **Category** that

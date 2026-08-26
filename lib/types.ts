@@ -87,6 +87,15 @@ export interface Listing {
   amenities?: string[];
   /** Absolute image URL from the CMS media library. Falls back to generated art. */
   image?: string;
+  /**
+   * Photo credit, e.g. "Photo: Jane Doe / CC BY-SA 4.0" or the attribution
+   * string Google Places returns.
+   *
+   * Every legitimate source of listing photography except your own carries an
+   * attribution requirement, so there has to be somewhere to put one. Rendered
+   * on the detail-page hero when present.
+   */
+  imageCredit?: string;
 
   /**
    * Google rating, shown as its own attributed block rather than merged into
