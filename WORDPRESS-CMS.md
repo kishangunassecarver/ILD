@@ -270,9 +270,19 @@ nothing points at it any more, it is safe to switch off.
 
 ### Putting the articles in the menu
 
-The imported sections are ordinary pages, so add them under **Things to Do** in
-Appearance → Menus: Things to Do at the top level, a column heading beneath it,
-then the section pages as links under that.
+**I Love Durban → Attractions Menu** builds it for you. Each section becomes a
+column under Things to Do, listing a few of its attractions and ending in a link
+through to the full section page.
+
+All 124 cannot go in the dropdown — 34 links in one column is a wall of text
+nobody reads — so it shows eight per column by default, which keeps four columns
+readable. The section pages carry the complete lists. Change the count on that
+screen if you want more or fewer.
+
+It **rebuilds** the branch rather than adding to it, so running it twice is safe.
+The flip side is that anything you added under Things to Do by hand gets
+replaced. Fine-tune the result in Appearance → Menus afterwards; nothing stops
+you reordering or removing individual links there.
 
 ## Menus
 
