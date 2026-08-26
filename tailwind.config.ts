@@ -49,14 +49,14 @@ const config: Config = {
           600: "#274468",
           400: "#5A7291",
         },
-        // The layered surfaces. Four distinct steps so sections separate by
-        // tone: page < header < raised section < card.
+        // The layered surfaces — the client's four blues, darkest to lightest:
+        // page < header < raised section < card.
         night: {
-          DEFAULT: "#0D3B5D", // cards
-          800: "#0A3453", // raised sections, menus
-          900: "#052B48", // the header bar
+          DEFAULT: "#011F3B", // cards
+          800: "#041D3B", // raised sections, menus
+          900: "#021734", // the header bar
           // Kept for hover-tint call sites; one step above the card tone.
-          700: "#134669",
+          700: "#06294B",
         },
         // Warm gold for rewards, points and ratings.
         gold: {
@@ -66,7 +66,7 @@ const config: Config = {
         // Text on the night theme.
         snow: "#FFFFFF",
         mist: "#B8C9D7",
-        paper: "#032441", // the page itself
+        paper: "#01122C", // the page itself
         // Soft blue-white, translucent so it reads evenly on every surface.
         line: "rgba(184, 201, 215, 0.16)",
         muted: "#8CA3B8", // secondary text

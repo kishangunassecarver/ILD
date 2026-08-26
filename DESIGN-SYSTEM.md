@@ -6,18 +6,22 @@ content.
 
 ## Colour — the night theme
 
-A deep-blue night theme, matched to the app reference (2026-08-26 restyle).
-The page blue `#001F3E` is the client's specified brand background.
+A deep-blue night theme in four layered surfaces — all four blues specified by
+the client (2026-08-26 redesign). Sections separate by tone, not by outline:
+page < header < raised section < card.
 
 | Token | Value | Used for |
 |---|---|---|
-| `paper` | `#001F3E` | The page itself — the brand's deep blue. |
-| `night` / `-800` / `-700` | `#082B52` / `#0A305B` / `#113A6A` | Cards, panels, menus, elevated surfaces. |
-| `aqua-500` / `-400` / `-300` | `#04A4B4` / `#16C2D2` / `#4DD7E3` | **Every action**: buttons, links, active chips, verified checks, the raised nav disc. 500 is the client's specified brand accent. |
-| `coral-500` | `#F6514D` | Featured pills and deal flashes — the client's specified red accent. |
-| `brand-500` | `#E4002B` | The heart only: logo, save buttons, and error states (`brand-400` on dark). |
-| `snow` / `mist` / `muted` | `#F0F6FC` / `#AEC6DE` / `#7E9AB8` | Headings / secondary text / supporting text. |
-| `line` | `#1D426B` | Borders; cards themselves use a whisper of `white/5`. |
+| `paper` | `#01122C` | The page itself — the darkest layer. |
+| `night-900` | `#021734` | The header bar. |
+| `night-800` | `#041D3B` | Raised sections: the search hub, menus, the trust bar. |
+| `night` | `#011F3B` | Cards and panels — the lightest content surface. |
+| `night-700` | `#06294B` | Hover tint, one step above cards (derived, not client-specified). |
+| `aqua-500` / `-400` / `-300` | `#04A4B4` / `#16C2D2` / `#4DD7E3` | **Every action**: buttons, links, active chips, verified checks, the raised nav disc. 500 is the client's specified accent. |
+| `coral-500` | `#F6514D` | Featured pills, deal flashes and the "Sponsored Partner" label — the client's specified red. |
+| `brand-500` | `#F6514D` | The heart: logo, save buttons, and error states (`brand-400` on dark). Same family as coral so the site carries one red. |
+| `snow` / `mist` / `muted` | `#FFFFFF` / `#B8C9D7` / `#8CA3B8` | Headings / secondary text / supporting text. |
+| `line` | `rgba(184,201,215,0.16)` | Every border — soft blue-white, translucent so it reads evenly on all four surfaces. |
 | `ink` | `#0A1A33` | Legacy navy — sponsor overlays, store badges, scrims. |
 | `gold` | `#F5A623` | Star ratings and the title partner's default CTA. |
 
