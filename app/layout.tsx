@@ -5,7 +5,6 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Newsletter } from "@/components/layout/Newsletter";
-import { QuickActions } from "@/components/layout/QuickActions";
 import { SiteBanner } from "@/components/layout/SiteBanner";
 import { SITE } from "@/lib/cms";
 import { IS_PREVIEW, SITE_URL } from "@/lib/site-url";
@@ -49,8 +48,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MemberProvider>
           <Header />
           <SiteBanner />
-          <QuickActions />
 
+          {/* The old quick-actions rail now lives inside the home page's
+              search hub as proper shortcut cards. */}
           <main id="main" className="flex-1">
             {children}
           </main>

@@ -11,7 +11,8 @@ export interface NavColumn {
 
 export interface NavItem {
   label: string;
-  href: string;
+  /** Absent on pure menus ("More"), which are buttons rather than links. */
+  href?: string;
   /** Present on hubs that open a mega menu. */
   columns?: NavColumn[];
   /** Optional promo panel on the right of the mega menu. */

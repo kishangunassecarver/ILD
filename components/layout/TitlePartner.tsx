@@ -54,76 +54,65 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
     );
   }
 
+  /*
+   * One centred content column, clearly labelled, and roughly 20% shorter than
+   * the old billboard. The partner's creative stays the backdrop; the floating
+   * device panel is gone — it was a second focal point that added nothing the
+   * headline had not already said.
+   */
   return (
     <section
-      aria-label={`${sponsor.name} — title partner`}
+      aria-label={`${sponsor.name} — featured partner`}
       className={cn("relative overflow-hidden", sponsorBackground(sponsor, "to-br").className)}
       style={sponsorBackground(sponsor, "to-br").style}
     >
       <SponsorBackdrop sponsor={sponsor} />
 
-      {/* Decorative city glow. */}
+      {/* A controlled column of shade behind the copy, so legibility does not
+          depend on what the partner's artwork happens to put in the middle. */}
       <div
-        className="pointer-events-none absolute -right-24 -top-32 h-[26rem] w-[26rem] rounded-full bg-white/15 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-40 left-1/4 h-[22rem] w-[22rem] rounded-full bg-brand-500/25 blur-3xl"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/35 via-ink/20 to-ink/45"
         aria-hidden
       />
 
-      {/* Gentle fade into the page below, so the quick-actions rail and search
-          read as sitting in the hero's tail rather than under a hard edge. */}
+      {/* Gentle fade into the page below, so the search hub reads as sitting in
+          the hero's tail rather than under a hard edge. */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent via-paper/40 to-paper"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent via-paper/40 to-paper"
         aria-hidden
       />
 
-      {/* A min-height rather than more padding: the band should keep its height
-          whatever length of headline a partner sends, and the grid is already
-          centring its content. 365px is the measured 281px plus 30%. */}
-      <div className="shell relative grid min-h-[20rem] items-center gap-8 py-10 lg:min-h-[22.8rem] lg:grid-cols-[1.1fr_0.9fr] lg:py-12">
-        <div className="text-center lg:text-left">
-          {sponsor.eyebrow && (
-            <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-white/70">
-              {sponsor.eyebrow}
-            </p>
-          )}
+      <div className="shell relative flex min-h-[16rem] flex-col items-center justify-center gap-4 py-8 text-center lg:min-h-[18rem]">
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-white/75">
+          Featured Partner
+        </p>
 
-          <SponsorMark
-            sponsor={sponsor}
-            slot="title"
-            typeClassName="font-display text-4xl font-extrabold leading-none tracking-tight text-white sm:text-5xl lg:text-6xl"
-            className={sponsor.logo ? "mt-3 mx-auto lg:mx-0" : "mt-3"}
-          />
+        <SponsorMark
+          sponsor={sponsor}
+          slot="title"
+          typeClassName="font-display text-4xl font-extrabold leading-none tracking-tight text-white sm:text-5xl"
+          className="mx-auto"
+        />
 
-          <p className="mt-4 text-lg font-semibold text-white sm:text-xl">{sponsor.headline}</p>
+        <p className="text-lg font-semibold text-white sm:text-xl">{sponsor.headline}</p>
 
-          <a
-            href={sponsor.href}
-            rel="noopener sponsored"
-            target="_blank"
-            style={sponsorCtaStyle(sponsor)}
-            className="btn mt-6 bg-gold px-7 py-3 text-sm font-bold uppercase tracking-wide text-ink transition hover:opacity-90"
-          >
-            {sponsor.cta}
-          </a>
-        </div>
+        <a
+          href={sponsor.href}
+          rel="noopener sponsored"
+          target="_blank"
+          style={sponsorCtaStyle(sponsor)}
+          className="btn bg-gold px-8 py-2.5 text-sm font-bold uppercase tracking-wide text-ink transition hover:opacity-90"
+        >
+          {sponsor.cta}
+        </a>
 
-        {/* An abstract device panel stands in for partner artwork. */}
-        <div className="hidden justify-center lg:flex">
-          <div className="w-[13rem] rounded-[1.75rem] border border-white/25 bg-white/10 p-2.5 shadow-lift backdrop-blur">
-            <div className="rounded-[1.35rem] bg-ink/50 px-4 py-8 text-center">
-              <p className="font-display text-2xl font-extrabold leading-tight tracking-tight text-white">
-                {sponsor.subhead ?? sponsor.headline}
-              </p>
-              <div className="mx-auto mt-5 h-1 w-12 rounded-full bg-gold" aria-hidden />
-              <p className="mt-4 text-[0.625rem] uppercase tracking-[0.16em] text-white/60">
-                {sponsor.name}
-              </p>
-            </div>
-          </div>
-        </div>
+        {sponsor.eyebrow && (
+          <p className="flex items-center gap-3 text-[0.5625rem] font-semibold uppercase tracking-[0.2em] text-white/55">
+            <span className="h-px w-8 bg-white/30" aria-hidden />
+            {sponsor.eyebrow}
+            <span className="h-px w-8 bg-white/30" aria-hidden />
+          </p>
+        )}
       </div>
     </section>
   );

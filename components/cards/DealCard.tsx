@@ -33,9 +33,13 @@ export function DealCard({
           <h3 className="line-clamp-2 text-sm font-bold leading-snug text-snow transition group-hover:text-aqua-300">
             {deal.business}
           </h3>
-          <p className="line-clamp-2 mt-0.5 text-xs font-semibold text-aqua-300">{deal.title}</p>
+          <p className="line-clamp-2 mt-0.5 text-[0.8125rem] font-semibold text-aqua-300">
+            {deal.title}
+          </p>
           {layout === "wide" && (
-            <p className="line-clamp-2 mt-1.5 text-xs leading-relaxed text-muted">{deal.blurb}</p>
+            <p className="line-clamp-2 mt-1.5 text-[0.8125rem] leading-relaxed text-muted">
+              {deal.blurb}
+            </p>
           )}
           <p className="mt-2 text-[0.6875rem] font-medium text-muted">
             Valid until {longDate(deal.validUntil)}

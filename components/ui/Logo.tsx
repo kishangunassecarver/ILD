@@ -27,7 +27,7 @@ export function Logo({
       {/* Bebas Neue carried the lockup on being condensed caps at a single
           weight. Plus Jakarta Sans needs real weight and negative tracking to
           hold the same authority at this size. */}
-      <span className="flex items-baseline gap-[0.12em] font-display text-[1.6rem] font-extrabold tracking-[-0.02em] sm:text-[1.85rem]">
+      <span className="flex items-baseline gap-[0.12em] font-display text-[1.75rem] font-extrabold tracking-[-0.02em] sm:text-[2rem]">
         <span className={onDark ? "text-white" : "text-snow"}>I</span>
         <Heart
           className="h-[0.85em] w-[0.85em] translate-y-[0.06em] fill-brand-500 text-brand-500 transition-transform duration-300 group-hover:scale-110"
@@ -37,7 +37,7 @@ export function Logo({
       </span>
       <span
         className={cn(
-          "mt-0.5 text-[0.5rem] font-semibold uppercase tracking-[0.18em]",
+          "mt-0.5 text-[0.5625rem] font-semibold uppercase tracking-[0.18em]",
           onDark ? "text-white/60" : "text-muted"
         )}
       >

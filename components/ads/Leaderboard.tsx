@@ -23,6 +23,11 @@ export function Leaderboard() {
     >
       <SponsorBackdrop sponsor={sponsor} />
 
+      {/* Advertising declares itself — the label is part of the placement. */}
+      <span className="absolute left-4 top-0 z-10 rounded-b-lg bg-coral-500 px-3 py-1 text-[0.625rem] font-bold uppercase tracking-[0.12em] text-white">
+        Sponsored Partner
+      </span>
+
       <div
         className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-white/10 blur-2xl"
         aria-hidden
@@ -49,9 +54,14 @@ export function Leaderboard() {
           )}
         </div>
 
-        <p className="flex-1 text-sm font-bold uppercase leading-snug tracking-wide text-white sm:text-base">
-          {sponsor.headline}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-bold leading-snug text-white sm:text-lg">
+            {sponsor.headline}
+          </p>
+          {sponsor.body && (
+            <p className="mt-0.5 text-[0.8125rem] leading-snug text-white/75">{sponsor.body}</p>
+          )}
+        </div>
 
         <a
           href={sponsor.href}

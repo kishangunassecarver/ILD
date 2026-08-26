@@ -60,23 +60,31 @@ export function Header() {
     setOpenMenu(label);
   }
 
-  const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const isCurrent = (href?: string) =>
+    Boolean(href) && (pathname === href || pathname.startsWith(`${href}/`));
   const openItem = NAV.find((item) => item.label === openMenu && item.columns?.length);
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-line bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/80">
-        <div className="shell flex h-[var(--header-h)] items-center gap-4">
+      {/* Its own tone (night-900), one step above the page, so the header reads
+          as a distinct band rather than dissolving into the background. */}
+      <header className="sticky top-0 z-50 border-b border-line bg-night-900/95 backdrop-blur supports-[backdrop-filter]:bg-night-900/85">
+        <div className="shell flex h-[var(--header-h)] items-center gap-5">
           <Logo className="shrink-0" />
 
-          {/* xl rather than lg: nine top-level items plus the icons and the
-            call to action do not fit at 1024, and the labels were wrapping
-            mid-word. Below xl the drawer takes over. */}
-          <nav aria-label="Main" className="hidden flex-1 justify-center xl:flex">
-            <ul className="flex items-center gap-0.5">
+          {/* Seven top-level items in title case fit comfortably from lg. */}
+          <nav aria-label="Main" className="hidden flex-1 justify-center lg:flex">
+            <ul className="flex items-center gap-1">
               {NAV.map((item) => {
                 const hasPanel = Boolean(item.columns?.length);
                 const isOpen = openMenu === item.label;
+
+                const labelClass = cn(
+                  "whitespace-nowrap rounded-md py-2 text-sm font-medium transition",
+                  isCurrent(item.href) || isOpen
+                    ? "text-aqua-300"
+                    : "text-mist hover:text-snow"
+                );
 
                 return (
                   <li
@@ -85,17 +93,26 @@ export function Header() {
                     onMouseEnter={() => hasPanel && open(item.label)}
                     onMouseLeave={scheduleClose}
                   >
-                    <div className="flex items-center">
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "whitespace-nowrap rounded-md px-2 py-2 text-xs font-semibold uppercase tracking-wide transition 2xl:px-2.5 2xl:text-[0.8125rem]",
-                          isCurrent(item.href) ? "text-aqua-300" : "text-mist hover:text-aqua-300"
-                        )}
-                        aria-current={isCurrent(item.href) ? "page" : undefined}
-                      >
-                        {item.label}
-                      </Link>
+                    <div className="flex items-center px-1.5">
+                      {item.href ? (
+                        <Link
+                          href={item.href}
+                          className={labelClass}
+                          aria-current={isCurrent(item.href) ? "page" : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      ) : (
+                        // A pure menu ("More") is a button, not a navigation.
+                        <button
+                          type="button"
+                          onClick={() => (isOpen ? setOpenMenu(null) : open(item.label))}
+                          aria-expanded={isOpen}
+                          className={labelClass}
+                        >
+                          {item.label}
+                        </button>
+                      )}
 
                       {hasPanel && (
                         <button
@@ -103,7 +120,7 @@ export function Header() {
                           onClick={() => (isOpen ? setOpenMenu(null) : open(item.label))}
                           aria-expanded={isOpen}
                           aria-label={`${item.label} menu`}
-                          className="-ml-1.5 grid h-7 w-5 place-items-center text-muted transition hover:text-aqua-300"
+                          className="ml-0.5 grid h-7 w-5 place-items-center text-muted transition hover:text-aqua-300"
                         >
                           <ChevronDown
                             className={cn(
@@ -121,23 +138,22 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="ml-auto flex items-center gap-1 xl:ml-0">
+          <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
             <IconLink href="/search" label="Search">
-              <Search className="h-[1.15rem] w-[1.15rem]" aria-hidden />
+              <Search className="h-[1.2rem] w-[1.2rem]" aria-hidden />
             </IconLink>
-            <IconLink href="/saved" label="Saved places" className="hidden 2xl:grid">
-              <Heart className="h-[1.15rem] w-[1.15rem]" aria-hidden />
+            <IconLink href="/saved" label="Saved places" className="hidden xl:grid">
+              <Heart className="h-[1.2rem] w-[1.2rem]" aria-hidden />
             </IconLink>
             <AccountMenu />
 
+            {/* Present but calmer than a page action: the site's own actions
+                stay brighter than its sales pitch. */}
             <Link
               href="/list-your-business"
-              className="btn-primary ml-1.5 hidden whitespace-nowrap px-3 py-2 text-xs md:inline-flex xl:px-4 xl:text-[0.8125rem]"
+              className="btn ml-1.5 hidden whitespace-nowrap bg-aqua-600 px-4 py-2 text-[0.8125rem] font-semibold text-white hover:bg-aqua-500 md:inline-flex"
             >
-              {/* Shortened until there is room for the full label — it was
-                  wrapping to two lines and dragging the header taller. */}
-              <span className="xl:hidden">List Business</span>
-              <span className="hidden xl:inline">List Your Business</span>
+              List Your Business
             </Link>
 
             <button
@@ -145,7 +161,7 @@ export function Header() {
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
               aria-expanded={drawerOpen}
-              className="ml-1 grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5 xl:hidden"
+              className="ml-1 grid h-10 w-10 place-items-center rounded-md text-snow transition hover:bg-white/5 lg:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden />
             </button>
@@ -156,7 +172,7 @@ export function Header() {
           the nav item, so it can never be pushed off the edge of the viewport. */}
         {openItem && (
           <div
-            className="absolute inset-x-0 top-full hidden xl:block"
+            className="absolute inset-x-0 top-full hidden lg:block"
             onMouseEnter={clearTimer}
             onMouseLeave={scheduleClose}
           >
@@ -216,7 +232,7 @@ function MegaMenu({ item, onNavigate }: { item: (typeof NAV)[number]; onNavigate
                   <Link
                     href={link.href}
                     onClick={onNavigate}
-                    className="block text-[0.8125rem] font-medium text-mist transition hover:text-aqua-300"
+                    className="block text-sm font-medium text-mist transition hover:text-aqua-300"
                   >
                     {link.label}
                   </Link>
@@ -249,7 +265,7 @@ function MobileDrawer({
   isCurrent,
 }: {
   onClose: () => void;
-  isCurrent: (href: string) => boolean;
+  isCurrent: (href?: string) => boolean;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -262,7 +278,7 @@ function MobileDrawer({
    * broken the page rather than simply failed to open.
    */
   return (
-    <div className="xl:hidden">
+    <div className="lg:hidden">
       <button
         type="button"
         onClick={onClose}
@@ -311,16 +327,27 @@ function MobileDrawer({
               return (
                 <li key={item.label} className="py-1">
                   <div className="flex items-center">
-                    <Link
-                      href={item.href}
-                      onClick={onClose}
-                      className={cn(
-                        "flex-1 py-2.5 text-sm font-semibold",
-                        isCurrent(item.href) ? "text-aqua-300" : "text-snow"
-                      )}
-                    >
-                      {item.label}
-                    </Link>
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          "flex-1 py-2.5 text-[0.9375rem] font-semibold",
+                          isCurrent(item.href) ? "text-aqua-300" : "text-snow"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      // Href-less menus ("More") just expand in place.
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(isOpen ? null : item.label)}
+                        className="flex-1 py-2.5 text-left text-[0.9375rem] font-semibold text-snow"
+                      >
+                        {item.label}
+                      </button>
+                    )}
                     {hasPanel && (
                       <button
                         type="button"

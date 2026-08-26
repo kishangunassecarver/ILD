@@ -49,12 +49,14 @@ const config: Config = {
           600: "#274468",
           400: "#5A7291",
         },
-        // Elevated night surfaces — the cards and panels, one step up from
-        // the page blue.
+        // The layered surfaces. Four distinct steps so sections separate by
+        // tone: page < header < raised section < card.
         night: {
-          DEFAULT: "#082B52",
-          800: "#0A305B",
-          700: "#113A6A",
+          DEFAULT: "#0D3B5D", // cards
+          800: "#0A3453", // raised sections, menus
+          900: "#052B48", // the header bar
+          // Kept for hover-tint call sites; one step above the card tone.
+          700: "#134669",
         },
         // Warm gold for rewards, points and ratings.
         gold: {
@@ -62,11 +64,12 @@ const config: Config = {
           600: "#D48806",
         },
         // Text on the night theme.
-        snow: "#F0F6FC",
-        mist: "#AEC6DE",
-        paper: "#001F3E", // the page itself — the brand's deep blue
-        line: "#1D426B", // every border
-        muted: "#7E9AB8", // secondary text
+        snow: "#FFFFFF",
+        mist: "#B8C9D7",
+        paper: "#032441", // the page itself
+        // Soft blue-white, translucent so it reads evenly on every surface.
+        line: "rgba(184, 201, 215, 0.16)",
+        muted: "#8CA3B8", // secondary text
       },
       fontFamily: {
         // One family throughout. `display` exists as a separate token so the

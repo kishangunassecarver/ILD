@@ -60,7 +60,7 @@ export function EventCard({
         </p>
 
         {!compact && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted">{event.blurb}</p>
+          <p className="line-clamp-2 text-[0.8125rem] leading-relaxed text-muted">{event.blurb}</p>
         )}
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">

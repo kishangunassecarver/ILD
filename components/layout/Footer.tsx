@@ -9,7 +9,7 @@ export function Footer() {
       <div className="shell grid gap-8 py-10 md:grid-cols-[1.4fr_repeat(4,1fr)] md:gap-6">
         <div className="max-w-xs">
           <Logo tone="dark" />
-          <p className="mt-4 text-xs leading-relaxed">{SITE.description}</p>
+          <p className="mt-4 text-[0.8125rem] leading-relaxed">{SITE.description}</p>
         </div>
 
         {FOOTER.map((column) => (
@@ -20,7 +20,7 @@ export function Footer() {
             <ul className="space-y-2">
               {column.links.map((link) => (
                 <li key={link.href + link.label}>
-                  <Link href={link.href} className="text-xs transition hover:text-white">
+                  <Link href={link.href} className="text-[0.8125rem] transition hover:text-white">
                     {link.label}
                   </Link>
                 </li>
@@ -37,7 +37,7 @@ export function Footer() {
           </p>
           <p className="flex items-center gap-1.5">
             Proudly Durban
-            <Heart className="h-3.5 w-3.5 fill-brand-500 text-aqua-300" aria-hidden />
+            <Heart className="h-3.5 w-3.5 fill-brand-500 text-brand-500" aria-hidden />
           </p>
         </div>
       </div>

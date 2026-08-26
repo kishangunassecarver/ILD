@@ -7,7 +7,7 @@
 @layer base {
   :root {
     --shell: 78rem;
-    --header-h: 4.25rem;
+    --header-h: 4.75rem;
   }
 
   html {
@@ -57,10 +57,15 @@
     @apply mx-auto w-full max-w-shell px-4 sm:px-6;
   }
 
-  /* The raised night panels the whole site is built from. The border is a
-     whisper — the reference separates cards by tone, not by outline. */
+  /* The night cards the whole site is built from. Borders are soft blue-white
+     at low opacity; separation comes mostly from tone. */
   .panel {
-    @apply rounded-card border border-white/5 bg-night shadow-card;
+    @apply rounded-card border border-line bg-night shadow-card;
+  }
+
+  /* One step below cards: the raised section a group of cards sits on. */
+  .panel-raised {
+    @apply rounded-card border border-line bg-night-800 shadow-card;
   }
 
   .card-hover {
@@ -117,7 +122,7 @@
 
   /* Section labels: "What's happening in Durban" etc. */
   .section-title {
-    @apply text-xl font-bold tracking-tight text-snow sm:text-[1.375rem];
+    @apply text-[1.375rem] font-bold tracking-tight text-snow sm:text-[1.625rem];
   }
 
   /* Fallback tile art. Real photography replaces it via the CMS. */

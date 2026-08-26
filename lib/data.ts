@@ -37,7 +37,7 @@ export const SITE = {
   description:
     "Durban's biggest lifestyle and business platform. Discover the best places to eat, stay and play — and support the local businesses that make this city ours.",
   url: "https://ilovedurban.co.za",
-  searchPlaceholder: "What are you looking for in Durban?",
+  searchPlaceholder: "Search restaurants, events, hotels and things to do",
   popularSearches: [
     "Restaurants",
     "Hotels",
@@ -174,8 +174,40 @@ export const NAV: NavItem[] = [
   },
   { label: "Events", href: "/events" },
   { label: "Deals", href: "/deals" },
-  { label: "Shop", href: "/shop" },
-  { label: "Services", href: "/services" },
+  {
+    // No href on purpose: "More" is a menu, not a destination. The header
+    // renders it as a button; the drawer expands it in place.
+    label: "More",
+    columns: [
+      {
+        heading: "Shop local",
+        links: [
+          { label: "Shop", href: "/shop" },
+          { label: "Malls", href: "/shop?filter=Malls" },
+          { label: "Markets", href: "/shop?filter=Markets" },
+          { label: "Local makers", href: "/shop?filter=Local%20Makers" },
+        ],
+      },
+      {
+        heading: "Services",
+        links: [
+          { label: "All services", href: "/services" },
+          { label: "Home & trades", href: "/services?filter=Home%20%26%20Trades" },
+          { label: "Health & beauty", href: "/services?filter=Health%20%26%20Beauty" },
+          { label: "Security", href: "/services?filter=Security" },
+        ],
+      },
+      {
+        heading: "I Love Durban",
+        links: [
+          { label: "The Durban Blog", href: "/blog" },
+          { label: "Rewards", href: "/rewards" },
+          { label: "About us", href: "/about" },
+          { label: "Help centre", href: "/help" },
+        ],
+      },
+    ],
+  },
 ];
 
 /**
@@ -198,14 +230,19 @@ export const BOTTOM_NAV: { visibility: "show" | "hide"; items: BottomNavItem[] }
   ],
 };
 
-/** The rail of icon links directly beneath the title-partner banner. */
+/** The shortcut cards inside the home page's search hub. */
 export const QUICK_ACTIONS: QuickAction[] = [
-  { label: "AI Search", tagline: "Ask. Discover. Done.", href: "/search", icon: "sparkles" },
-  { label: "Explore", tagline: "Find the best in Durban", href: "/discover", icon: "compass" },
-  { label: "Save", tagline: "Your favourites in one place", href: "/saved", icon: "heart" },
-  { label: "Book", tagline: "Hotels, tables & more", href: "/eat-drink", icon: "calendar" },
-  { label: "Deals", tagline: "Exclusive offers", href: "/deals", icon: "tag" },
-  { label: "Rewards", tagline: "Earn & redeem points", href: "/rewards", icon: "award" },
+  {
+    label: "Ask Durban AI",
+    tagline: "Personalised city recommendations",
+    href: "/search",
+    icon: "sparkles",
+  },
+  { label: "Explore", tagline: "Discover places near you", href: "/discover", icon: "compass" },
+  { label: "Save", tagline: "Keep your favourites together", href: "/saved", icon: "heart" },
+  { label: "Book", tagline: "Hotels, tables and experiences", href: "/stay", icon: "calendar" },
+  { label: "Deals", tagline: "Offers available today", href: "/deals", icon: "tag" },
+  { label: "Rewards", tagline: "Earn and spend Durban Points", href: "/rewards", icon: "award" },
 ];
 
 /* -------------------------------------------------------------------------
