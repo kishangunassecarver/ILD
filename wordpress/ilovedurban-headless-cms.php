@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.2.0
+ * Version:      2.3.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -653,6 +653,59 @@ function ild_seed_menu( string $location, string $name, array $items, bool $foot
 	return 'created';
 }
 
+/**
+ * The demo photograph for a slug.
+ *
+ * Must stay in step with demoImage() in scripts/export-seed.ts, so a listing
+ * keeps the same picture whether it arrived through the importer or the
+ * backfill below.
+ */
+function ild_demo_image( string $slug ): string {
+	return 'https://picsum.photos/seed/' . rawurlencode( $slug ) . '/1600/900';
+}
+
+/**
+ * Give every listing that has no picture a demo one.
+ *
+ * Separate from the importer on purpose. The importer skips anything that
+ * already exists, so that re-running it can never overwrite an edit — which
+ * also means it cannot fill in a field that was added to the plugin after the
+ * first import. That is exactly what happened with these photographs, so
+ * backfilling needs its own explicit action rather than a change to the
+ * importer's rules.
+ *
+ * Only ever fills blanks: a listing with a Featured Image or an Image URL
+ * already set is left alone.
+ */
+function ild_backfill_demo_images(): array {
+	$tally = array( 'filled' => 0, 'had_one' => 0 );
+
+	$listings = get_posts(
+		array(
+			'post_type'        => 'ild_listing',
+			'post_status'      => 'any',
+			'numberposts'      => 500,
+			'suppress_filters' => false,
+		)
+	);
+
+	foreach ( $listings as $listing ) {
+		$has_thumb = (bool) get_post_thumbnail_id( $listing->ID );
+		$has_url   = '' !== trim( (string) get_post_meta( $listing->ID, '_ild_imageUrl', true ) );
+
+		if ( $has_thumb || $has_url ) {
+			$tally['had_one']++;
+			continue;
+		}
+
+		update_post_meta( $listing->ID, '_ild_imageUrl', ild_demo_image( $listing->post_name ) );
+		update_post_meta( $listing->ID, '_ild_imageCredit', 'Demo image — Lorem Picsum' );
+		$tally['filled']++;
+	}
+
+	return $tally;
+}
+
 function ild_starter_page(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( 'You do not have permission to import content.' );
@@ -665,6 +718,16 @@ function ild_starter_page(): void {
 	if ( null === $seed ) {
 		echo '<div class="notice notice-error"><p><strong>seed-content.json is missing or was produced by a different version of the site.</strong> Ask the developers for a matching plugin build.</p></div></div>';
 		return;
+	}
+
+	if ( isset( $_POST['ild_backfill'] ) && check_admin_referer( 'ild_backfill_images' ) ) {
+		$tally = ild_backfill_demo_images();
+		echo '<div class="notice notice-success"><p><strong>' . (int) $tally['filled'] . ' listings given a demo photograph.</strong>';
+		if ( $tally['had_one'] ) {
+			echo ' ' . (int) $tally['had_one'] . ' already had one and were left alone.';
+		}
+		echo ' The site is rebuilding — allow two to four minutes.</p></div>';
+		ild_trigger_deploy( 'demo images backfilled' );
 	}
 
 	if ( isset( $_POST['ild_import'] ) && check_admin_referer( 'ild_import_seed' ) ) {
@@ -745,7 +808,29 @@ function ild_starter_page(): void {
 	echo 'Also import demo photographs and placeholder ratings</label><br />';
 	echo '<span class="description"><strong>For demos only.</strong> The venue names, areas and descriptions are real. The ratings and review counts are <strong>invented</strong>, and the photographs are generic stock from Lorem Picsum — <strong>not</strong> the venues\' own pictures, because republishing those from their websites would be copyright infringement. Leave this unticked for a real build: listings then arrive with no ratings and no photo, and the site shows a generated gradient instead of an empty space. Replace all of it with photos the businesses supply, licensed Google Places images, or a commissioned shoot.</span></p>';
 	submit_button( 'Import starter content', 'primary', 'ild_import' );
-	echo '</form></div>';
+	echo '</form>';
+
+	/* ---- Backfill, for content imported before the photo fields existed ---- */
+
+	$missing = 0;
+	foreach ( get_posts( array( 'post_type' => 'ild_listing', 'post_status' => 'any', 'numberposts' => 500 ) ) as $listing ) {
+		if ( ! get_post_thumbnail_id( $listing->ID ) && '' === trim( (string) get_post_meta( $listing->ID, '_ild_imageUrl', true ) ) ) {
+			$missing++;
+		}
+	}
+
+	echo '<hr style="margin:2em 0" /><h2>Fill in missing photographs</h2>';
+	echo '<p>The importer never touches an entry that already exists, so it cannot fill in a field that was added to the plugin after your first import. Use this to give every listing that still has no picture a demo one.</p>';
+	echo '<p><strong>' . (int) $missing . ' of your listings currently have no picture.</strong> Listings that already have a Featured Image or an Image URL are left alone.</p>';
+
+	if ( $missing > 0 ) {
+		echo '<form method="post">';
+		wp_nonce_field( 'ild_backfill_images' );
+		submit_button( 'Add demo photographs to those ' . (int) $missing . ' listings', 'secondary', 'ild_backfill' );
+		echo '</form>';
+	}
+
+	echo '</div>';
 }
 
 /**
