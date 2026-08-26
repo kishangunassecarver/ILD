@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.0.0
+ * Version:      2.1.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -470,6 +470,280 @@ function ild_admin_menu(): void {
 	);
 
 	add_submenu_page( ILD_MENU, 'Site Copy & Deploy', 'Site Copy & Deploy', 'edit_posts', ILD_MENU, 'ild_settings_page' );
+
+	add_submenu_page(
+		ILD_MENU,
+		'Starter Content',
+		'Starter Content',
+		'manage_options',
+		'ild-starter',
+		'ild_starter_page'
+	);
+}
+
+/* -------------------------------------------------------------------------
+ * Starter content
+ *
+ * The site ships with built-in content so it is never blank. That content is
+ * only a fallback though, and the moment anything is published WordPress owns
+ * the whole collection — which meant publishing your first listing replaced
+ * forty of them with one. Importing the built-in content as real posts removes
+ * that cliff edge: you start from a populated CMS and edit or delete entries
+ * one at a time, like anything else.
+ * ---------------------------------------------------------------------- */
+
+const ILD_SEED_VERSION = 1;
+
+function ild_seed_data(): ?array {
+	$file = plugin_dir_path( __FILE__ ) . 'seed-content.json';
+	if ( ! is_readable( $file ) ) {
+		return null;
+	}
+
+	$data = json_decode( (string) file_get_contents( $file ), true );
+
+	if ( ! is_array( $data ) || ( $data['version'] ?? 0 ) !== ILD_SEED_VERSION ) {
+		return null;
+	}
+
+	return $data;
+}
+
+/** Turn a value from the JSON back into the textarea format the field expects. */
+function ild_serialise( $value, array $field ): string {
+	switch ( $field['type'] ) {
+		case 'bool':
+			return $value ? '1' : '';
+
+		case 'lines':
+			return is_array( $value ) ? implode( "\n", $value ) : (string) $value;
+
+		case 'paras':
+			return is_array( $value ) ? implode( "\n\n", $value ) : (string) $value;
+
+		case 'pipe':
+			if ( ! is_array( $value ) ) {
+				return '';
+			}
+			$lines = array();
+			foreach ( $value as $row ) {
+				$cells = array();
+				foreach ( $field['cols'] as $col ) {
+					$cells[] = (string) ( $row[ $col ] ?? '' );
+				}
+				$lines[] = implode( '|', $cells );
+			}
+			return implode( "\n", $lines );
+
+		default:
+			return is_scalar( $value ) ? (string) $value : '';
+	}
+}
+
+/**
+ * Create one entry, or skip it if that slug already exists in that post type.
+ *
+ * Skipping rather than overwriting is deliberate: the importer can be re-run
+ * after a partial import without trampling edits already made by hand.
+ */
+function ild_seed_entry( string $type, array $config, array $entry, int $order ): string {
+	$slug = sanitize_title( $entry['slug'] ?? ( $entry[ $config['title_as'] ] ?? '' ) );
+	if ( '' === $slug ) {
+		return 'skipped';
+	}
+
+	$existing = get_posts(
+		array(
+			'post_type'        => $type,
+			'name'             => $slug,
+			'post_status'      => 'any',
+			'numberposts'      => 1,
+			'suppress_filters' => false,
+		)
+	);
+
+	if ( $existing ) {
+		return 'existed';
+	}
+
+	$post_id = wp_insert_post(
+		array(
+			'post_type'   => $type,
+			'post_status' => 'publish',
+			'post_title'  => (string) ( $entry[ $config['title_as'] ] ?? $slug ),
+			'post_name'   => $slug,
+			'menu_order'  => $order,
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		return 'failed';
+	}
+
+	foreach ( $config['fields'] as $key => $field ) {
+		if ( ! array_key_exists( $key, $entry ) ) {
+			continue;
+		}
+		update_post_meta( $post_id, '_ild_' . $key, ild_serialise( $entry[ $key ], $field ) );
+	}
+
+	return 'created';
+}
+
+/** Build a WordPress menu from a nested structure and assign it to a location. */
+function ild_seed_menu( string $location, string $name, array $items, bool $footer_style ): string {
+	if ( ! $items ) {
+		return 'skipped';
+	}
+
+	$locations = get_nav_menu_locations();
+	if ( ! empty( $locations[ $location ] ) && wp_get_nav_menu_object( $locations[ $location ] ) ) {
+		return 'existed';
+	}
+
+	$menu_id = wp_create_nav_menu( $name );
+	if ( is_wp_error( $menu_id ) ) {
+		return 'failed';
+	}
+
+	$add = function ( array $item, int $parent, int $order ) use ( $menu_id ) {
+		return wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'     => $item['label'] ?? ( $item['heading'] ?? '' ),
+				'menu-item-url'       => $item['href'] ?? '#',
+				'menu-item-status'    => 'publish',
+				'menu-item-type'      => 'custom',
+				'menu-item-parent-id' => $parent,
+				'menu-item-position'  => $order,
+			)
+		);
+	};
+
+	$position = 1;
+
+	foreach ( $items as $item ) {
+		if ( $footer_style ) {
+			// Footer: heading at the top, its links as children.
+			$parent = $add( array( 'label' => $item['heading'] ?? '', 'href' => '#' ), 0, $position++ );
+			foreach ( $item['links'] ?? array() as $link ) {
+				$add( $link, (int) $parent, $position++ );
+			}
+			continue;
+		}
+
+		// Main menu: item, then a heading per column, then that column's links.
+		$top = $add( $item, 0, $position++ );
+
+		foreach ( $item['columns'] ?? array() as $column ) {
+			$heading = $add( array( 'label' => $column['heading'], 'href' => '#' ), (int) $top, $position++ );
+			foreach ( $column['links'] ?? array() as $link ) {
+				$add( $link, (int) $heading, $position++ );
+			}
+		}
+	}
+
+	$locations[ $location ] = (int) $menu_id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+
+	return 'created';
+}
+
+function ild_starter_page(): void {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'You do not have permission to import content.' );
+	}
+
+	echo '<div class="wrap"><h1>Starter Content</h1>';
+
+	$seed = ild_seed_data();
+
+	if ( null === $seed ) {
+		echo '<div class="notice notice-error"><p><strong>seed-content.json is missing or was produced by a different version of the site.</strong> Ask the developers for a matching plugin build.</p></div></div>';
+		return;
+	}
+
+	if ( isset( $_POST['ild_import'] ) && check_admin_referer( 'ild_import_seed' ) ) {
+		$with_placeholders = isset( $_POST['ild_placeholders'] );
+		$report            = array();
+
+		$collections = array(
+			'ild_hub'     => $seed['hubs'] ?? array(),
+			'ild_listing' => $seed['listings'] ?? array(),
+			'ild_event'   => $seed['events'] ?? array(),
+			'ild_deal'    => $seed['deals'] ?? array(),
+			'ild_sponsor' => $seed['sponsors'] ?? array(),
+			'ild_plan'    => $seed['plans'] ?? array(),
+		);
+
+		$schema = ild_schema();
+
+		foreach ( $collections as $type => $entries ) {
+			$tally = array( 'created' => 0, 'existed' => 0, 'failed' => 0, 'skipped' => 0 );
+
+			foreach ( array_values( $entries ) as $i => $entry ) {
+				// Fold the invented ratings back in only if explicitly asked for.
+				if ( isset( $entry['__placeholders'] ) ) {
+					if ( $with_placeholders ) {
+						$entry = array_merge( $entry, $entry['__placeholders'] );
+					}
+					unset( $entry['__placeholders'] );
+				}
+
+				$result = ild_seed_entry( $type, $schema[ $type ], $entry, ( $i + 1 ) * 10 );
+				$tally[ $result ]++;
+			}
+
+			$report[ $schema[ $type ]['plural'] ] = $tally;
+		}
+
+		$menus = $seed['menus'] ?? array();
+		$report['Main menu']    = ild_seed_menu( 'ild_primary', 'I Love Durban — Main', $menus['primary'] ?? array(), false );
+		$report['Footer menu']  = ild_seed_menu( 'ild_footer', 'I Love Durban — Footer', $menus['footer'] ?? array(), true );
+
+		echo '<div class="notice notice-success"><p><strong>Import finished.</strong></p><ul style="list-style:disc;margin-left:2em">';
+		foreach ( $report as $label => $tally ) {
+			if ( is_array( $tally ) ) {
+				echo '<li>' . esc_html( $label ) . ': ' . (int) $tally['created'] . ' created';
+				if ( $tally['existed'] ) {
+					echo ', ' . (int) $tally['existed'] . ' already there (left alone)';
+				}
+				if ( $tally['failed'] ) {
+					echo ', <strong>' . (int) $tally['failed'] . ' failed</strong>';
+				}
+				echo '</li>';
+			} else {
+				echo '<li>' . esc_html( $label ) . ': ' . esc_html( $tally ) . '</li>';
+			}
+		}
+		echo '</ul><p>The site is rebuilding — allow two to four minutes.</p></div>';
+
+		ild_trigger_deploy( 'starter content imported' );
+	}
+
+	$counts = sprintf(
+		'%d hubs, %d listings, %d events, %d deals, %d sponsors, %d business plans, and both menus',
+		count( $seed['hubs'] ?? array() ),
+		count( $seed['listings'] ?? array() ),
+		count( $seed['events'] ?? array() ),
+		count( $seed['deals'] ?? array() ),
+		count( $seed['sponsors'] ?? array() ),
+		count( $seed['plans'] ?? array() )
+	);
+
+	echo '<p>The site ships with built-in content so it is never blank, but that content lives in the code where you cannot touch it — and as soon as you publish one listing of your own, WordPress takes over the whole collection and the built-in ones disappear.</p>';
+	echo '<p><strong>Importing brings it all in as ordinary posts</strong> (' . esc_html( $counts ) . '), so you start from something populated and edit or delete entries one at a time.</p>';
+	echo '<p>Safe to run more than once: anything already present is left exactly as it is, so nothing you have edited gets overwritten.</p>';
+
+	echo '<form method="post" style="margin-top:1.5em">';
+	wp_nonce_field( 'ild_import_seed' );
+	echo '<p><label><input type="checkbox" name="ild_placeholders" value="1" /> ';
+	echo 'Also import the placeholder star ratings and review counts</label><br />';
+	echo '<span class="description">The venue names, areas and descriptions are real. The ratings and review counts in the built-in content are <strong>invented</strong>, to make the layouts look right during design. Leave this unticked and listings arrive without ratings, ready for real numbers. Tick it only for demos — and replace them before launch.</span></p>';
+	submit_button( 'Import starter content', 'primary', 'ild_import' );
+	echo '</form></div>';
 }
 
 /**

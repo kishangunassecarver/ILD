@@ -1,0 +1,2026 @@
+{
+  "version": 1,
+  "generated": "run npm run seed:export to refresh",
+  "hubs": [
+    {
+      "slug": "eat-drink",
+      "label": "Eat & Drink",
+      "title": "Where Durban eats",
+      "intro": "From bunny chow on a Tuesday to a harbour-view tasting menu on a Saturday — every table worth booking in the city.",
+      "filters": [
+        "Restaurants",
+        "Cafés",
+        "Bars & Nightlife",
+        "Fine Dining",
+        "Curry & Bunny Chow",
+        "Seafood",
+        "Halaal",
+        "Vegan"
+      ],
+      "defaultCta": "Book a Table"
+    },
+    {
+      "slug": "stay",
+      "label": "Stay",
+      "title": "Somewhere to stay",
+      "intro": "Beachfront icons, boutique hideaways and family self-catering — up and down the Golden Mile and out to Ballito.",
+      "filters": [
+        "Hotels",
+        "Boutique",
+        "Self-catering",
+        "Beachfront",
+        "Guest Houses",
+        "Family",
+        "Business"
+      ],
+      "defaultCta": "Check Availability"
+    },
+    {
+      "slug": "things-to-do",
+      "label": "Things to Do",
+      "title": "Things to do in Durban",
+      "intro": "Warm-water beaches, a stadium you can climb, big cats, big waves and a botanic garden older than the country.",
+      "filters": [
+        "Beaches",
+        "Family",
+        "Adventure",
+        "Culture & Heritage",
+        "Wildlife",
+        "Tours",
+        "Outdoors",
+        "Wellness"
+      ],
+      "defaultCta": "Plan a Visit"
+    },
+    {
+      "slug": "shop",
+      "label": "Shop",
+      "title": "Shop local",
+      "intro": "The big malls, the busy markets, and the makers quietly building brands out of their garages.",
+      "filters": [
+        "Malls",
+        "Markets",
+        "Local Makers",
+        "Fashion",
+        "Craft & Décor",
+        "Books & Music"
+      ],
+      "defaultCta": "View Store"
+    },
+    {
+      "slug": "services",
+      "label": "Services",
+      "title": "Trusted local services",
+      "intro": "Vetted Durban businesses for the jobs you would rather not gamble on. Every listing is claimable.",
+      "filters": [
+        "Home & Trades",
+        "Health & Beauty",
+        "Auto",
+        "Professional",
+        "Security",
+        "Events"
+      ],
+      "defaultCta": "Get a Quote"
+    }
+  ],
+  "listings": [
+    {
+      "slug": "the-cargo-hold",
+      "name": "The Cargo Hold",
+      "hub": "eat-drink",
+      "category": "Seafood",
+      "area": "Point Waterfront",
+      "price": "$$",
+      "blurb": "Dinner inside the bow of the Phantom Ship, with a shark tank for a dining-room wall.",
+      "body": [
+        "Built into the hull of the Phantom Ship at uShaka Marine World, The Cargo Hold is the closest Durban gets to eating underwater. One wall of the restaurant is the viewing glass of the aquarium's shark tank, so ragged-tooth sharks drift past somewhere between your starter and your main.",
+        "The kitchen leans, sensibly, into seafood — line fish, prawns and a KwaZulu-Natal take on grilled catch. Ask for a tank-side table when you book; there are only a handful and they go first."
+      ],
+      "tags": [
+        "Sharks",
+        "Waterfront",
+        "Date night",
+        "Tourist favourite"
+      ],
+      "cta": "Book a Table",
+      "featured": true,
+      "address": "uShaka Marine World, 1 Bell Street, Point",
+      "hours": [
+        "Mon – Sun · 12:00 – 15:00",
+        "Mon – Sun · 18:00 – 22:00"
+      ],
+      "amenities": [
+        "Wheelchair access",
+        "Licensed bar",
+        "Group bookings",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 1209
+      }
+    },
+    {
+      "slug": "osteria-65",
+      "name": "Osteria 65",
+      "hub": "eat-drink",
+      "category": "Fine Dining",
+      "area": "Point Waterfront",
+      "price": "$$$",
+      "blurb": "Small Italian kitchen doing handmade pasta and a wine list that punches above the postcode.",
+      "body": [
+        "Osteria 65 is the kind of restaurant that fills up on repeat customers. The menu is short, the pasta is rolled in-house, and the service knows the difference between attentive and hovering.",
+        "Go for the pasta of the day and let the floor staff pick the wine — they are unusually good at it."
+      ],
+      "tags": [
+        "Italian",
+        "Handmade pasta",
+        "Wine list"
+      ],
+      "cta": "Book a Table",
+      "featured": true,
+      "address": "Point Waterfront, Durban",
+      "hours": [
+        "Tue – Sat · 18:00 – 22:30",
+        "Sun · 12:00 – 15:00"
+      ],
+      "amenities": [
+        "Licensed bar",
+        "Corkage",
+        "Outdoor seating"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 612
+      }
+    },
+    {
+      "slug": "butcher-block",
+      "name": "Butcher Block",
+      "hub": "eat-drink",
+      "category": "Restaurants",
+      "area": "Umhlanga",
+      "price": "$$$",
+      "blurb": "Aged steak, an open grill, and portions calibrated for people who skipped lunch.",
+      "body": [
+        "A steakhouse that takes the butchery half of the name seriously — cuts are aged in-house and the day's selection is walked to the table before you order.",
+        "Book ahead on weekends. The Umhlanga room is busy from 19:00 and does not thin out early."
+      ],
+      "tags": [
+        "Steak",
+        "Grill",
+        "Big portions"
+      ],
+      "cta": "Book a Table",
+      "featured": true,
+      "address": "Umhlanga Ridge, Umhlanga",
+      "hours": [
+        "Mon – Sun · 12:00 – 22:00"
+      ],
+      "amenities": [
+        "Licensed bar",
+        "Parking",
+        "Group bookings",
+        "Kids menu"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 956
+      }
+    },
+    {
+      "slug": "the-ocean-terrace",
+      "name": "The Ocean Terrace",
+      "hub": "eat-drink",
+      "category": "Fine Dining",
+      "area": "Umhlanga Rocks",
+      "price": "$$$",
+      "blurb": "Breakfast, lunch and sundowners with the Umhlanga lighthouse in frame the whole way through.",
+      "body": [
+        "The view does a lot of the work here, and the kitchen knows it — the menu is confident rather than clever, built around seafood, salads and a properly good breakfast.",
+        "Sundowners on the terrace are the move. Arrive by 17:00 in summer if you want a railing table."
+      ],
+      "tags": [
+        "Sea view",
+        "Breakfast",
+        "Sundowners"
+      ],
+      "cta": "Book a Table",
+      "featured": true,
+      "address": "Lighthouse Road, Umhlanga Rocks",
+      "hours": [
+        "Mon – Sun · 07:00 – 21:00"
+      ],
+      "amenities": [
+        "Sea view",
+        "Licensed bar",
+        "Wheelchair access"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 512
+      }
+    },
+    {
+      "slug": "cafe-1999",
+      "name": "Café 1999",
+      "hub": "eat-drink",
+      "category": "Restaurants",
+      "area": "Berea",
+      "price": "$$",
+      "blurb": "Long-running Mediterranean tapas spot that helped teach Durban to share plates.",
+      "tags": [
+        "Tapas",
+        "Mediterranean",
+        "Institution"
+      ],
+      "cta": "Book a Table",
+      "address": "Silvervause Centre, Silverton Road, Musgrave",
+      "hours": [
+        "Mon – Fri · 12:00 – 22:00",
+        "Sat · 18:00 – 22:00"
+      ],
+      "amenities": [
+        "Licensed bar",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.4,
+        "reviews": 734
+      }
+    },
+    {
+      "slug": "little-gujarat",
+      "name": "Little Gujarat",
+      "hub": "eat-drink",
+      "category": "Curry & Bunny Chow",
+      "area": "Durban CBD",
+      "price": "$",
+      "blurb": "Quarter mutton bunny that settles arguments. Cash-friendly, queue-forming, no frills.",
+      "body": [
+        "There is a version of the Durban curry argument that ends at this counter. The bunny chow is the reason to come: a quarter loaf, hollowed, filled and handed over hot.",
+        "Do not expect atmosphere. Expect the food to be right."
+      ],
+      "tags": [
+        "Bunny chow",
+        "Curry",
+        "Durban classic",
+        "Takeaway"
+      ],
+      "cta": "See Menu",
+      "featured": true,
+      "address": "Durban CBD",
+      "hours": [
+        "Mon – Sat · 09:00 – 19:00"
+      ],
+      "amenities": [
+        "Takeaway",
+        "Halaal"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 1841
+      }
+    },
+    {
+      "slug": "freedom-cafe",
+      "name": "Freedom Café",
+      "hub": "eat-drink",
+      "category": "Cafés",
+      "area": "Morningside",
+      "price": "$$",
+      "blurb": "A shipping-container coffee bar off Florida Road with breakfast worth the wait for a table.",
+      "tags": [
+        "Coffee",
+        "Breakfast",
+        "Brunch",
+        "Outdoor"
+      ],
+      "cta": "See Menu",
+      "address": "Off Florida Road, Morningside",
+      "hours": [
+        "Tue – Sun · 07:00 – 15:00"
+      ],
+      "amenities": [
+        "Outdoor seating",
+        "Vegetarian options",
+        "Wi-Fi"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 623
+      }
+    },
+    {
+      "slug": "unity-brasserie",
+      "name": "Unity Brasserie & Bar",
+      "hub": "eat-drink",
+      "category": "Bars & Nightlife",
+      "area": "Florida Road",
+      "price": "$$",
+      "blurb": "Florida Road's reliable all-nighter — kitchen until late, upstairs bar later still.",
+      "tags": [
+        "Cocktails",
+        "Late night",
+        "Live music"
+      ],
+      "cta": "Book a Table",
+      "address": "Florida Road, Morningside",
+      "hours": [
+        "Mon – Sun · 11:00 – 02:00"
+      ],
+      "amenities": [
+        "Licensed bar",
+        "Live music",
+        "Outdoor seating"
+      ],
+      "__placeholders": {
+        "rating": 4.3,
+        "reviews": 1102
+      }
+    },
+    {
+      "slug": "spiga-doro",
+      "name": "Spiga d'Oro",
+      "hub": "eat-drink",
+      "category": "Restaurants",
+      "area": "Florida Road",
+      "price": "$$",
+      "blurb": "Pavement tables, pasta at midnight, and thirty years of Florida Road people-watching.",
+      "tags": [
+        "Italian",
+        "Late night",
+        "Pavement seating"
+      ],
+      "cta": "Book a Table",
+      "address": "Florida Road, Morningside",
+      "hours": [
+        "Mon – Sun · 07:00 – 00:00"
+      ],
+      "amenities": [
+        "Outdoor seating",
+        "Licensed bar",
+        "Kids menu"
+      ],
+      "__placeholders": {
+        "rating": 4.2,
+        "reviews": 1387
+      }
+    },
+    {
+      "slug": "the-chairman",
+      "name": "The Chairman",
+      "hub": "eat-drink",
+      "category": "Bars & Nightlife",
+      "area": "Point Waterfront",
+      "price": "$$$",
+      "blurb": "Live jazz in a restored harbour building. Dress up a little; it suits the room.",
+      "tags": [
+        "Jazz",
+        "Cocktails",
+        "Live music",
+        "Date night"
+      ],
+      "cta": "See What's On",
+      "address": "Mahatma Gandhi Road, Point",
+      "hours": [
+        "Thu – Sat · 20:00 – 02:00"
+      ],
+      "amenities": [
+        "Live music",
+        "Licensed bar",
+        "Booking required"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 498
+      }
+    },
+    {
+      "slug": "green-mango",
+      "name": "The Green Mango",
+      "hub": "eat-drink",
+      "category": "Vegan",
+      "area": "Glenwood",
+      "price": "$$",
+      "blurb": "Plant-based cooking that doesn't apologise for itself, in the middle of student Glenwood.",
+      "tags": [
+        "Vegan",
+        "Vegetarian",
+        "Health"
+      ],
+      "cta": "See Menu",
+      "address": "Davenport Road, Glenwood",
+      "hours": [
+        "Tue – Sun · 08:00 – 16:00"
+      ],
+      "amenities": [
+        "Vegan",
+        "Outdoor seating",
+        "Wi-Fi"
+      ],
+      "__placeholders": {
+        "rating": 4.4,
+        "reviews": 287
+      }
+    },
+    {
+      "slug": "afros-and-arabs",
+      "name": "Afro's & Arabs",
+      "hub": "eat-drink",
+      "category": "Halaal",
+      "area": "Umhlanga",
+      "price": "$$",
+      "blurb": "Halaal grills and mezze with a menu that reads like a road trip up the east coast.",
+      "tags": [
+        "Halaal",
+        "Grill",
+        "Family"
+      ],
+      "cta": "Book a Table",
+      "address": "Umhlanga Ridge",
+      "hours": [
+        "Mon – Sun · 11:00 – 22:00"
+      ],
+      "amenities": [
+        "Halaal",
+        "Family friendly",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.3,
+        "reviews": 812
+      }
+    },
+    {
+      "slug": "the-oyster-box",
+      "name": "The Oyster Box",
+      "hub": "stay",
+      "category": "Hotels",
+      "area": "Umhlanga Rocks",
+      "price": "$$$$",
+      "blurb": "The lighthouse hotel. Curry buffet, black-and-white tiles, and a view that never gets old.",
+      "body": [
+        "Umhlanga's landmark hotel sits directly opposite the lighthouse, close enough that the beach is a walk rather than a drive. It is unashamedly grand — a colonial-era building restored with more colour than restraint.",
+        "Even if you are not staying, two things are worth booking: high tea, and the curry buffet at the Ocean Terrace. Both fill weeks ahead in season."
+      ],
+      "tags": [
+        "Beachfront",
+        "Luxury",
+        "High tea",
+        "Spa"
+      ],
+      "cta": "Check Availability",
+      "featured": true,
+      "address": "2 Lighthouse Road, Umhlanga Rocks",
+      "hours": [
+        "Reception · 24 hours"
+      ],
+      "amenities": [
+        "Pool",
+        "Spa",
+        "Beach access",
+        "Restaurant",
+        "Free Wi-Fi",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.8,
+        "reviews": 3204
+      }
+    },
+    {
+      "slug": "beverly-hills-hotel",
+      "name": "Beverly Hills Hotel",
+      "hub": "stay",
+      "category": "Beachfront",
+      "area": "Umhlanga Rocks",
+      "price": "$$$$",
+      "blurb": "Umhlanga's original high-rise beach hotel, with balconies aimed straight at the Indian Ocean.",
+      "tags": [
+        "Beachfront",
+        "Sea view",
+        "Pool"
+      ],
+      "cta": "Check Availability",
+      "featured": true,
+      "address": "54 Lighthouse Road, Umhlanga Rocks",
+      "amenities": [
+        "Pool",
+        "Beach access",
+        "Restaurant",
+        "Free Wi-Fi",
+        "Gym"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 2187
+      }
+    },
+    {
+      "slug": "southern-sun-elangeni",
+      "name": "Southern Sun Elangeni & Maharani",
+      "hub": "stay",
+      "category": "Hotels",
+      "area": "Golden Mile",
+      "price": "$$$",
+      "blurb": "Two towers on the beachfront promenade — the practical choice for a Golden Mile weekend.",
+      "tags": [
+        "Beachfront",
+        "Family",
+        "Promenade"
+      ],
+      "cta": "Check Availability",
+      "address": "63 Snell Parade, North Beach",
+      "amenities": [
+        "Pool",
+        "Beach access",
+        "Restaurant",
+        "Family rooms",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.3,
+        "reviews": 4102
+      }
+    },
+    {
+      "slug": "hilton-durban",
+      "name": "Hilton Durban",
+      "hub": "stay",
+      "category": "Business",
+      "area": "Durban CBD",
+      "price": "$$$",
+      "blurb": "Across the road from the ICC. The default when the trip is work, not sand.",
+      "tags": [
+        "Business",
+        "Conference",
+        "City centre"
+      ],
+      "cta": "Check Availability",
+      "address": "12–14 Walnut Road, Durban Central",
+      "amenities": [
+        "Pool",
+        "Gym",
+        "Restaurant",
+        "Meeting rooms",
+        "Airport shuttle"
+      ],
+      "__placeholders": {
+        "rating": 4.4,
+        "reviews": 2760
+      }
+    },
+    {
+      "slug": "teremok-marine",
+      "name": "Teremok Marine",
+      "hub": "stay",
+      "category": "Boutique",
+      "area": "Umhlanga Rocks",
+      "price": "$$$",
+      "blurb": "Nine-room boutique lodge a street back from the beach. Quiet, green, adults-leaning.",
+      "tags": [
+        "Boutique",
+        "Quiet",
+        "Small"
+      ],
+      "cta": "Check Availability",
+      "address": "49 Marine Drive, Umhlanga Rocks",
+      "amenities": [
+        "Pool",
+        "Breakfast included",
+        "Free Wi-Fi",
+        "Garden"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 486
+      }
+    },
+    {
+      "slug": "coco-de-mer",
+      "name": "Coco de Mer",
+      "hub": "stay",
+      "category": "Guest Houses",
+      "area": "Umhlanga Rocks",
+      "price": "$$",
+      "blurb": "Guest house pricing, sea-facing rooms, and breakfast on a deck above the dunes.",
+      "tags": [
+        "Guest house",
+        "Sea view",
+        "Breakfast"
+      ],
+      "cta": "Check Availability",
+      "address": "Umhlanga Rocks",
+      "amenities": [
+        "Breakfast included",
+        "Sea view",
+        "Free Wi-Fi",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 331
+      }
+    },
+    {
+      "slug": "ballito-beach-apartments",
+      "name": "Ballito Beach Apartments",
+      "hub": "stay",
+      "category": "Self-catering",
+      "area": "Ballito",
+      "price": "$$",
+      "blurb": "Self-catering flats within walking distance of Willard Beach — built for families who cook.",
+      "tags": [
+        "Self-catering",
+        "Family",
+        "Beach"
+      ],
+      "cta": "Check Availability",
+      "address": "Ballito, North Coast",
+      "amenities": [
+        "Kitchen",
+        "Pool",
+        "Family rooms",
+        "Braai facilities",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.4,
+        "reviews": 592
+      }
+    },
+    {
+      "slug": "the-benjamin",
+      "name": "The Benjamin",
+      "hub": "stay",
+      "category": "Boutique",
+      "area": "Morningside",
+      "price": "$$",
+      "blurb": "On Florida Road, above the noise. Walk to dinner, walk home again.",
+      "tags": [
+        "Boutique",
+        "Florida Road",
+        "Walkable"
+      ],
+      "cta": "Check Availability",
+      "address": "141 Florida Road, Morningside",
+      "amenities": [
+        "Pool",
+        "Restaurant",
+        "Free Wi-Fi",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.4,
+        "reviews": 704
+      }
+    },
+    {
+      "slug": "ushaka-marine-world",
+      "name": "uShaka Marine World",
+      "hub": "things-to-do",
+      "category": "Family",
+      "area": "Point",
+      "price": "$$",
+      "blurb": "Africa's largest aquarium bolted onto a wet-and-wild water park. Budget a full day.",
+      "body": [
+        "uShaka splits into Sea World — the aquarium, dolphin and seal presentations — and Wet 'n Wild, the slide park next door. Combination tickets cover both, and you will need most of a day to do either properly.",
+        "Arrive at opening in school holidays. The queues for the big slides build fast after 11:00."
+      ],
+      "tags": [
+        "Aquarium",
+        "Water park",
+        "Kids",
+        "Full day"
+      ],
+      "cta": "Plan a Visit",
+      "featured": true,
+      "address": "1 Bell Street, Point, Durban",
+      "hours": [
+        "Mon – Sun · 09:00 – 17:00"
+      ],
+      "amenities": [
+        "Wheelchair access",
+        "Restaurants",
+        "Parking",
+        "Lockers"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 8940
+      }
+    },
+    {
+      "slug": "moses-mabhida-skycar",
+      "name": "Moses Mabhida SkyCar & Big Swing",
+      "hub": "things-to-do",
+      "category": "Adventure",
+      "area": "Stamford Hill",
+      "price": "$$",
+      "blurb": "Ride the arch for the city's best viewpoint, or jump off it if that's your temperament.",
+      "tags": [
+        "Views",
+        "Adrenaline",
+        "Stadium",
+        "Sunset"
+      ],
+      "cta": "Plan a Visit",
+      "featured": true,
+      "address": "Moses Mabhida Stadium, Isaiah Ntshangase Road",
+      "hours": [
+        "Mon – Sun · 09:00 – 17:00"
+      ],
+      "amenities": [
+        "Parking",
+        "Restaurant",
+        "Wheelchair access (SkyCar)"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 3411
+      }
+    },
+    {
+      "slug": "durban-botanic-gardens",
+      "name": "Durban Botanic Gardens",
+      "hub": "things-to-do",
+      "category": "Outdoors",
+      "area": "Berea",
+      "price": "Free",
+      "blurb": "Africa's oldest surviving botanic garden. Free, shaded, and full of Sunday picnickers.",
+      "tags": [
+        "Free",
+        "Picnic",
+        "Gardens",
+        "Family"
+      ],
+      "cta": "Plan a Visit",
+      "featured": true,
+      "address": "9A John Zikhali Road, Berea",
+      "hours": [
+        "Mon – Sun · 07:30 – 17:15"
+      ],
+      "amenities": [
+        "Free entry",
+        "Tea garden",
+        "Wheelchair access",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 5206
+      }
+    },
+    {
+      "slug": "golden-mile-promenade",
+      "name": "The Golden Mile Promenade",
+      "hub": "things-to-do",
+      "category": "Beaches",
+      "area": "Beachfront",
+      "price": "Free",
+      "blurb": "Eight kilometres of paved beachfront. Run it, cycle it, or just watch Durban go past.",
+      "tags": [
+        "Free",
+        "Beach",
+        "Running",
+        "Cycling"
+      ],
+      "cta": "Plan a Visit",
+      "address": "Snell Parade to uShaka, Durban Beachfront",
+      "hours": [
+        "Open 24 hours"
+      ],
+      "amenities": [
+        "Free entry",
+        "Lifeguards (bathing areas)",
+        "Bike hire",
+        "Wheelchair access"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 6120
+      }
+    },
+    {
+      "slug": "umgeni-river-bird-park",
+      "name": "Umgeni River Bird Park",
+      "hub": "things-to-do",
+      "category": "Wildlife",
+      "area": "Durban North",
+      "price": "$",
+      "blurb": "A cliff-side aviary park with waterfalls and a free-flight bird show at 11:00 and 14:00.",
+      "tags": [
+        "Birds",
+        "Kids",
+        "Wildlife",
+        "Show times"
+      ],
+      "cta": "Plan a Visit",
+      "address": "490 Riverside Road, Durban North",
+      "hours": [
+        "Mon – Sun · 09:00 – 16:30"
+      ],
+      "amenities": [
+        "Parking",
+        "Café",
+        "Wheelchair access (partial)"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 1876
+      }
+    },
+    {
+      "slug": "phansi-museum",
+      "name": "Phansi Museum",
+      "hub": "things-to-do",
+      "category": "Culture & Heritage",
+      "area": "Glenwood",
+      "price": "$",
+      "blurb": "A Victorian house packed with southern African beadwork, baskets and ceremonial dress.",
+      "tags": [
+        "Museum",
+        "Heritage",
+        "Guided tour",
+        "Small"
+      ],
+      "cta": "Plan a Visit",
+      "address": "500 Esther Roberts Road, Glenwood",
+      "hours": [
+        "Mon – Fri · 08:00 – 16:00 (by appointment)"
+      ],
+      "amenities": [
+        "Guided tours",
+        "Booking required",
+        "Shop"
+      ],
+      "__placeholders": {
+        "rating": 4.8,
+        "reviews": 412
+      }
+    },
+    {
+      "slug": "mitchell-park",
+      "name": "Mitchell Park",
+      "hub": "things-to-do",
+      "category": "Family",
+      "area": "Morningside",
+      "price": "Free",
+      "blurb": "Small zoo, big lawns, a tea garden, and the safest toddler afternoon in the city.",
+      "tags": [
+        "Free",
+        "Toddlers",
+        "Picnic",
+        "Tea garden"
+      ],
+      "cta": "Plan a Visit",
+      "address": "Nimmo Road, Morningside",
+      "hours": [
+        "Mon – Sun · 07:00 – 17:00"
+      ],
+      "amenities": [
+        "Free entry",
+        "Playground",
+        "Tea garden",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.4,
+        "reviews": 2233
+      }
+    },
+    {
+      "slug": "durban-street-food-tour",
+      "name": "Durban Street Food & Spice Tour",
+      "hub": "things-to-do",
+      "category": "Tours",
+      "area": "Durban CBD",
+      "price": "$$",
+      "blurb": "Victoria Street Market, the spice traders, and four stops you would never find alone.",
+      "tags": [
+        "Food tour",
+        "Walking",
+        "Guided",
+        "Half day"
+      ],
+      "cta": "Book a Tour",
+      "address": "Departs Victoria Street Market",
+      "hours": [
+        "Tue – Sat · 09:30 & 14:00"
+      ],
+      "amenities": [
+        "Guided",
+        "Booking required",
+        "Vegetarian option"
+      ],
+      "__placeholders": {
+        "rating": 4.9,
+        "reviews": 386
+      }
+    },
+    {
+      "slug": "addington-tidal-pool",
+      "name": "Addington Tidal Pool",
+      "hub": "things-to-do",
+      "category": "Beaches",
+      "area": "South Beach",
+      "price": "Free",
+      "blurb": "Flat, sheltered saltwater swimming for days when the backline is doing too much.",
+      "tags": [
+        "Free",
+        "Swimming",
+        "Kids",
+        "Sheltered"
+      ],
+      "cta": "Plan a Visit",
+      "address": "Addington Beach, South Beach",
+      "hours": [
+        "Daylight hours"
+      ],
+      "amenities": [
+        "Free entry",
+        "Lifeguards",
+        "Nearby parking"
+      ],
+      "__placeholders": {
+        "rating": 4.2,
+        "reviews": 904
+      }
+    },
+    {
+      "slug": "zimbali-spa",
+      "name": "Zimbali Spa",
+      "hub": "things-to-do",
+      "category": "Wellness",
+      "area": "Ballito",
+      "price": "$$$",
+      "blurb": "Forest-canopy treatment rooms forty minutes up the coast. Book the half-day package.",
+      "tags": [
+        "Spa",
+        "Couples",
+        "North Coast"
+      ],
+      "cta": "Book a Treatment",
+      "address": "Zimbali Resort, Ballito",
+      "hours": [
+        "Mon – Sun · 08:00 – 18:00"
+      ],
+      "amenities": [
+        "Couples rooms",
+        "Pool",
+        "Booking required",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 641
+      }
+    },
+    {
+      "slug": "gateway-theatre-of-shopping",
+      "name": "Gateway Theatre of Shopping",
+      "hub": "shop",
+      "category": "Malls",
+      "area": "Umhlanga Ridge",
+      "price": "$$",
+      "blurb": "One of the largest malls in the southern hemisphere. Wear comfortable shoes.",
+      "tags": [
+        "Mall",
+        "Cinema",
+        "Wave House",
+        "Food court"
+      ],
+      "cta": "View Store",
+      "featured": true,
+      "address": "1 Palm Boulevard, Umhlanga Ridge",
+      "hours": [
+        "Mon – Sat · 09:00 – 19:00",
+        "Sun · 09:00 – 18:00"
+      ],
+      "amenities": [
+        "Parking",
+        "Cinema",
+        "Wheelchair access",
+        "Baby facilities"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 12480
+      }
+    },
+    {
+      "slug": "victoria-street-market",
+      "name": "Victoria Street Market",
+      "hub": "shop",
+      "category": "Markets",
+      "area": "Durban CBD",
+      "price": "$",
+      "blurb": "Spices by the scoop, curios by the aisle. Haggling expected, not resented.",
+      "tags": [
+        "Market",
+        "Spices",
+        "Curios",
+        "Heritage"
+      ],
+      "cta": "View Store",
+      "featured": true,
+      "address": "Bertha Mkhize Street, Durban CBD",
+      "hours": [
+        "Mon – Sat · 06:00 – 18:00",
+        "Sun · 10:00 – 16:00"
+      ],
+      "amenities": [
+        "Parking nearby",
+        "Cash preferred"
+      ],
+      "__placeholders": {
+        "rating": 4.3,
+        "reviews": 3921
+      }
+    },
+    {
+      "slug": "i-heart-market",
+      "name": "I Heart Market",
+      "hub": "shop",
+      "category": "Local Makers",
+      "area": "Morningside",
+      "price": "$$",
+      "blurb": "First-Saturday design market where Durban's makers actually stand behind their own tables.",
+      "tags": [
+        "Design market",
+        "Monthly",
+        "Local makers",
+        "Handmade"
+      ],
+      "cta": "View Store",
+      "featured": true,
+      "address": "Moses Mabhida Stadium, Stamford Hill",
+      "hours": [
+        "First Saturday of the month · 09:00 – 14:00"
+      ],
+      "amenities": [
+        "Parking",
+        "Card payments",
+        "Family friendly"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 1188
+      }
+    },
+    {
+      "slug": "essenwood-market",
+      "name": "Essenwood Market",
+      "hub": "shop",
+      "category": "Markets",
+      "area": "Berea",
+      "price": "$",
+      "blurb": "Saturday morning under the trees — plants, pastries, records and a lot of catching up.",
+      "tags": [
+        "Saturday",
+        "Plants",
+        "Food stalls",
+        "Outdoor"
+      ],
+      "cta": "View Store",
+      "address": "Stephen Dlamini Road, Berea",
+      "hours": [
+        "Sat · 09:00 – 14:00"
+      ],
+      "amenities": [
+        "Outdoor",
+        "Family friendly",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 1642
+      }
+    },
+    {
+      "slug": "the-corner-cafe-store",
+      "name": "Corner Store Glenwood",
+      "hub": "shop",
+      "category": "Craft & Décor",
+      "area": "Glenwood",
+      "price": "$$",
+      "blurb": "Ceramics, prints and homeware from KZN studios, in a shop the size of a lounge.",
+      "tags": [
+        "Ceramics",
+        "Homeware",
+        "Local",
+        "Gifts"
+      ],
+      "cta": "View Store",
+      "address": "Helen Joseph Road, Glenwood",
+      "hours": [
+        "Tue – Sat · 09:00 – 17:00"
+      ],
+      "amenities": [
+        "Card payments",
+        "Gift wrapping"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 274
+      }
+    },
+    {
+      "slug": "adams-booksellers",
+      "name": "Adams Booksellers",
+      "hub": "shop",
+      "category": "Books & Music",
+      "area": "Durban CBD",
+      "price": "$$",
+      "blurb": "Trading since 1865 and still the best African-history shelf in the province.",
+      "tags": [
+        "Books",
+        "Heritage",
+        "African history"
+      ],
+      "cta": "View Store",
+      "address": "Musgrave Centre & Durban CBD",
+      "hours": [
+        "Mon – Fri · 09:00 – 17:00",
+        "Sat · 09:00 – 14:00"
+      ],
+      "amenities": [
+        "Special orders",
+        "Card payments"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 508
+      }
+    },
+    {
+      "slug": "blue-security",
+      "name": "Blue Security",
+      "hub": "services",
+      "category": "Security",
+      "area": "Durban North",
+      "blurb": "Armed response and monitoring across the greater Durban area, 24/7.",
+      "tags": [
+        "Armed response",
+        "Monitoring",
+        "24/7"
+      ],
+      "cta": "Get a Quote",
+      "featured": true,
+      "address": "Durban North",
+      "hours": [
+        "Control room · 24 hours"
+      ],
+      "amenities": [
+        "24/7 control room",
+        "Armed response",
+        "Alarm installation"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 2140
+      }
+    },
+    {
+      "slug": "coastal-plumbing-co",
+      "name": "Coastal Plumbing Co.",
+      "hub": "services",
+      "category": "Home & Trades",
+      "area": "Westville",
+      "blurb": "Licensed plumbers covering the Berea, Westville and the Highway area. Same-day callouts.",
+      "tags": [
+        "Plumbing",
+        "Emergency",
+        "Licensed"
+      ],
+      "cta": "Get a Quote",
+      "hours": [
+        "Mon – Fri · 07:00 – 17:00",
+        "Emergency callouts · 24 hours"
+      ],
+      "amenities": [
+        "Licensed",
+        "Emergency callouts",
+        "Guaranteed work"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 318
+      }
+    },
+    {
+      "slug": "mangwanani-spa",
+      "name": "Mangwanani African Spa",
+      "hub": "services",
+      "category": "Health & Beauty",
+      "area": "Umhlanga",
+      "blurb": "Half-day and full-day African spa packages, with branches up and down the coast.",
+      "tags": [
+        "Spa",
+        "Massage",
+        "Packages",
+        "Groups"
+      ],
+      "cta": "Book a Treatment",
+      "featured": true,
+      "hours": [
+        "Mon – Sun · 09:00 – 20:00"
+      ],
+      "amenities": [
+        "Group bookings",
+        "Gift vouchers",
+        "Parking"
+      ],
+      "__placeholders": {
+        "rating": 4.5,
+        "reviews": 1904
+      }
+    },
+    {
+      "slug": "umhlanga-auto",
+      "name": "Umhlanga Auto Care",
+      "hub": "services",
+      "category": "Auto",
+      "area": "Umhlanga Ridge",
+      "blurb": "Independent servicing and diagnostics that keeps your warranty intact.",
+      "tags": [
+        "Servicing",
+        "Diagnostics",
+        "Warranty safe"
+      ],
+      "cta": "Get a Quote",
+      "hours": [
+        "Mon – Fri · 07:30 – 17:00",
+        "Sat · 08:00 – 12:00"
+      ],
+      "amenities": [
+        "Courtesy car",
+        "RMI accredited",
+        "Collection & delivery"
+      ],
+      "__placeholders": {
+        "rating": 4.6,
+        "reviews": 452
+      }
+    },
+    {
+      "slug": "harbour-accounting",
+      "name": "Harbour Accounting",
+      "hub": "services",
+      "category": "Professional",
+      "area": "Umhlanga Ridge",
+      "blurb": "Small-business accounting, SARS submissions and payroll for Durban owner-operators.",
+      "tags": [
+        "Accounting",
+        "Tax",
+        "Payroll",
+        "Small business"
+      ],
+      "cta": "Get a Quote",
+      "hours": [
+        "Mon – Fri · 08:00 – 16:30"
+      ],
+      "amenities": [
+        "Remote onboarding",
+        "Fixed monthly fees"
+      ],
+      "__placeholders": {
+        "rating": 4.8,
+        "reviews": 196
+      }
+    },
+    {
+      "slug": "east-coast-events",
+      "name": "East Coast Events",
+      "hub": "services",
+      "category": "Events",
+      "area": "Ballito",
+      "blurb": "Weddings, launches and conferences — staging, sound and the permits nobody enjoys.",
+      "tags": [
+        "Weddings",
+        "Corporate",
+        "Staging",
+        "Sound"
+      ],
+      "cta": "Get a Quote",
+      "hours": [
+        "Mon – Fri · 08:00 – 17:00"
+      ],
+      "amenities": [
+        "Site visits",
+        "Full production",
+        "KZN wide"
+      ],
+      "__placeholders": {
+        "rating": 4.7,
+        "reviews": 231
+      }
+    }
+  ],
+  "events": [
+    {
+      "slug": "durban-night-market",
+      "title": "Durban Night Market",
+      "date": "2026-09-24",
+      "dateLabel": "24 – 26 September",
+      "venue": "Suncoast Park",
+      "area": "Beachfront",
+      "category": "Markets",
+      "blurb": "Three nights of food trucks, makers and live sets on the lawns beside the beach.",
+      "body": [
+        "The night market takes over Suncoast Park for a long weekend three times a year: around sixty traders, a stage at the far end, and enough seating that you are not eating standing up.",
+        "Entry is free before 18:00. Bring a card — most traders have moved off cash."
+      ],
+      "price": "Free before 18:00",
+      "featured": true
+    },
+    {
+      "slug": "gagasi-fm-concert",
+      "title": "Gagasi FM Summer Concert",
+      "date": "2026-09-25",
+      "dateLabel": "25 September",
+      "venue": "Moses Mabhida Stadium",
+      "area": "Stamford Hill",
+      "category": "Music",
+      "blurb": "The station's flagship summer line-up, with local headliners and a full stadium stage.",
+      "price": "From R350",
+      "featured": true
+    },
+    {
+      "slug": "sushi-and-gin-festival",
+      "title": "Sushi & Gin Festival",
+      "date": "2026-09-26",
+      "dateLabel": "26 September",
+      "venue": "uShaka Marine World",
+      "area": "Point",
+      "category": "Food & Drink",
+      "blurb": "Forty gin producers, unlimited sushi, and a very sensible shuttle arrangement.",
+      "price": "From R290",
+      "featured": true
+    },
+    {
+      "slug": "comrades-marathon",
+      "title": "Comrades Marathon",
+      "date": "2026-10-01",
+      "dateLabel": "1 October",
+      "venue": "Durban City Centre",
+      "area": "Durban CBD",
+      "category": "Sport",
+      "blurb": "The world's oldest ultramarathon finishes in the city. Road closures from 04:00.",
+      "price": "Free to spectate",
+      "featured": true
+    },
+    {
+      "slug": "vodacom-durban-july",
+      "title": "Vodacom Durban July",
+      "date": "2026-10-04",
+      "dateLabel": "4 October",
+      "venue": "Greyville Racecourse",
+      "area": "Greyville",
+      "category": "Racing",
+      "blurb": "Africa's biggest horse-racing day, and the only fashion brief Durban takes seriously.",
+      "price": "From R250"
+    },
+    {
+      "slug": "durban-international-film-festival",
+      "title": "Durban International Film Festival",
+      "date": "2026-10-09",
+      "dateLabel": "9 – 19 October",
+      "venue": "Various venues",
+      "area": "City wide",
+      "category": "Film",
+      "blurb": "Eleven days of African cinema across Suncoast, the Playhouse and campus screens.",
+      "price": "From R60 per screening"
+    },
+    {
+      "slug": "i-heart-market-saturday",
+      "title": "I Heart Market",
+      "date": "2026-10-03",
+      "dateLabel": "First Saturday",
+      "venue": "Moses Mabhida Stadium",
+      "area": "Stamford Hill",
+      "category": "Markets",
+      "blurb": "Durban's monthly design market — 150 makers, one morning, no resellers.",
+      "price": "Free entry"
+    },
+    {
+      "slug": "umhlanga-summer-sundowners",
+      "title": "Umhlanga Summer Sundowners",
+      "date": "2026-10-11",
+      "dateLabel": "Every Friday in summer",
+      "venue": "Umhlanga Village Green",
+      "area": "Umhlanga Rocks",
+      "category": "Music",
+      "blurb": "Acoustic sets on the village green from 17:00, with the lighthouse doing the lighting.",
+      "price": "Free entry"
+    }
+  ],
+  "deals": [
+    {
+      "slug": "ocean-basket-umhlanga-20-off",
+      "title": "20% Off Your Total Bill",
+      "business": "Ocean Basket Umhlanga",
+      "badge": "20% OFF",
+      "validUntil": "2026-10-31",
+      "category": "Eat & Drink",
+      "area": "Umhlanga",
+      "blurb": "Valid on the à la carte menu, Monday to Thursday, for tables of up to six.",
+      "terms": [
+        "Monday to Thursday only, excluding public holidays.",
+        "Not valid with any other promotion or set menu.",
+        "Show the offer in the I Love Durban app before the bill is printed."
+      ]
+    },
+    {
+      "slug": "mangwanani-15-off-massages",
+      "title": "15% Off All Massages",
+      "business": "Mangwanani Spa",
+      "badge": "15% OFF",
+      "validUntil": "2026-10-31",
+      "category": "Health & Beauty",
+      "area": "Umhlanga",
+      "blurb": "Applies to half-day and full-day packages at the Umhlanga and Ballito branches.",
+      "terms": [
+        "Booking required.",
+        "Subject to availability.",
+        "One redemption per member per month."
+      ]
+    },
+    {
+      "slug": "ushaka-family-combo",
+      "title": "Family Combo Ticket — Save R240",
+      "business": "uShaka Marine World",
+      "badge": "SAVE R240",
+      "validUntil": "2026-12-15",
+      "category": "Things to Do",
+      "area": "Point",
+      "blurb": "Two adults and two children, Sea World and Wet 'n Wild, one ticket.",
+      "terms": [
+        "Valid weekdays outside school holidays.",
+        "Children under 12.",
+        "Non-refundable."
+      ]
+    },
+    {
+      "slug": "oyster-box-high-tea-two-for-one",
+      "title": "High Tea for Two, Pay for One",
+      "business": "The Oyster Box",
+      "badge": "2 FOR 1",
+      "validUntil": "2026-11-30",
+      "category": "Eat & Drink",
+      "area": "Umhlanga Rocks",
+      "blurb": "The full high tea trolley, Tuesday to Thursday, booked at least 48 hours ahead.",
+      "terms": [
+        "Tuesday to Thursday.",
+        "48 hours' notice required.",
+        "Limited covers per sitting."
+      ]
+    },
+    {
+      "slug": "gateway-parking-free-weekend",
+      "title": "Free Weekend Parking",
+      "business": "Gateway Theatre of Shopping",
+      "badge": "FREE",
+      "validUntil": "2026-10-31",
+      "category": "Shop",
+      "area": "Umhlanga Ridge",
+      "blurb": "Scan your member code at the pay station on Saturdays and Sundays.",
+      "terms": [
+        "Members only.",
+        "Up to four hours.",
+        "Weekends only."
+      ]
+    },
+    {
+      "slug": "coastal-plumbing-callout-waived",
+      "title": "Callout Fee Waived",
+      "business": "Coastal Plumbing Co.",
+      "badge": "NO CALLOUT",
+      "validUntil": "2026-12-31",
+      "category": "Services",
+      "area": "Westville",
+      "blurb": "First-time customers pay for the work, not for the trip out.",
+      "terms": [
+        "First-time customers only.",
+        "Within a 25 km radius of Westville.",
+        "Weekdays only."
+      ]
+    }
+  ],
+  "posts": [
+    {
+      "slug": "how-to-eat-a-bunny-chow",
+      "title": "How to eat a bunny chow without embarrassing yourself",
+      "date": "2026-08-14",
+      "author": "I Love Durban",
+      "category": "Food",
+      "excerpt": "There is a right way, several acceptable ways, and one way that will get you talked about after you leave.",
+      "body": [
+        "A bunny chow is a quarter, half or full loaf of white bread, hollowed out and filled with curry. The bread you remove — the virgin — is not a garnish. It is the spoon, and it is also the last bite.",
+        "Start at a corner, not the middle. Pull the virgin apart in pieces small enough to hold curry without collapsing, and work inwards. The loaf's walls will soften as you go; that is the point, and it is why a bunny is eaten in one sitting rather than carried around.",
+        "Cutlery is not forbidden, but nobody who grew up on these is reaching for it. Order a quarter mutton the first time. If you finish it and want more, you have learned something about yourself."
+      ]
+    },
+    {
+      "slug": "durban-beaches-ranked-by-what-you-want",
+      "title": "Durban's beaches, ranked by what you actually want from a beach",
+      "date": "2026-08-02",
+      "author": "I Love Durban",
+      "category": "Beaches",
+      "excerpt": "Swimming, surfing, running, or sitting still while somebody else supervises the children — different beaches, all of them ours.",
+      "body": [
+        "The Golden Mile is not one beach, it is eight kilometres of them, and the differences matter more than the map suggests.",
+        "For flat water and lifeguards, Addington's tidal pool is the safest bet in the city. For surfing, head to the piers at North Beach. For a run, take the promenade at 06:00 before the heat arrives. For families, uShaka Beach puts the aquarium, the toilets and the ice cream within one radius.",
+        "All of them are warm all year. That is the part visitors never quite believe until they are in it."
+      ]
+    },
+    {
+      "slug": "48-hours-in-durban",
+      "title": "48 hours in Durban, done properly",
+      "date": "2026-07-21",
+      "author": "I Love Durban",
+      "category": "Guides",
+      "excerpt": "A weekend itinerary that does not involve driving in circles on the M4.",
+      "body": [
+        "Friday evening: check in around Umhlanga, walk to the lighthouse for sunset, eat within walking distance so the car stays where it is.",
+        "Saturday: the botanic gardens early, Victoria Street Market for spice and lunch, the SkyCar at Moses Mabhida in the late afternoon, and dinner on Florida Road.",
+        "Sunday: uShaka if you have children, the promenade if you do not. Leave the curry buffet for the last meal — it is the one you will describe when you get home."
+      ]
+    },
+    {
+      "slug": "supporting-local-actually-means-this",
+      "title": "What 'support local' actually means for a Durban business",
+      "date": "2026-07-08",
+      "author": "I Love Durban",
+      "category": "Business",
+      "excerpt": "Spoiler: the review you leave is worth more to a small business than the R40 you spent.",
+      "body": [
+        "Small businesses in this city do not lose to competitors nearly as often as they lose to invisibility. A restaurant with no photographs, no hours and no reviews may be the best kitchen in Glenwood, and nobody will find out.",
+        "The two things that move the needle cost nothing: leave the review, and tell the owner where you heard about them. Both of those change what they invest in next."
+      ]
+    }
+  ],
+  "sponsors": [
+    {
+      "name": "Hollywoodbets",
+      "placement": "title",
+      "eyebrow": "Proudly brought to you by our title partner",
+      "headline": "Play Your Part, Hollywood!",
+      "subhead": "It's a winning thing.",
+      "cta": "Bet Now",
+      "href": "https://www.hollywoodbets.net",
+      "art": "from-[#3B1E7A] via-[#5B2AA8] to-[#8E2DE2]"
+    },
+    {
+      "name": "Blue Security",
+      "placement": "sidebar",
+      "headline": "Smarter. Safer. Stronger.",
+      "subhead": "Your world. Our priority.",
+      "body": "24/7 protection you can trust.",
+      "cta": "Learn More",
+      "href": "#",
+      "art": "from-ink via-ink-800 to-[#0E3A6B]"
+    },
+    {
+      "name": "Toyota",
+      "placement": "leaderboard",
+      "eyebrow": "Lead the way",
+      "headline": "Built for Durban. Driven by you.",
+      "cta": "Explore More",
+      "href": "#",
+      "art": "from-[#1B1B1B] via-[#2B2B2B] to-[#4A4A4A]"
+    }
+  ],
+  "plans": [
+    {
+      "name": "Free Listing",
+      "price": "R0",
+      "period": "forever",
+      "summary": "Claim your business and get found in search.",
+      "includes": [
+        "Name, category and area",
+        "Phone number and website link",
+        "Opening hours",
+        "One photo",
+        "Customer reviews"
+      ],
+      "cta": "Claim your listing",
+      "featured": false
+    },
+    {
+      "name": "Featured",
+      "price": "R690",
+      "period": "per month",
+      "summary": "Priority placement where Durban is already looking.",
+      "includes": [
+        "Everything in Free Listing",
+        "Top-of-category placement",
+        "Photo gallery (up to 20)",
+        "Publish deals and offers",
+        "Events on the city calendar",
+        "Monthly performance report"
+      ],
+      "cta": "Go Featured",
+      "featured": true
+    },
+    {
+      "name": "Partner",
+      "price": "From R2 450",
+      "period": "per month",
+      "summary": "Campaign-level presence across the platform and the app.",
+      "includes": [
+        "Everything in Featured",
+        "Homepage and hub banner placements",
+        "Newsletter inclusion",
+        "Social media feature",
+        "Rewards-programme integration",
+        "Dedicated account manager"
+      ],
+      "cta": "Talk to Sales",
+      "featured": false
+    }
+  ],
+  "menus": {
+    "primary": [
+      {
+        "label": "Discover",
+        "href": "/discover",
+        "columns": [
+          {
+            "heading": "Start here",
+            "links": [
+              {
+                "label": "This weekend in Durban",
+                "href": "/discover#weekend"
+              },
+              {
+                "label": "First time in Durban",
+                "href": "/discover#first-time"
+              },
+              {
+                "label": "Hidden gems",
+                "href": "/discover#gems"
+              },
+              {
+                "label": "Free things to do",
+                "href": "/discover#free"
+              }
+            ]
+          },
+          {
+            "heading": "Neighbourhoods",
+            "links": [
+              {
+                "label": "Umhlanga & Ballito",
+                "href": "/discover#umhlanga"
+              },
+              {
+                "label": "Florida Road & Morningside",
+                "href": "/discover#florida-road"
+              },
+              {
+                "label": "Point Waterfront",
+                "href": "/discover#point"
+              },
+              {
+                "label": "Glenwood & Berea",
+                "href": "/discover#glenwood"
+              }
+            ]
+          },
+          {
+            "heading": "Editorial",
+            "links": [
+              {
+                "label": "The Durban Blog",
+                "href": "/blog"
+              },
+              {
+                "label": "Durban Approved",
+                "href": "/discover#approved"
+              },
+              {
+                "label": "Local legends",
+                "href": "/discover#legends"
+              }
+            ]
+          }
+        ],
+        "feature": {
+          "title": "Durban Approved",
+          "body": "Places our team has visited, eaten at and vouched for. No paid placements in this list.",
+          "href": "/discover#approved",
+          "cta": "See the list"
+        }
+      },
+      {
+        "label": "Eat & Drink",
+        "href": "/eat-drink",
+        "columns": [
+          {
+            "heading": "By type",
+            "links": [
+              {
+                "label": "Restaurants",
+                "href": "/eat-drink?filter=Restaurants"
+              },
+              {
+                "label": "Cafés & Coffee",
+                "href": "/eat-drink?filter=Caf%C3%A9s"
+              },
+              {
+                "label": "Bars & Nightlife",
+                "href": "/eat-drink?filter=Bars%20%26%20Nightlife"
+              },
+              {
+                "label": "Fine Dining",
+                "href": "/eat-drink?filter=Fine%20Dining"
+              }
+            ]
+          },
+          {
+            "heading": "Durban classics",
+            "links": [
+              {
+                "label": "Curry & Bunny Chow",
+                "href": "/eat-drink?filter=Curry%20%26%20Bunny%20Chow"
+              },
+              {
+                "label": "Seafood",
+                "href": "/eat-drink?filter=Seafood"
+              },
+              {
+                "label": "Halaal",
+                "href": "/eat-drink?filter=Halaal"
+              },
+              {
+                "label": "Vegan & Veg",
+                "href": "/eat-drink?filter=Vegan"
+              }
+            ]
+          },
+          {
+            "heading": "Book a table",
+            "links": [
+              {
+                "label": "Tonight",
+                "href": "/eat-drink#tonight"
+              },
+              {
+                "label": "Sunday lunch",
+                "href": "/eat-drink#sunday"
+              },
+              {
+                "label": "Big groups",
+                "href": "/eat-drink#groups"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Stay",
+        "href": "/stay",
+        "columns": [
+          {
+            "heading": "By type",
+            "links": [
+              {
+                "label": "Hotels",
+                "href": "/stay?filter=Hotels"
+              },
+              {
+                "label": "Boutique",
+                "href": "/stay?filter=Boutique"
+              },
+              {
+                "label": "Self-catering",
+                "href": "/stay?filter=Self-catering"
+              },
+              {
+                "label": "Guest Houses",
+                "href": "/stay?filter=Guest%20Houses"
+              }
+            ]
+          },
+          {
+            "heading": "By trip",
+            "links": [
+              {
+                "label": "Beachfront",
+                "href": "/stay?filter=Beachfront"
+              },
+              {
+                "label": "Family friendly",
+                "href": "/stay?filter=Family"
+              },
+              {
+                "label": "Business travel",
+                "href": "/stay?filter=Business"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Things to Do",
+        "href": "/things-to-do",
+        "columns": [
+          {
+            "heading": "Outdoors",
+            "links": [
+              {
+                "label": "Beaches",
+                "href": "/things-to-do?filter=Beaches"
+              },
+              {
+                "label": "Adventure",
+                "href": "/things-to-do?filter=Adventure"
+              },
+              {
+                "label": "Wildlife",
+                "href": "/things-to-do?filter=Wildlife"
+              },
+              {
+                "label": "Outdoors",
+                "href": "/things-to-do?filter=Outdoors"
+              }
+            ]
+          },
+          {
+            "heading": "Culture",
+            "links": [
+              {
+                "label": "Culture & Heritage",
+                "href": "/things-to-do?filter=Culture%20%26%20Heritage"
+              },
+              {
+                "label": "Tours",
+                "href": "/things-to-do?filter=Tours"
+              },
+              {
+                "label": "Wellness",
+                "href": "/things-to-do?filter=Wellness"
+              }
+            ]
+          },
+          {
+            "heading": "With kids",
+            "links": [
+              {
+                "label": "Family favourites",
+                "href": "/things-to-do?filter=Family"
+              },
+              {
+                "label": "Rainy day ideas",
+                "href": "/things-to-do#rainy"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Events",
+        "href": "/events"
+      },
+      {
+        "label": "Deals",
+        "href": "/deals"
+      },
+      {
+        "label": "Shop",
+        "href": "/shop"
+      },
+      {
+        "label": "Services",
+        "href": "/services"
+      }
+    ],
+    "footer": [
+      {
+        "heading": "Explore",
+        "links": [
+          {
+            "label": "Eat & Drink",
+            "href": "/eat-drink"
+          },
+          {
+            "label": "Stay",
+            "href": "/stay"
+          },
+          {
+            "label": "Things to Do",
+            "href": "/things-to-do"
+          },
+          {
+            "label": "Events",
+            "href": "/events"
+          },
+          {
+            "label": "Deals",
+            "href": "/deals"
+          },
+          {
+            "label": "Shop Local",
+            "href": "/shop"
+          }
+        ]
+      },
+      {
+        "heading": "Business",
+        "links": [
+          {
+            "label": "List Your Business",
+            "href": "/list-your-business"
+          },
+          {
+            "label": "Business Advertising",
+            "href": "/list-your-business#advertising"
+          },
+          {
+            "label": "Durban Approved",
+            "href": "/discover#approved"
+          },
+          {
+            "label": "Business Solutions",
+            "href": "/list-your-business#solutions"
+          },
+          {
+            "label": "Success Stories",
+            "href": "/list-your-business#stories"
+          }
+        ]
+      },
+      {
+        "heading": "Company",
+        "links": [
+          {
+            "label": "About Us",
+            "href": "/about"
+          },
+          {
+            "label": "Careers",
+            "href": "/about#careers"
+          },
+          {
+            "label": "Blog",
+            "href": "/blog"
+          },
+          {
+            "label": "Press",
+            "href": "/about#press"
+          },
+          {
+            "label": "Contact Us",
+            "href": "/contact"
+          }
+        ]
+      },
+      {
+        "heading": "Support",
+        "links": [
+          {
+            "label": "Help Centre",
+            "href": "/help"
+          },
+          {
+            "label": "Terms & Conditions",
+            "href": "/terms"
+          },
+          {
+            "label": "Privacy Policy",
+            "href": "/privacy"
+          }
+        ]
+      }
+    ],
+    "bottom": [
+      {
+        "label": "Home",
+        "href": "/",
+        "icon": "home"
+      },
+      {
+        "label": "Explore",
+        "href": "/discover",
+        "icon": "compass"
+      },
+      {
+        "label": "Deals",
+        "href": "/deals",
+        "icon": "tag"
+      },
+      {
+        "label": "Events",
+        "href": "/events",
+        "icon": "calendar"
+      },
+      {
+        "label": "Saved",
+        "href": "/saved",
+        "icon": "heart"
+      }
+    ]
+  }
+}

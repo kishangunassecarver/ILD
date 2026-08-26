@@ -44,19 +44,47 @@ returns the same content that is already visible on the website.
 
 ## Part 2 — Install the plugin
 
-1. Zip the plugin file:
+1. Build the plugin zip:
    ```bash
-   cd wordpress && zip ilovedurban-headless-cms.zip ilovedurban-headless-cms.php
+   npm run plugin:zip
    ```
+   It bundles the PHP and the starter-content JSON into
+   `wordpress/ilovedurban-headless-cms.zip`.
 2. In WordPress: **Plugins → Add New → Upload Plugin**, choose the zip, install,
-   then **Activate**.
-3. An **ILD Content** menu appears in the sidebar.
+   then **Activate**. Upgrading over an existing copy is fine — choose
+   *Replace current with uploaded*.
+3. An **I Love Durban** menu appears in the sidebar, with a heart icon.
 
 It needs no other plugins — not ACF, not WPGraphQL. Core WordPress only.
 
-## Part 3 — Add your content
+## Part 3 — Import the starter content (do this first)
 
-**ILD Content → Site Copy & Deploy** holds the one-off copy: the tagline, site
+Go to **I Love Durban → Starter Content** and click **Import starter content**.
+
+The site ships with built-in content so it is never blank, but that content lives
+in the code where you cannot touch it — and the moment you publish one listing of
+your own, WordPress takes over the whole collection and the built-in ones
+disappear. Importing brings it all in as ordinary posts instead: 5 hubs,
+42 listings, 8 events, 6 deals, 3 sponsors, 3 business plans, and both menus.
+
+You then start from something populated and edit or delete entries one at a time,
+like anything else in WordPress. No cliff edge.
+
+**Safe to run more than once.** Anything already present is left exactly as it
+is, so a second run cannot overwrite something you have edited. It fills gaps
+only.
+
+**The ratings checkbox.** The venue names, areas, categories and descriptions in
+the starter content are real. The **star ratings and review counts are
+invented** — they exist so the card layouts could be designed against
+realistic-looking data. Leave the box unticked and listings arrive without
+ratings, ready for real numbers; a listing with no rating simply shows no stars.
+Tick it only if you need the site to look populated for a demo, and replace them
+before launch.
+
+## Part 4 — Add your content
+
+**I Love Durban → Site Copy & Deploy** holds the one-off copy: the tagline, site
 description, search placeholder, popular-search chips, the app-promo panel, the
 newsletter wording and the headline numbers.
 
@@ -110,12 +138,14 @@ is split into paragraphs. HTML in the body is stripped to plain text.
 migrate one section at a time; there is no need to fill everything in before the
 first publish.
 
-**But within a collection, publishing *any* entry replaces the whole
-collection.** Publish one Listing and you become responsible for all of them —
-the built-in seed listings disappear. That is deliberate: a directory that is
-half real data and half sample data is worse than either.
+**Within a collection, publishing *any* entry replaces the whole collection.**
+Publish one Listing and WordPress owns all of them, so the built-in ones stop
+being used. That is deliberate — a directory that is half real and half sample
+data is worse than either — and it is exactly why Part 3 exists. Once the
+starter content is imported there is nothing left in the code to lose, and this
+rule stops mattering.
 
-## Part 4 — Connect the two services
+## Part 5 — Connect the two services
 
 **a. Tell the site where WordPress lives.** In the Cloudflare dashboard, open
 your project → **Settings → Build → Build variables and secrets** → add:
@@ -145,7 +175,7 @@ the reason is printed on the same line.
 
 **b. Let WordPress trigger rebuilds.** In Cloudflare, create a **Deploy hook**
 for the project (Settings → Builds → Deploy hooks), copy the URL, and paste it
-into **ILD Content → Site Copy & Deploy → Cloudflare deploy hook URL**.
+into **I Love Durban → Site Copy & Deploy → Cloudflare deploy hook URL**.
 
 Treat that URL as a secret: anyone holding it can trigger builds. Leave the
 field blank and nothing breaks — you just rebuild manually from the dashboard

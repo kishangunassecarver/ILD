@@ -9,3 +9,6 @@ next-env.d.ts
 
 # Built plugin archive — regenerate with: cd wordpress && zip ilovedurban-headless-cms.zip ilovedurban-headless-cms.php
 wordpress/*.zip
+
+# Staging directory for the plugin zip.
+wordpress/ilovedurban-headless-cms/
