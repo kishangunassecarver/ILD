@@ -270,9 +270,16 @@ nothing points at it any more, it is safe to switch off.
 
 ### Putting the articles in the menu
 
-**I Love Durban → Attractions Menu** builds it for you. Each section becomes a
-column under Things to Do, listing a few of its attractions and ending in a link
-through to the full section page.
+**I Love Durban → Attractions Menu** builds it for you. It adds an
+**Attractions** item to the main menu, placed immediately after Things to Do,
+with a mega-menu flyout: each imported section becomes a column, listing a few of
+its attractions and ending in a link through to the full section page.
+
+**Things to Do keeps its own dropdown** — the hub filters (Beaches, Adventure,
+Culture & Heritage and so on). The two are separate: Things to Do is for
+browsing the directory by category, Attractions is the editorial article tree.
+The same screen has a tickbox to restore Things to Do's built-in columns, in case
+an earlier run of this tool replaced them.
 
 All 124 cannot go in the dropdown — 34 links in one column is a wall of text
 nobody reads — so it shows eight per column by default, which keeps four columns

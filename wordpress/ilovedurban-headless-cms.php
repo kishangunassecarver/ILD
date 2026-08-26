@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.9.0
+ * Version:      3.0.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -1283,6 +1283,114 @@ function ild_media_adopt( string $url ): int {
 
 const ILD_MENU_PER_SECTION = 8;
 
+/** Every descendant of a menu item, deepest first so parents outlive children. */
+function ild_menu_descendants( array $items, int $parent_id ): array {
+	$found = array();
+	$queue = array( $parent_id );
+
+	while ( $queue ) {
+		$current = array_shift( $queue );
+		foreach ( $items as $item ) {
+			if ( (int) $item->menu_item_parent === $current ) {
+				$found[] = (int) $item->ID;
+				$queue[] = (int) $item->ID;
+			}
+		}
+	}
+
+	return array_reverse( $found );
+}
+
+/** Add one item to a menu, returning its new ID. */
+function ild_menu_add( int $menu_id, string $title, string $url, int $parent, int $position ) {
+	return wp_update_nav_menu_item(
+		$menu_id,
+		0,
+		array(
+			'menu-item-title'     => $title,
+			'menu-item-url'       => $url,
+			'menu-item-status'    => 'publish',
+			'menu-item-type'      => 'custom',
+			'menu-item-parent-id' => $parent,
+			'menu-item-position'  => $position,
+		)
+	);
+}
+
+/**
+ * Put a top-level item's built-in dropdown back.
+ *
+ * Needed because building the Attractions tree under "Things to Do" replaced
+ * that item's original columns — the hub filters — and there was no way to get
+ * them back short of retyping them. The structure comes from the same
+ * seed-content.json the Starter Content importer uses.
+ */
+function ild_restore_menu_branch( string $label ): array {
+	$menu_id = ild_primary_menu_id();
+	if ( ! $menu_id ) {
+		return array( 'error' => 'No menu is assigned to the main menu location.' );
+	}
+
+	$seed = ild_seed_data();
+	if ( null === $seed ) {
+		return array( 'error' => 'seed-content.json is missing from the plugin.' );
+	}
+
+	$source = null;
+	foreach ( $seed['menus']['primary'] ?? array() as $item ) {
+		if ( 0 === strcasecmp( trim( $item['label'] ?? '' ), $label ) ) {
+			$source = $item;
+			break;
+		}
+	}
+
+	if ( ! $source ) {
+		return array( 'error' => '"' . $label . '" is not one of the built-in menu items.' );
+	}
+
+	$items  = wp_get_nav_menu_items( $menu_id ) ?: array();
+	$target = null;
+
+	foreach ( $items as $item ) {
+		if ( 0 === (int) $item->menu_item_parent && 0 === strcasecmp( trim( $item->title ), $label ) ) {
+			$target = $item;
+			break;
+		}
+	}
+
+	if ( ! $target ) {
+		$new = ild_menu_add( $menu_id, $label, $source['href'] ?? '/', 0, 50 );
+		if ( is_wp_error( $new ) ) {
+			return array( 'error' => 'Could not create "' . $label . '".' );
+		}
+		$target_id = (int) $new;
+	} else {
+		$target_id = (int) $target->ID;
+		foreach ( ild_menu_descendants( $items, $target_id ) as $id ) {
+			wp_delete_post( $id, true );
+		}
+	}
+
+	$position = 400;
+	$columns  = 0;
+	$links    = 0;
+
+	foreach ( $source['columns'] ?? array() as $column ) {
+		$heading = ild_menu_add( $menu_id, $column['heading'], '#', $target_id, $position++ );
+		if ( is_wp_error( $heading ) ) {
+			continue;
+		}
+		$columns++;
+
+		foreach ( $column['links'] ?? array() as $link ) {
+			ild_menu_add( $menu_id, $link['label'], $link['href'], (int) $heading, $position++ );
+			$links++;
+		}
+	}
+
+	return array( 'columns' => $columns, 'links' => $links );
+}
+
 /** The main menu's ID, or 0 if no menu is assigned to that location yet. */
 function ild_primary_menu_id(): int {
 	$locations = get_nav_menu_locations();
@@ -1349,40 +1457,37 @@ function ild_build_attractions_menu( string $parent_label, array $section_slugs,
 	}
 
 	if ( ! $parent ) {
-		$new_id = wp_update_nav_menu_item(
-			$menu_id,
-			0,
-			array(
-				'menu-item-title'  => $parent_label,
-				'menu-item-url'    => '/things-to-do',
-				'menu-item-status' => 'publish',
-				'menu-item-type'   => 'custom',
-			)
-		);
+		/*
+		 * Sits immediately after Things to Do when that exists, since the two
+		 * belong together — attractions are things to do. Falls to the end of
+		 * the bar otherwise.
+		 */
+		$after = 60;
+		foreach ( $items as $item ) {
+			if ( 0 === (int) $item->menu_item_parent && 0 === strcasecmp( trim( $item->title ), 'Things to Do' ) ) {
+				$after = (int) $item->menu_order + 1;
+				break;
+			}
+		}
+
+		$new_id = ild_menu_add( $menu_id, $parent_label, '/' . sanitize_title( $section_slugs[0] ?? 'durban' ) . '/', 0, $after );
 
 		if ( is_wp_error( $new_id ) ) {
 			return array( 'error' => 'Could not create the "' . $parent_label . '" menu item.' );
 		}
 
 		$parent_id = (int) $new_id;
+
+		// Shift everything that was at or after that slot down by one.
+		foreach ( $items as $item ) {
+			if ( 0 === (int) $item->menu_item_parent && (int) $item->menu_order >= $after ) {
+				wp_update_post( array( 'ID' => (int) $item->ID, 'menu_order' => (int) $item->menu_order + 1 ) );
+			}
+		}
 	} else {
 		$parent_id = (int) $parent->ID;
 
-		// Clear the existing branch, deepest first so parents outlive children.
-		$descendants = array();
-		$queue       = array( $parent_id );
-
-		while ( $queue ) {
-			$current = array_shift( $queue );
-			foreach ( $items as $item ) {
-				if ( (int) $item->menu_item_parent === $current ) {
-					$descendants[] = (int) $item->ID;
-					$queue[]       = (int) $item->ID;
-				}
-			}
-		}
-
-		foreach ( array_reverse( $descendants ) as $id ) {
+		foreach ( ild_menu_descendants( $items, $parent_id ) as $id ) {
 			wp_delete_post( $id, true );
 		}
 	}
@@ -1391,18 +1496,7 @@ function ild_build_attractions_menu( string $parent_label, array $section_slugs,
 	$report   = array();
 
 	foreach ( $sections as $section ) {
-		$heading = wp_update_nav_menu_item(
-			$menu_id,
-			0,
-			array(
-				'menu-item-title'     => ild_text( get_the_title( $section ) ),
-				'menu-item-url'       => '/' . $section->post_name . '/',
-				'menu-item-status'    => 'publish',
-				'menu-item-type'      => 'custom',
-				'menu-item-parent-id' => $parent_id,
-				'menu-item-position'  => $position++,
-			)
-		);
+		$heading = ild_menu_add( $menu_id, ild_text( get_the_title( $section ) ), '/' . $section->post_name . '/', $parent_id, $position++ );
 
 		if ( is_wp_error( $heading ) ) {
 			continue;
@@ -1420,18 +1514,7 @@ function ild_build_attractions_menu( string $parent_label, array $section_slugs,
 		);
 
 		foreach ( $children as $child ) {
-			wp_update_nav_menu_item(
-				$menu_id,
-				0,
-				array(
-					'menu-item-title'     => ild_text( get_the_title( $child ) ),
-					'menu-item-url'       => '/' . $section->post_name . '/' . $child->post_name . '/',
-					'menu-item-status'    => 'publish',
-					'menu-item-type'      => 'custom',
-					'menu-item-parent-id' => (int) $heading,
-					'menu-item-position'  => $position++,
-				)
-			);
+			ild_menu_add( $menu_id, ild_text( get_the_title( $child ) ), '/' . $section->post_name . '/' . $child->post_name . '/', (int) $heading, $position++ );
 		}
 
 		$total = (int) ( new WP_Query(
@@ -1447,18 +1530,7 @@ function ild_build_attractions_menu( string $parent_label, array $section_slugs,
 		// The column can only show a handful, so give people the way through to
 		// the rest rather than pretending these are all of them.
 		if ( $total > count( $children ) ) {
-			wp_update_nav_menu_item(
-				$menu_id,
-				0,
-				array(
-					'menu-item-title'     => 'All ' . $total . ' →',
-					'menu-item-url'       => '/' . $section->post_name . '/',
-					'menu-item-status'    => 'publish',
-					'menu-item-type'      => 'custom',
-					'menu-item-parent-id' => (int) $heading,
-					'menu-item-position'  => $position++,
-				)
-			);
+			ild_menu_add( $menu_id, 'All ' . $total . ' →', '/' . $section->post_name . '/', (int) $heading, $position++ );
 		}
 
 		$report[ ild_text( get_the_title( $section ) ) ] = array( 'shown' => count( $children ), 'total' => $total );
@@ -1475,7 +1547,7 @@ function ild_attractions_menu_page(): void {
 	echo '<div class="wrap"><h1>Build the Attractions menu</h1>';
 
 	if ( isset( $_POST['ild_build_menu'] ) && check_admin_referer( 'ild_build_menu' ) ) {
-		$label   = sanitize_text_field( wp_unslash( $_POST['ild_parent_label'] ?? 'Things to Do' ) );
+		$label   = sanitize_text_field( wp_unslash( $_POST['ild_parent_label'] ?? 'Attractions' ) );
 		$slugs   = array_filter( array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_POST['ild_sections'] ?? ILD_SOURCE_PARENTS ) ) ) ) );
 		$per     = max( 1, min( 20, (int) ( $_POST['ild_per_section'] ?? ILD_MENU_PER_SECTION ) ) );
 		$outcome = ild_build_attractions_menu( $label, $slugs, $per );
@@ -1491,25 +1563,40 @@ function ild_attractions_menu_page(): void {
 				}
 				echo '</li>';
 			}
-			echo '</ul><p>The site is rebuilding — allow two to four minutes. Fine-tune the result in Appearance → Menus.</p></div>';
+			echo '</ul>';
+
+			if ( isset( $_POST['ild_restore_ttd'] ) ) {
+				$restored = ild_restore_menu_branch( 'Things to Do' );
+				if ( isset( $restored['error'] ) ) {
+					echo '<p><strong>Things to Do was not restored:</strong> ' . esc_html( $restored['error'] ) . '</p>';
+				} else {
+					echo '<p><strong>Things to Do</strong> put back to its built-in dropdown: '
+						. (int) $restored['columns'] . ' columns, ' . (int) $restored['links'] . ' links.</p>';
+				}
+			}
+
+			echo '<p>The site is rebuilding — allow two to four minutes. Fine-tune the result in Appearance → Menus.</p></div>';
 			ild_trigger_deploy( 'attractions menu rebuilt' );
 		}
 	}
 
-	echo '<p>Puts the imported attraction sections into the main menu. Each section becomes a column in the dropdown, listing a few of its attractions and ending in a link through to the full section page.</p>';
+	echo '<p>Adds an <strong>Attractions</strong> item to the main menu with a mega-menu flyout: each imported section becomes a column, listing a few of its attractions and ending in a link through to the full section page. It is placed immediately after Things to Do.</p>';
 	echo '<p>All 124 cannot go in the dropdown — 34 links in one column is a wall of text nobody reads. The section pages carry the complete lists; the menu is for getting people started.</p>';
 	echo '<p><strong>This rebuilds the branch rather than adding to it</strong>, so it is safe to run twice — but anything you have added under that menu item by hand will be replaced.</p>';
 
 	echo '<form method="post"><table class="form-table"><tbody>';
 	echo '<tr><th scope="row"><label for="ild_parent_label">Menu item to build under</label></th><td>';
-	echo '<input type="text" class="regular-text" id="ild_parent_label" name="ild_parent_label" value="Things to Do" />';
-	echo '<p class="description">Matched by title in the main menu. Created if it is not there.</p></td></tr>';
+	echo '<input type="text" class="regular-text" id="ild_parent_label" name="ild_parent_label" value="Attractions" />';
+	echo '<p class="description">Matched by title in the main menu, and created as a new top-level item if it is not there.</p></td></tr>';
 	echo '<tr><th scope="row"><label for="ild_sections">Sections</label></th><td>';
 	echo '<input type="text" class="large-text code" id="ild_sections" name="ild_sections" value="' . esc_attr( ILD_SOURCE_PARENTS ) . '" />';
 	echo '<p class="description">Comma-separated page slugs, in the order you want the columns.</p></td></tr>';
 	echo '<tr><th scope="row"><label for="ild_per_section">Attractions per column</label></th><td>';
 	echo '<input type="number" min="1" max="20" id="ild_per_section" name="ild_per_section" value="' . (int) ILD_MENU_PER_SECTION . '" />';
 	echo '<p class="description">Ordered by the Order field, then title. Eight keeps four columns readable.</p></td></tr>';
+	echo '<tr><th scope="row">Things to Do</th><td><label><input type="checkbox" name="ild_restore_ttd" value="1" checked /> ';
+	echo 'Put Things to Do back to its built-in dropdown</label>';
+	echo '<p class="description">An earlier version of this tool built the attraction columns under Things to Do, which replaced its original columns of hub filters. Leave this ticked to restore them.</p></td></tr>';
 	echo '</tbody></table>';
 	wp_nonce_field( 'ild_build_menu' );
 	submit_button( 'Build the menu', 'primary', 'ild_build_menu' );
