@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ilovedurban",
+  // Must match the Worker's name on Cloudflare (the site at
+  // ild.kishan-bde.workers.dev) — wrangler commands like `secret put` target
+  // the Worker by this name.
+  "name": "ild",
   "compatibility_date": "2026-08-20",
   // The site is a static export in out/. Assets are matched first, so a normal
   // page load never touches the Worker; only /api/* falls through to it.
