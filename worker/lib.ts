@@ -54,6 +54,82 @@ export async function hashToken(token: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/* -------------------------------------------------------------------------
+ * Passwords
+ *
+ * PBKDF2-HMAC-SHA256 via WebCrypto — the only password KDF Workers run
+ * natively. Each hash records its own iteration count, so the cost can be
+ * raised later and old hashes still verify (and quietly upgrade on the next
+ * successful sign-in).
+ * ---------------------------------------------------------------------- */
+
+export const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 200;
+const PBKDF2_ITERATIONS = 100_000;
+
+export function passwordProblem(value: unknown): string | null {
+  if (typeof value !== "string" || value.length < PASSWORD_MIN) {
+    return `Use a password of at least ${PASSWORD_MIN} characters.`;
+  }
+  if (value.length > PASSWORD_MAX) {
+    return "That password is too long.";
+  }
+  return null;
+}
+
+async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt: salt as BufferSource, iterations },
+    key,
+    256
+  );
+
+  return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** → "pbkdf2:100000:saltHex:hashHex" */
+export async function hashPassword(password: string): Promise<string> {
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+
+  const hash = await pbkdf2(password, salt, PBKDF2_ITERATIONS);
+  const saltHex = [...salt].map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return `pbkdf2:${PBKDF2_ITERATIONS}:${saltHex}:${hash}`;
+}
+
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  const [scheme, iterationsRaw, saltHex, expected] = stored.split(":");
+  if (scheme !== "pbkdf2" || !iterationsRaw || !saltHex || !expected) return false;
+
+  const iterations = Number(iterationsRaw);
+  if (!Number.isInteger(iterations) || iterations < 1_000 || iterations > 1_000_000) return false;
+
+  const salt = new Uint8Array(saltHex.length / 2);
+  for (let i = 0; i < salt.length; i += 1) {
+    salt[i] = parseInt(saltHex.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  const derived = await pbkdf2(password, salt, iterations);
+
+  // Constant-time compare; both sides are hex of fixed length.
+  if (derived.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < derived.length; i += 1) {
+    diff |= derived.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+
+  return diff === 0;
+}
+
 /**
  * Parse a JSON body, treating anything unparseable as an empty object.
  *
@@ -127,7 +203,15 @@ export function readCookie(request: Request, name: string): string | null {
 
   for (const part of header.split(";")) {
     const [key, ...rest] = part.trim().split("=");
-    if (key === name) return decodeURIComponent(rest.join("="));
+    if (key === name) {
+      // A malformed cookie ("%zz") must read as "no cookie", not throw a 500
+      // on every request until the browser clears it.
+      try {
+        return decodeURIComponent(rest.join("="));
+      } catch {
+        return null;
+      }
+    }
   }
 
   return null;

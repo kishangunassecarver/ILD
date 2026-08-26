@@ -4,14 +4,16 @@
 --   npm run db:local     (local development)
 --   npm run db:remote    (the real database, once created)
 --
--- Deliberately no password column anywhere. Sign-in is by emailed one-time
--- link, so there is no password to store, leak, or reset — and a directory
--- site is not where anyone should be trusting us with a reused password.
+-- Passwords are PBKDF2-HMAC-SHA256, salted per user, stored as
+-- "pbkdf2:<iterations>:<salt>:<hash>" — never in the clear. `password_hash`
+-- is nullable: accounts from the email-link era set one through the reset
+-- flow, which proves ownership of the address first.
 
 CREATE TABLE IF NOT EXISTS members (
   id          TEXT PRIMARY KEY,
   email       TEXT NOT NULL UNIQUE,
   name        TEXT,
+  password_hash TEXT,
   created_at  INTEGER NOT NULL,
   last_seen_at INTEGER
 );
@@ -30,6 +32,18 @@ CREATE TABLE IF NOT EXISTS login_tokens (
 );
 
 CREATE INDEX IF NOT EXISTS idx_login_tokens_email ON login_tokens (email);
+
+-- One-time password-reset links, same shape and same hashing rule as
+-- login_tokens: a leaked backup must not contain working reset links.
+CREATE TABLE IF NOT EXISTS password_resets (
+  token_hash  TEXT PRIMARY KEY,
+  email       TEXT NOT NULL,
+  expires_at  INTEGER NOT NULL,
+  used_at     INTEGER,
+  created_at  INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_resets_email ON password_resets (email);
 
 -- Server-side sessions, so signing out actually ends the session rather than
 -- politely asking the browser to forget a token.

@@ -14,11 +14,13 @@ import {
   clearedCookie,
   createSession,
   currentMember,
+  hashPassword,
   hashToken,
   isEmail,
   json,
   normaliseEmail,
   now,
+  passwordProblem,
   randomToken,
   readCookie,
   readJson,
@@ -28,6 +30,7 @@ import {
   tokenExpiry,
   TOKEN_LIFETIME_MINUTES,
   unauthorised,
+  verifyPassword,
   withinRateLimit,
   type Env,
 } from "./lib";
@@ -60,6 +63,14 @@ export default {
 
     try {
       switch (`${request.method} ${url.pathname}`) {
+        case "POST /api/auth/register":
+          return await register(request, env, secure);
+        case "POST /api/auth/login":
+          return await loginWithPassword(request, env, secure);
+        case "POST /api/auth/forgot":
+          return await forgotPassword(request, env, url);
+        case "POST /api/auth/reset":
+          return await resetPassword(request, env, secure);
         case "POST /api/auth/request":
           return await requestSignIn(request, env, url);
         case "GET /api/auth/verify":
@@ -156,11 +167,17 @@ async function requestSignIn(request: Request, env: Env, url: URL): Promise<Resp
   });
 }
 
-async function sendSignInEmail(env: Env, email: string, link: string): Promise<void> {
+async function sendAuthEmail(
+  env: Env,
+  email: string,
+  subject: string,
+  text: string,
+  link: string
+): Promise<void> {
   if (!env.RESEND_API_KEY || !env.MAIL_FROM) {
     // Local development, or production with the key not yet set. Logging the
     // link keeps the flow testable rather than silently broken.
-    console.log(`[auth] sign-in link for ${email}: ${link}`);
+    console.log(`[auth] ${subject} for ${email}: ${link}`);
     return;
   }
 
@@ -170,26 +187,242 @@ async function sendSignInEmail(env: Env, email: string, link: string): Promise<v
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      from: env.MAIL_FROM,
-      to: email,
-      subject: "Your I Love Durban sign-in link",
-      text: [
-        "Tap the link below to sign in. It works once and expires in " +
+    body: JSON.stringify({ from: env.MAIL_FROM, to: email, subject, text }),
+  });
+
+  if (!response.ok) {
+    console.error("[auth] Resend rejected the send:", response.status, await response.text());
+    throw new Error("Could not send the email");
+  }
+}
+
+async function sendSignInEmail(env: Env, email: string, link: string): Promise<void> {
+  await sendAuthEmail(
+    env,
+    email,
+    "Your I Love Durban sign-in link",
+    [
+      "Tap the link below to sign in. It works once and expires in " +
+        TOKEN_LIFETIME_MINUTES +
+        " minutes.",
+      "",
+      link,
+      "",
+      "If you did not ask for this, you can ignore it — nobody can sign in without the link.",
+    ].join("\n"),
+    link
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Password sign-in
+ * ---------------------------------------------------------------------- */
+
+async function register(request: Request, env: Env, secure: boolean): Promise<Response> {
+  const body = await readJson<{ email: unknown; name: unknown; password: unknown }>(request);
+
+  if (!isEmail(body.email)) return badRequest("That does not look like an email address.");
+
+  const weak = passwordProblem(body.password);
+  if (weak) return badRequest(weak);
+
+  const email = normaliseEmail(body.email);
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) || null : null;
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+
+  if (!(await withinRateLimit(env, `register:${ip}`, 10, 3600))) {
+    return json({ error: "Too many new accounts from this connection. Try again later." }, { status: 429 });
+  }
+
+  const existing = await env.DB.prepare(
+    "SELECT id, password_hash FROM members WHERE email = ?1"
+  )
+    .bind(email)
+    .first<{ id: string; password_hash: string | null }>();
+
+  /*
+   * An existing account is never overwritten from here: typing an email address
+   * is not proof of owning it. The reset flow is the door for both cases — it
+   * proves ownership by email first.
+   */
+  if (existing) {
+    return badRequest(
+      existing.password_hash
+        ? "That email already has an account. Sign in instead, or use “Forgot password”."
+        : "That email already has an account that signs in by email link. Use “Forgot password” to set a password for it."
+    );
+  }
+
+  const id = randomToken();
+
+  await env.DB.prepare(
+    "INSERT INTO members (id, email, name, password_hash, created_at, last_seen_at) VALUES (?1, ?2, ?3, ?4, ?5, ?5)"
+  )
+    .bind(id, email, name, await hashPassword(body.password as string), now())
+    .run();
+
+  const session = await createSession(env, id);
+
+  return json(
+    { ok: true, member: { id, email, name } },
+    { headers: { "Set-Cookie": sessionCookie(session, secure) } }
+  );
+}
+
+async function loginWithPassword(request: Request, env: Env, secure: boolean): Promise<Response> {
+  const body = await readJson<{ email: unknown; password: unknown }>(request);
+
+  if (!isEmail(body.email) || typeof body.password !== "string") {
+    return json({ error: "That email and password do not match." }, { status: 401 });
+  }
+
+  const email = normaliseEmail(body.email);
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+
+  // Tight limits: this is the endpoint credential-stuffing goes after.
+  const allowed =
+    (await withinRateLimit(env, `login:${email}`, 10, 900)) &&
+    (await withinRateLimit(env, `login-ip:${ip}`, 30, 900));
+
+  if (!allowed) {
+    return json({ error: "Too many sign-in attempts. Try again in 15 minutes." }, { status: 429 });
+  }
+
+  const member = await env.DB.prepare(
+    "SELECT id, email, name, password_hash FROM members WHERE email = ?1"
+  )
+    .bind(email)
+    .first<{ id: string; email: string; name: string | null; password_hash: string | null }>();
+
+  if (member && !member.password_hash) {
+    // Joined in the email-link era. The reset flow sets their first password.
+    return json(
+      {
+        error:
+          "This account has no password yet. Use “Forgot password” to set one, or email yourself a sign-in link.",
+      },
+      { status: 401 }
+    );
+  }
+
+  if (!member || !(await verifyPassword(body.password, member.password_hash as string))) {
+    return json({ error: "That email and password do not match." }, { status: 401 });
+  }
+
+  await env.DB.prepare("UPDATE members SET last_seen_at = ?1 WHERE id = ?2")
+    .bind(now(), member.id)
+    .run();
+
+  const session = await createSession(env, member.id);
+
+  return json(
+    { ok: true, member: { id: member.id, email: member.email, name: member.name } },
+    { headers: { "Set-Cookie": sessionCookie(session, secure) } }
+  );
+}
+
+async function forgotPassword(request: Request, env: Env, url: URL): Promise<Response> {
+  const body = await readJson<{ email: unknown }>(request);
+
+  if (!isEmail(body.email)) return badRequest("That does not look like an email address.");
+
+  const email = normaliseEmail(body.email);
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+
+  const allowed =
+    (await withinRateLimit(env, `reset:${email}`, 5, 3600)) &&
+    (await withinRateLimit(env, `reset-ip:${ip}`, 20, 3600));
+
+  if (!allowed) {
+    return json({ error: "Too many reset requests. Try again in an hour." }, { status: 429 });
+  }
+
+  const member = await env.DB.prepare("SELECT id FROM members WHERE email = ?1")
+    .bind(email)
+    .first<{ id: string }>();
+
+  // Only issue tokens for accounts that exist — but answer identically either
+  // way, so this cannot be used to check who is a member.
+  if (member) {
+    const token = randomToken();
+
+    await env.DB.prepare(
+      "INSERT INTO password_resets (token_hash, email, expires_at, created_at) VALUES (?1, ?2, ?3, ?4)"
+    )
+      .bind(await hashToken(token), email, tokenExpiry(), now())
+      .run();
+
+    const origin = env.SITE_URL?.replace(/\/+$/, "") ?? url.origin;
+    const link = `${origin}/reset/?token=${token}`;
+
+    await sendAuthEmail(
+      env,
+      email,
+      "Reset your I Love Durban password",
+      [
+        "Tap the link below to choose a new password. It works once and expires in " +
           TOKEN_LIFETIME_MINUTES +
           " minutes.",
         "",
         link,
         "",
-        "If you did not ask for this, you can ignore it — nobody can sign in without the link.",
+        "If you did not ask for this, you can ignore it — your password has not changed.",
       ].join("\n"),
-    }),
-  });
-
-  if (!response.ok) {
-    console.error("[auth] Resend rejected the send:", response.status, await response.text());
-    throw new Error("Could not send the sign-in email");
+      link
+    );
   }
+
+  return json({
+    ok: true,
+    message: `If ${email} has an account, a reset link is on its way. It expires in ${TOKEN_LIFETIME_MINUTES} minutes.`,
+  });
+}
+
+async function resetPassword(request: Request, env: Env, secure: boolean): Promise<Response> {
+  const body = await readJson<{ token: unknown; password: unknown }>(request);
+
+  if (typeof body.token !== "string" || !body.token) {
+    return badRequest("That reset link is not valid.");
+  }
+
+  const weak = passwordProblem(body.password);
+  if (weak) return badRequest(weak);
+
+  /*
+   * Claim the token atomically — mark it used and read its email in the same
+   * statement, so two racing requests cannot both spend it.
+   */
+  const claimed = await env.DB.prepare(
+    `UPDATE password_resets SET used_at = ?1
+      WHERE token_hash = ?2 AND used_at IS NULL AND expires_at > ?1
+      RETURNING email`
+  )
+    .bind(now(), await hashToken(body.token))
+    .first<{ email: string }>();
+
+  if (!claimed) {
+    return badRequest("That reset link has expired or was already used. Request a fresh one.");
+  }
+
+  const member = await env.DB.prepare("SELECT id, email, name FROM members WHERE email = ?1")
+    .bind(claimed.email)
+    .first<{ id: string; email: string; name: string | null }>();
+
+  if (!member) return badRequest("That account no longer exists.");
+
+  await env.DB.prepare("UPDATE members SET password_hash = ?1, last_seen_at = ?2 WHERE id = ?3")
+    .bind(await hashPassword(body.password as string), now(), member.id)
+    .run();
+
+  // A reset means the old credentials may be compromised: end every session.
+  await env.DB.prepare("DELETE FROM sessions WHERE member_id = ?1").bind(member.id).run();
+
+  const session = await createSession(env, member.id);
+
+  return json(
+    { ok: true, member },
+    { headers: { "Set-Cookie": sessionCookie(session, secure) } }
+  );
 }
 
 async function verifySignIn(request: Request, env: Env, url: URL, secure: boolean): Promise<Response> {
@@ -198,20 +431,19 @@ async function verifySignIn(request: Request, env: Env, url: URL, secure: boolea
 
   if (!token) return failure;
 
-  const hash = await hashToken(token);
-
+  /*
+   * One use, and only before it expires — claimed atomically, so two racing
+   * requests with the same link cannot both get a session out of it.
+   */
   const row = await env.DB.prepare(
-    "SELECT email, expires_at, used_at FROM login_tokens WHERE token_hash = ?1"
+    `UPDATE login_tokens SET used_at = ?1
+      WHERE token_hash = ?2 AND used_at IS NULL AND expires_at >= ?1
+      RETURNING email`
   )
-    .bind(hash)
-    .first<{ email: string; expires_at: number; used_at: number | null }>();
+    .bind(now(), await hashToken(token))
+    .first<{ email: string }>();
 
-  // One use, and only before it expires.
-  if (!row || row.used_at !== null || row.expires_at < now()) return failure;
-
-  await env.DB.prepare("UPDATE login_tokens SET used_at = ?1 WHERE token_hash = ?2")
-    .bind(now(), hash)
-    .run();
+  if (!row) return failure;
 
   let member = await env.DB.prepare("SELECT id FROM members WHERE email = ?1")
     .bind(row.email)

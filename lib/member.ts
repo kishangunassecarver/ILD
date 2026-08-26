@@ -101,6 +101,40 @@ export async function signOut(): Promise<void> {
 }
 
 /* -------------------------------------------------------------------------
+ * Password sign-in
+ * ---------------------------------------------------------------------- */
+
+export async function registerWithPassword(input: {
+  email: string;
+  password: string;
+  name?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  return post("/api/auth/register", input);
+}
+
+export async function signInWithPassword(
+  email: string,
+  password: string
+): Promise<{ ok: boolean; error?: string }> {
+  return post("/api/auth/login", { email, password });
+}
+
+export async function requestPasswordReset(
+  email: string
+): Promise<{ ok: boolean; error?: string; message?: string }> {
+  const result = await post("/api/auth/forgot", { email });
+
+  return { ...result, message: result.data?.message as string | undefined };
+}
+
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<{ ok: boolean; error?: string }> {
+  return post("/api/auth/reset", { token, password });
+}
+
+/* -------------------------------------------------------------------------
  * Business owners
  * ---------------------------------------------------------------------- */
 
