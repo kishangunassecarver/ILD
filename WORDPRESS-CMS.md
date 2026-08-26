@@ -253,11 +253,20 @@ clean article — about 1,400 words of prose, correct headings, and the article'
 own photograph rather than an advertiser's. If the markup ever stops matching,
 the page is imported whole rather than empty, so nothing is silently lost.
 
-### Images are linked, not copied
+### Copying the media across
 
-Featured images and pictures inside the articles keep pointing at the old site.
-That works while it stays up — **move the media across properly before switching
-the old site off.**
+The content importer links images back to the old site rather than copying them,
+so the new site depends on the old one staying up. **I Love Durban → Copy Media**
+fixes that: it pulls every one of those files into this media library, promotes
+them to real featured images, and rewrites every reference.
+
+Roughly 144 files — one per article, since the article prose itself carries no
+images. It works in batches of eight and continues on its own, so leave the page
+open for a couple of minutes. Safe to stop and resume; anything already copied is
+skipped, and it counts what is left every time you open it.
+
+The old site has to stay online until this finishes. When the page reports that
+nothing points at it any more, it is safe to switch off.
 
 ### Putting the articles in the menu
 

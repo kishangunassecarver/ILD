@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.4.0
+ * Version:      2.5.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -490,6 +490,15 @@ function ild_admin_menu(): void {
 		'manage_options',
 		'ild-migrate',
 		'ild_migrate_page'
+	);
+
+	add_submenu_page(
+		ILD_MENU,
+		'Copy Media',
+		'Copy Media',
+		'upload_files',
+		'ild-media',
+		'ild_media_page'
 	);
 
 	add_submenu_page(
@@ -985,6 +994,213 @@ function ild_import_from_source( string $base, array $parent_slugs, bool $with_p
 	}
 
 	return $report;
+}
+
+/* -------------------------------------------------------------------------
+ * Media migration
+ *
+ * The content importer links images back to the source site rather than copying
+ * them, which leaves the new site depending on the old one staying up. This
+ * pulls every one of those files into this media library and rewrites the
+ * references, so the old site can be switched off.
+ *
+ * Batched, because 124 articles carry several hundred images between them and a
+ * single admin request would time out long before finishing.
+ * ---------------------------------------------------------------------- */
+
+const ILD_MEDIA_BATCH = 8;
+
+/** Host whose images should be pulled local. Everything else is left alone. */
+function ild_media_source_host(): string {
+	$host = wp_parse_url( ILD_SOURCE_DEFAULT, PHP_URL_HOST );
+
+	return is_string( $host ) ? $host : 'www.ilovedurban.co.za';
+}
+
+/**
+ * Every distinct image URL still pointing at the source site.
+ *
+ * Looks in two places: the `src` attributes inside imported article HTML, and
+ * the `_ild_page_image` meta the importer records for a featured image it could
+ * not copy.
+ */
+function ild_media_pending(): array {
+	global $wpdb;
+
+	$host    = ild_media_source_host();
+	$like    = '%' . $wpdb->esc_like( $host ) . '%';
+	$pending = array();
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT ID, post_content FROM {$wpdb->posts}
+			 WHERE post_type IN ('page','post') AND post_status != 'trash' AND post_content LIKE %s",
+			$like
+		)
+	);
+
+	foreach ( $rows as $row ) {
+		if ( preg_match_all( '/src="(https?:\/\/[^"]*' . preg_quote( $host, '/' ) . '[^"]+\.(?:jpe?g|png|webp|gif))"/i', $row->post_content, $found ) ) {
+			foreach ( $found[1] as $url ) {
+				$pending[ $url ] = true;
+			}
+		}
+	}
+
+	$metas = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT post_id, meta_value FROM {$wpdb->postmeta}
+			 WHERE meta_key = '_ild_page_image' AND meta_value LIKE %s",
+			$like
+		)
+	);
+
+	foreach ( $metas as $meta ) {
+		$pending[ $meta->meta_value ] = true;
+	}
+
+	return array_keys( $pending );
+}
+
+/**
+ * Copy one image into the media library and repoint everything at it.
+ *
+ * Returns the new attachment ID, or 0 if the file could not be fetched — a
+ * single missing image should not stop the run.
+ */
+function ild_media_adopt( string $url ): int {
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/media.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	global $wpdb;
+
+	// Attach it to a post that actually uses it, so the library stays tidy.
+	$owner = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_content LIKE %s LIMIT 1",
+			'%' . $wpdb->esc_like( $url ) . '%'
+		)
+	);
+
+	if ( ! $owner ) {
+		$owner = (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_value = %s LIMIT 1", $url )
+		);
+	}
+
+	$attachment_id = media_sideload_image( $url, $owner ?: 0, null, 'id' );
+
+	if ( is_wp_error( $attachment_id ) ) {
+		error_log( '[ilovedurban] could not copy ' . $url . ': ' . $attachment_id->get_error_message() );
+		return 0;
+	}
+
+	$local = wp_get_attachment_url( (int) $attachment_id );
+	if ( ! $local ) {
+		return 0;
+	}
+
+	// Repoint article HTML.
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT ID, post_content FROM {$wpdb->posts} WHERE post_content LIKE %s",
+			'%' . $wpdb->esc_like( $url ) . '%'
+		)
+	);
+
+	foreach ( $rows as $row ) {
+		wp_update_post(
+			array(
+				'ID'           => (int) $row->ID,
+				'post_content' => str_replace( $url, $local, $row->post_content ),
+			)
+		);
+	}
+
+	/*
+	 * Where this was standing in for a featured image, promote it to a real one
+	 * and drop the meta — the front end prefers the thumbnail, so once it exists
+	 * the remote fallback is dead weight.
+	 */
+	$holders = $wpdb->get_col(
+		$wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_ild_page_image' AND meta_value = %s", $url )
+	);
+
+	foreach ( $holders as $post_id ) {
+		if ( ! get_post_thumbnail_id( (int) $post_id ) ) {
+			set_post_thumbnail( (int) $post_id, (int) $attachment_id );
+		}
+		delete_post_meta( (int) $post_id, '_ild_page_image' );
+	}
+
+	return (int) $attachment_id;
+}
+
+function ild_media_page(): void {
+	if ( ! current_user_can( 'upload_files' ) ) {
+		wp_die( 'You do not have permission to import media.' );
+	}
+
+	$host    = ild_media_source_host();
+	$running = isset( $_GET['run'] ) && check_admin_referer( 'ild_media_run' );
+
+	echo '<div class="wrap"><h1>Copy media from the old site</h1>';
+
+	if ( $running ) {
+		$pending = ild_media_pending();
+		$batch   = array_slice( $pending, 0, ILD_MEDIA_BATCH );
+		$done    = 0;
+		$failed  = 0;
+
+		foreach ( $batch as $url ) {
+			if ( ild_media_adopt( $url ) ) {
+				$done++;
+			} else {
+				$failed++;
+			}
+		}
+
+		$left = max( 0, count( $pending ) - count( $batch ) );
+
+		echo '<div class="notice notice-info"><p><strong>' . (int) $done . ' copied</strong>';
+		if ( $failed ) {
+			echo ', <strong>' . (int) $failed . ' could not be fetched</strong> (see the error log)';
+		}
+		echo ' — ' . (int) $left . ' still to go.</p></div>';
+
+		if ( $left > 0 && $done > 0 ) {
+			$next = wp_nonce_url( admin_url( 'admin.php?page=ild-media&run=1' ), 'ild_media_run' );
+			// Continues on its own; a stalled run just stops rather than looping.
+			echo '<meta http-equiv="refresh" content="1;url=' . esc_url( $next ) . '" />';
+			echo '<p>Carrying on automatically — leave this page open.</p>';
+		} elseif ( $left > 0 ) {
+			echo '<p><strong>Stopped.</strong> Nothing in the last batch could be fetched, so it is not worth continuing blindly. Check that ' . esc_html( $host ) . ' is still reachable, then start again.</p>';
+		} else {
+			echo '<p><strong>Finished. Nothing on this site points at ' . esc_html( $host ) . ' any more</strong> — it is safe to switch the old site off.</p>';
+			ild_trigger_deploy( 'media migrated' );
+		}
+	}
+
+	$pending = ild_media_pending();
+
+	echo '<p>The content importer links images back to <code>' . esc_html( $host ) . '</code> rather than copying them, which leaves this site depending on that one staying up. This pulls those files into your own media library and rewrites every reference to them.</p>';
+	echo '<p><strong>' . count( $pending ) . ' images still point at the old site.</strong></p>';
+
+	if ( $pending ) {
+		echo '<p>It works in batches of ' . (int) ILD_MEDIA_BATCH . ' and continues on its own — several hundred images would time out in one request. Leave the page open until it says it has finished. Safe to stop and resume: anything already copied is skipped.</p>';
+		echo '<p><em>' . esc_html( $host ) . ' has to stay online until this finishes.</em></p>';
+		echo '<a class="button button-primary" href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?page=ild-media&run=1' ), 'ild_media_run' ) ) . '">Start copying</a>';
+		echo '<h2 style="margin-top:2em">First few still to copy</h2><ol>';
+		foreach ( array_slice( $pending, 0, 8 ) as $url ) {
+			echo '<li><code>' . esc_html( basename( wp_parse_url( $url, PHP_URL_PATH ) ) ) . '</code></li>';
+		}
+		echo '</ol>';
+	} else {
+		echo '<p>Nothing to do — no content on this site references the old one.</p>';
+	}
+
+	echo '</div>';
 }
 
 function ild_migrate_page(): void {
