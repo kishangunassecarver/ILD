@@ -42,6 +42,7 @@ import {
   submitEdit,
   submitEnquiry,
 } from "./business";
+import { emailHtml, emailText, type AuthEmail } from "./email";
 
 const SAVE_KINDS = new Set(["listing", "event", "deal", "page"]);
 
@@ -167,17 +168,11 @@ async function requestSignIn(request: Request, env: Env, url: URL): Promise<Resp
   });
 }
 
-async function sendAuthEmail(
-  env: Env,
-  email: string,
-  subject: string,
-  text: string,
-  link: string
-): Promise<void> {
+async function sendAuthEmail(env: Env, email: string, mail: AuthEmail): Promise<void> {
   if (!env.RESEND_API_KEY || !env.MAIL_FROM) {
     // Local development, or production with the key not yet set. Logging the
     // link keeps the flow testable rather than silently broken.
-    console.log(`[auth] ${subject} for ${email}: ${link}`);
+    console.log(`[auth] ${mail.subject} for ${email}: ${mail.link}`);
     return;
   }
 
@@ -187,7 +182,13 @@ async function sendAuthEmail(
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: env.MAIL_FROM, to: email, subject, text }),
+    body: JSON.stringify({
+      from: env.MAIL_FROM,
+      to: email,
+      subject: mail.subject,
+      text: emailText(mail),
+      html: emailHtml(mail),
+    }),
   });
 
   if (!response.ok) {
@@ -197,21 +198,53 @@ async function sendAuthEmail(
 }
 
 async function sendSignInEmail(env: Env, email: string, link: string): Promise<void> {
-  await sendAuthEmail(
-    env,
-    email,
-    "Your I Love Durban sign-in link",
-    [
-      "Tap the link below to sign in. It works once and expires in " +
-        TOKEN_LIFETIME_MINUTES +
-        " minutes.",
-      "",
-      link,
-      "",
+  await sendAuthEmail(env, email, {
+    subject: "Your I Love Durban sign-in link",
+    heading: "Sign in to I Love Durban",
+    paragraphs: [
+      `Tap the button below to sign in. The link works once and expires in ${TOKEN_LIFETIME_MINUTES} minutes.`,
+    ],
+    cta: { label: "Sign me in", href: link },
+    footnote:
       "If you did not ask for this, you can ignore it — nobody can sign in without the link.",
-    ].join("\n"),
-    link
-  );
+    link,
+  });
+}
+
+/**
+ * The welcome email, sent once when an account comes into existence — whether
+ * through registration or a first-time email-link sign-in.
+ *
+ * Best-effort by design: a mail provider having a bad moment must never turn
+ * a successful sign-up into an error.
+ */
+async function sendWelcomeEmail(
+  env: Env,
+  email: string,
+  name: string | null,
+  origin: string
+): Promise<void> {
+  const site = env.SITE_URL?.replace(/\/+$/, "") ?? origin;
+
+  try {
+    await sendAuthEmail(env, email, {
+      subject: "Welcome to I Love Durban",
+      heading: `Welcome${name ? `, ${name}` : ""}!`,
+      paragraphs: [
+        "Your I Love Durban account is ready. Here is what it unlocks:",
+        "• Save your favourite places, events and deals — they follow you everywhere",
+        "• Book tables, stays and experiences",
+        "• Earn Durban Points on the offers you redeem",
+        "• Own a business? Claim your listing and keep it up to date yourself",
+        "Support local — we're glad you're here.",
+      ],
+      cta: { label: "Start exploring", href: site },
+      footnote: "You are getting this because an account was created with your address on I Love Durban.",
+      link: site,
+    });
+  } catch (error) {
+    console.error("[auth] could not send the welcome email:", error);
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -262,6 +295,8 @@ async function register(request: Request, env: Env, secure: boolean): Promise<Re
     .run();
 
   const session = await createSession(env, id);
+
+  await sendWelcomeEmail(env, email, name, new URL(request.url).origin);
 
   return json(
     { ok: true, member: { id, email, name } },
@@ -355,21 +390,17 @@ async function forgotPassword(request: Request, env: Env, url: URL): Promise<Res
     const origin = env.SITE_URL?.replace(/\/+$/, "") ?? url.origin;
     const link = `${origin}/reset/?token=${token}`;
 
-    await sendAuthEmail(
-      env,
-      email,
-      "Reset your I Love Durban password",
-      [
-        "Tap the link below to choose a new password. It works once and expires in " +
-          TOKEN_LIFETIME_MINUTES +
-          " minutes.",
-        "",
-        link,
-        "",
+    await sendAuthEmail(env, email, {
+      subject: "Reset your I Love Durban password",
+      heading: "Choose a new password",
+      paragraphs: [
+        `Tap the button below to choose a new password. The link works once and expires in ${TOKEN_LIFETIME_MINUTES} minutes.`,
+      ],
+      cta: { label: "Reset my password", href: link },
+      footnote:
         "If you did not ask for this, you can ignore it — your password has not changed.",
-      ].join("\n"),
-      link
-    );
+      link,
+    });
   }
 
   return json({
@@ -457,6 +488,9 @@ async function verifySignIn(request: Request, env: Env, url: URL, secure: boolea
       .bind(id, row.email, now())
       .run();
     member = { id };
+
+    // Their first sign-in created the account: welcome them.
+    await sendWelcomeEmail(env, row.email, null, url.origin);
   }
 
   await env.DB.prepare("UPDATE members SET last_seen_at = ?1 WHERE id = ?2")
