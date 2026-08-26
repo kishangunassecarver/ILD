@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.6.0
+ * Version:      2.8.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -54,6 +54,7 @@ function ild_schema(): array {
 				'intro'      => array( 'type' => 'textarea', 'label' => 'Intro paragraph' ),
 				'filters'    => array( 'type' => 'lines', 'label' => 'Filter chips — one per line' ),
 				'defaultCta' => array( 'type' => 'text', 'label' => 'Default button label (e.g. "Book a Table")' ),
+				'imageUrl'   => array( 'type' => 'text', 'label' => 'Tile image URL — shown on the "Explore Durban" tile. An alternative to the Featured Image.' ),
 			),
 		),
 		'ild_listing'  => array(
@@ -392,6 +393,52 @@ function ild_path_collides( string $path ): bool {
 	return false;
 }
 
+/**
+ * Published child pages of a page, for rendering it as a section index.
+ *
+ * Ordered the same way the Attractions menu orders its columns — the Order
+ * field, then title — so the menu and the page agree.
+ */
+function ild_page_children( WP_Post $page ): array {
+	$out = array();
+
+	$children = get_posts(
+		array(
+			'post_type'        => 'page',
+			'post_parent'      => $page->ID,
+			'post_status'      => 'publish',
+			'numberposts'      => 200,
+			'orderby'          => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
+			'suppress_filters' => false,
+		)
+	);
+
+	foreach ( $children as $child ) {
+		$path = trim( (string) get_page_uri( $child ), '/' );
+		if ( '' === $path ) {
+			continue;
+		}
+
+		$entry = array(
+			'path'    => $path,
+			'title'   => ild_text( get_the_title( $child ) ),
+			'excerpt' => ild_text( wp_strip_all_tags( get_the_excerpt( $child ) ) ),
+		);
+
+		$image = get_the_post_thumbnail_url( $child, 'large' );
+		if ( ! $image ) {
+			$image = (string) get_post_meta( $child->ID, '_ild_page_image', true );
+		}
+		if ( $image ) {
+			$entry['image'] = $image;
+		}
+
+		$out[] = $entry;
+	}
+
+	return $out;
+}
+
 function ild_pages(): array {
 	$out = array();
 
@@ -412,8 +459,16 @@ function ild_pages(): array {
 			continue;
 		}
 
-		$html = apply_filters( 'the_content', $page->post_content );
-		if ( '' === trim( wp_strip_all_tags( $html ) ) ) {
+		$html     = apply_filters( 'the_content', $page->post_content );
+		$children = ild_page_children( $page );
+
+		/*
+		 * An empty page is normally not worth a URL — but a section page with
+		 * children is, because it is the index for them. Three of the imported
+		 * sections have no prose at all (the old theme generated their listing),
+		 * and dropping them left the menu linking to 404s.
+		 */
+		if ( '' === trim( wp_strip_all_tags( $html ) ) && ! $children ) {
 			continue;
 		}
 
@@ -423,6 +478,10 @@ function ild_pages(): array {
 			'html'    => $html,
 			'excerpt' => ild_text( wp_strip_all_tags( get_the_excerpt( $page ) ) ),
 		);
+
+		if ( $children ) {
+			$entry['children'] = $children;
+		}
 
 		// A local thumbnail wins; imported pages fall back to the URL recorded
 		// against them, since their media still lives on the source site.
@@ -714,33 +773,81 @@ function ild_demo_image( string $slug ): string {
  * Only ever fills blanks: a listing with a Featured Image or an Image URL
  * already set is left alone.
  */
-function ild_backfill_demo_images(): array {
-	$tally = array( 'filled' => 0, 'had_one' => 0 );
+/** Every post type that accepts an image URL — listings, events, deals, sponsors. */
+function ild_image_post_types(): array {
+	$types = array();
 
-	$listings = get_posts(
-		array(
-			'post_type'        => 'ild_listing',
-			'post_status'      => 'any',
-			'numberposts'      => 500,
-			'suppress_filters' => false,
-		)
-	);
-
-	foreach ( $listings as $listing ) {
-		$has_thumb = (bool) get_post_thumbnail_id( $listing->ID );
-		$has_url   = '' !== trim( (string) get_post_meta( $listing->ID, '_ild_imageUrl', true ) );
-
-		if ( $has_thumb || $has_url ) {
-			$tally['had_one']++;
-			continue;
+	foreach ( ild_schema() as $type => $config ) {
+		if ( isset( $config['fields']['imageUrl'] ) ) {
+			$types[ $type ] = $config['plural'];
 		}
-
-		update_post_meta( $listing->ID, '_ild_imageUrl', ild_demo_image( $listing->post_name ) );
-		update_post_meta( $listing->ID, '_ild_imageCredit', 'Demo image — Lorem Picsum' );
-		$tally['filled']++;
 	}
 
-	return $tally;
+	return $types;
+}
+
+/** Count entries with no picture, per post type. */
+function ild_missing_images(): array {
+	$counts = array();
+
+	foreach ( ild_image_post_types() as $type => $plural ) {
+		$missing = 0;
+
+		foreach ( get_posts( array( 'post_type' => $type, 'post_status' => 'any', 'numberposts' => 500 ) ) as $post ) {
+			if ( ! get_post_thumbnail_id( $post->ID ) && '' === trim( (string) get_post_meta( $post->ID, '_ild_imageUrl', true ) ) ) {
+				$missing++;
+			}
+		}
+
+		if ( $missing ) {
+			$counts[ $plural ] = array( 'type' => $type, 'missing' => $missing );
+		}
+	}
+
+	return $counts;
+}
+
+function ild_backfill_demo_images(): array {
+	$report = array();
+
+	foreach ( ild_image_post_types() as $type => $plural ) {
+		$tally = array( 'filled' => 0, 'had_one' => 0 );
+
+		$posts = get_posts(
+			array(
+				'post_type'        => $type,
+				'post_status'      => 'any',
+				'numberposts'      => 500,
+				'suppress_filters' => false,
+			)
+		);
+
+		foreach ( $posts as $post ) {
+			$has_thumb = (bool) get_post_thumbnail_id( $post->ID );
+			$has_url   = '' !== trim( (string) get_post_meta( $post->ID, '_ild_imageUrl', true ) );
+
+			if ( $has_thumb || $has_url ) {
+				$tally['had_one']++;
+				continue;
+			}
+
+			// Seeded by slug, so an entry keeps the same picture between runs.
+			update_post_meta( $post->ID, '_ild_imageUrl', ild_demo_image( $post->post_name ) );
+
+			// Sponsors have no credit field — their panel has nowhere to show one.
+			if ( isset( ild_schema()[ $type ]['fields']['imageCredit'] ) ) {
+				update_post_meta( $post->ID, '_ild_imageCredit', 'Demo image — Lorem Picsum' );
+			}
+
+			$tally['filled']++;
+		}
+
+		if ( $tally['filled'] || $tally['had_one'] ) {
+			$report[ $plural ] = $tally;
+		}
+	}
+
+	return $report;
 }
 
 /* -------------------------------------------------------------------------
@@ -1522,12 +1629,16 @@ function ild_starter_page(): void {
 	}
 
 	if ( isset( $_POST['ild_backfill'] ) && check_admin_referer( 'ild_backfill_images' ) ) {
-		$tally = ild_backfill_demo_images();
-		echo '<div class="notice notice-success"><p><strong>' . (int) $tally['filled'] . ' listings given a demo photograph.</strong>';
-		if ( $tally['had_one'] ) {
-			echo ' ' . (int) $tally['had_one'] . ' already had one and were left alone.';
+		$report = ild_backfill_demo_images();
+		echo '<div class="notice notice-success"><p><strong>Demo photographs added.</strong></p><ul style="list-style:disc;margin-left:2em">';
+		foreach ( $report as $plural => $tally ) {
+			echo '<li>' . esc_html( $plural ) . ': ' . (int) $tally['filled'] . ' given a picture';
+			if ( $tally['had_one'] ) {
+				echo ', ' . (int) $tally['had_one'] . ' already had one';
+			}
+			echo '</li>';
 		}
-		echo ' The site is rebuilding — allow two to four minutes.</p></div>';
+		echo '</ul><p>The site is rebuilding — allow two to four minutes.</p></div>';
 		ild_trigger_deploy( 'demo images backfilled' );
 	}
 
@@ -1613,22 +1724,27 @@ function ild_starter_page(): void {
 
 	/* ---- Backfill, for content imported before the photo fields existed ---- */
 
-	$missing = 0;
-	foreach ( get_posts( array( 'post_type' => 'ild_listing', 'post_status' => 'any', 'numberposts' => 500 ) ) as $listing ) {
-		if ( ! get_post_thumbnail_id( $listing->ID ) && '' === trim( (string) get_post_meta( $listing->ID, '_ild_imageUrl', true ) ) ) {
-			$missing++;
-		}
+	$counts = ild_missing_images();
+	$total  = 0;
+	foreach ( $counts as $row ) {
+		$total += $row['missing'];
 	}
 
 	echo '<hr style="margin:2em 0" /><h2>Fill in missing photographs</h2>';
-	echo '<p>The importer never touches an entry that already exists, so it cannot fill in a field that was added to the plugin after your first import. Use this to give every listing that still has no picture a demo one.</p>';
-	echo '<p><strong>' . (int) $missing . ' of your listings currently have no picture.</strong> Listings that already have a Featured Image or an Image URL are left alone.</p>';
+	echo '<p>The importer never touches an entry that already exists, so it cannot fill in a field that was added to the plugin after your first import. Use this to give everything that still has no picture a demo one — listings, events, deals and sponsor banners.</p>';
 
-	if ( $missing > 0 ) {
+	if ( $total > 0 ) {
+		echo '<p><strong>' . (int) $total . ' entries currently have no picture:</strong></p><ul style="list-style:disc;margin-left:2em">';
+		foreach ( $counts as $plural => $row ) {
+			echo '<li>' . esc_html( $plural ) . ': ' . (int) $row['missing'] . '</li>';
+		}
+		echo '</ul><p>Anything with a Featured Image or an Image URL already set is left alone.</p>';
 		echo '<form method="post">';
 		wp_nonce_field( 'ild_backfill_images' );
-		submit_button( 'Add demo photographs to those ' . (int) $missing . ' listings', 'secondary', 'ild_backfill' );
+		submit_button( 'Add demo photographs to those ' . (int) $total . ' entries', 'secondary', 'ild_backfill' );
 		echo '</form>';
+	} else {
+		echo '<p>Everything already has a picture.</p>';
 	}
 
 	echo '</div>';

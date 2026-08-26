@@ -74,7 +74,7 @@ export default function HomePage() {
                 href={`/${hub.slug}`}
                 className="panel card-hover group relative overflow-hidden"
               >
-                <Tile seed={`hub-${hub.slug}`} className="h-28">
+                <Tile seed={`hub-${hub.slug}`} image={hub.image} className="h-28">
                   <div className="absolute inset-0 flex items-end justify-between gap-3 p-4">
                     <div>
                       <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-white">

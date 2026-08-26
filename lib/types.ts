@@ -121,6 +121,8 @@ export interface Hub {
   filters: string[];
   /** Which listing CTA verb this hub uses by default. */
   defaultCta: string;
+  /** Artwork for the hub's "Explore Durban" tile. Falls back to generated art. */
+  image?: string;
 }
 
 export interface Event {
@@ -216,6 +218,14 @@ export interface Page {
   image?: string;
   /** Hides the page's own <h1>, for pages whose content supplies its own. */
   hideTitle?: boolean;
+  /**
+   * Child pages, for a section page that acts as an index.
+   *
+   * Several section pages carry no prose at all — the old site's theme
+   * generated the article list for them — so without this they would be blank
+   * pages that the menu links to.
+   */
+  children?: { path: string; title: string; excerpt?: string; image?: string }[];
 }
 
 export interface Stat {

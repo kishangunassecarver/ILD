@@ -299,7 +299,10 @@ function collidesWithRoute(path: string): boolean {
  * No defaults: an empty list simply means nobody has written any.
  */
 export const PAGES: Page[] = (overrides.pages ?? [])
-  .filter((p) => present(p?.path) && present(p?.title) && present(p?.html))
+  // A page with no prose still earns a URL if it indexes children — several
+  // imported section pages are empty because the old site's theme generated
+  // their listing, and dropping them left the main menu pointing at 404s.
+  .filter((p) => present(p?.path) && present(p?.title) && (present(p?.html) || present(p?.children)))
   .map((p) => ({ ...p, path: p.path.replace(/^\/+|\/+$/g, "") }))
   .filter((p) => {
     if (!collidesWithRoute(p.path)) return true;

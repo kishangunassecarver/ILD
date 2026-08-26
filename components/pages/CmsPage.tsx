@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Tile } from "@/components/ui/Tile";
 import type { Page } from "@/lib/types";
@@ -72,6 +73,44 @@ export function CmsPage({ page }: { page: Page }) {
           dangerouslySetInnerHTML={{ __html: page.html }}
         />
       </article>
+
+      {page.children && page.children.length > 0 && (
+        /*
+         * Section pages are indexes. Several carry no prose at all — the old
+         * site's theme generated their listing — so without this they would be
+         * blank pages that the main menu links to.
+         *
+         * Full width rather than inside the prose column: it is a grid of cards,
+         * not part of the reading flow.
+         */
+        <section className="mt-10" aria-labelledby="section-index">
+          <h2 id="section-index" className="section-title mb-4">
+            {page.children.length} to explore in {page.title}
+          </h2>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {page.children.map((child) => (
+              <Link
+                key={child.path}
+                href={`/${child.path}`}
+                className="panel card-hover group flex flex-col overflow-hidden"
+              >
+                <Tile seed={child.path} image={child.image} className="h-32" />
+                <div className="flex flex-1 flex-col p-3.5">
+                  <h3 className="text-sm font-bold leading-snug text-ink transition group-hover:text-brand-500">
+                    {child.title}
+                  </h3>
+                  {child.excerpt && (
+                    <p className="line-clamp-2 mt-1.5 text-xs leading-relaxed text-muted">
+                      {child.excerpt}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
