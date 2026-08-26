@@ -63,7 +63,10 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
         aria-hidden
       />
 
-      <div className="shell relative grid items-center gap-8 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-10">
+      {/* A min-height rather than more padding: the band should keep its height
+          whatever length of headline a partner sends, and the grid is already
+          centring its content. 365px is the measured 281px plus 30%. */}
+      <div className="shell relative grid min-h-[20rem] items-center gap-8 py-10 lg:min-h-[22.8rem] lg:grid-cols-[1.1fr_0.9fr] lg:py-12">
         <div className="text-center lg:text-left">
           {sponsor.eyebrow && (
             <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-white/70">

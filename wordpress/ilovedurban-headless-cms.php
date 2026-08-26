@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.8.0
+ * Version:      2.9.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -928,7 +928,7 @@ function ild_article_or_raw( string $html ): string {
 }
 
 /** Create one page from a remote REST record, or report that it already exists. */
-function ild_import_page( array $remote, int $parent_id, string $source ): array {
+function ild_import_page( array $remote, int $parent_id, string $source, bool $is_section = false ): array {
 	$slug = sanitize_title( $remote['slug'] ?? '' );
 	if ( '' === $slug ) {
 		return array( 'status' => 'skipped', 'id' => 0 );
@@ -951,9 +951,22 @@ function ild_import_page( array $remote, int $parent_id, string $source ): array
 
 	$raw       = (string) ( $remote['content']['rendered'] ?? '' );
 	$extracted = ild_extract_article( $raw );
-	// Fall back to the whole page if the markup did not match, rather than
-	// importing an empty article.
-	$content   = '' !== $extracted['html'] ? $extracted['html'] : $raw;
+
+	/*
+	 * Section pages are imported empty on purpose, so they render purely as an
+	 * index of their articles.
+	 *
+	 * Their source markup starts with the first attraction's widget, so
+	 * extracting prose from /durban/ produced Golden Mile's article text — the
+	 * section page ended up looking like a duplicate of one of its own children.
+	 */
+	if ( $is_section ) {
+		$content = '';
+	} else {
+		// Fall back to the whole page if the markup did not match, rather than
+		// importing an empty article.
+		$content = '' !== $extracted['html'] ? $extracted['html'] : $raw;
+	}
 
 	$post_id = wp_insert_post(
 		array(
@@ -980,9 +993,15 @@ function ild_import_page( array $remote, int $parent_id, string $source ): array
 	 */
 	update_post_meta( $post_id, '_ild_imported_from', esc_url_raw( $remote['link'] ?? $source ) );
 
-	$image = ild_remote_featured_image( $remote );
+	/*
+	 * The article's own in-content image wins over the source site's featured
+	 * image, which is not trustworthy: all 33 South Coast pages there share one
+	 * placeholder (ushaka.webp) as their featured image, while their in-content
+	 * images are correct and specific to each attraction.
+	 */
+	$image = $extracted['image'];
 	if ( ! $image ) {
-		$image = $extracted['image'];
+		$image = ild_remote_featured_image( $remote );
 	}
 	if ( $image ) {
 		update_post_meta( $post_id, '_ild_page_image', esc_url_raw( $image ) );
@@ -1015,7 +1034,7 @@ function ild_import_from_source( string $base, array $parent_slugs, bool $with_p
 			continue;
 		}
 
-		$parent = ild_import_page( $found[0], 0, $base );
+		$parent = ild_import_page( $found[0], 0, $base, true );
 		$tally  = array( 'created' => 0, 'existed' => 0, 'failed' => 0, 'skipped' => 0 );
 		$tally[ $parent['status'] ]++;
 
@@ -1563,6 +1582,117 @@ function ild_media_page(): void {
 	echo '</div>';
 }
 
+/**
+ * Repair pages that were already imported.
+ *
+ * The importer skips anything that exists, so a change to how it picks images
+ * or handles section pages cannot reach content that came across earlier. This
+ * re-reads each section from the source and applies the current rules.
+ *
+ * Cheap enough for one request: the source API returns a whole section's
+ * children in a single call, so this is four or five requests, not one per page.
+ */
+function ild_repair_imported( string $base, array $parent_slugs ): array {
+	$base   = untrailingslashit( $base );
+	$report = array();
+
+	foreach ( $parent_slugs as $slug ) {
+		$slug = sanitize_title( $slug );
+		if ( '' === $slug ) {
+			continue;
+		}
+
+		$local_section = get_posts(
+			array(
+				'post_type'        => 'page',
+				'name'             => $slug,
+				'post_parent'      => 0,
+				'post_status'      => 'any',
+				'numberposts'      => 1,
+				'suppress_filters' => false,
+			)
+		);
+
+		if ( ! $local_section ) {
+			$report[ $slug ] = 'not imported here yet';
+			continue;
+		}
+
+		$section  = $local_section[0];
+		$cleared  = false;
+		$repaired = 0;
+
+		// A section page is an index; its own prose was the first article's.
+		if ( '' !== trim( wp_strip_all_tags( $section->post_content ) ) ) {
+			wp_update_post( array( 'ID' => $section->ID, 'post_content' => '' ) );
+			delete_post_meta( $section->ID, '_ild_page_image' );
+			$cleared = true;
+		}
+
+		$remote_section = ild_remote_json( $base . '/wp-json/wp/v2/pages?slug=' . $slug . '&_fields=id' );
+		if ( ! $remote_section || ! isset( $remote_section[0]['id'] ) ) {
+			$report[ $slug ] = 'could not read the section from the source site';
+			continue;
+		}
+
+		for ( $page = 1; $page <= 5; $page++ ) {
+			$children = ild_remote_json(
+				$base . '/wp-json/wp/v2/pages?parent=' . (int) $remote_section[0]['id']
+				. '&per_page=100&page=' . $page . '&_fields=slug,content'
+			);
+
+			if ( ! $children ) {
+				break;
+			}
+
+			foreach ( $children as $child ) {
+				$child_slug = sanitize_title( $child['slug'] ?? '' );
+				if ( '' === $child_slug ) {
+					continue;
+				}
+
+				$local = get_posts(
+					array(
+						'post_type'        => 'page',
+						'name'             => $child_slug,
+						'post_parent'      => $section->ID,
+						'post_status'      => 'any',
+						'numberposts'      => 1,
+						'suppress_filters' => false,
+					)
+				);
+
+				if ( ! $local ) {
+					continue;
+				}
+
+				$extracted = ild_extract_article( (string) ( $child['content']['rendered'] ?? '' ) );
+
+				if ( '' === $extracted['image'] ) {
+					continue;
+				}
+
+				// Leave a genuine local Featured Image alone; only the remote
+				// stand-in is being corrected.
+				if ( get_post_thumbnail_id( $local[0]->ID ) ) {
+					continue;
+				}
+
+				update_post_meta( $local[0]->ID, '_ild_page_image', esc_url_raw( $extracted['image'] ) );
+				$repaired++;
+			}
+
+			if ( count( $children ) < 100 ) {
+				break;
+			}
+		}
+
+		$report[ $slug ] = array( 'images' => $repaired, 'cleared' => $cleared );
+	}
+
+	return $report;
+}
+
 function ild_migrate_page(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( 'You do not have permission to import content.' );
@@ -1601,6 +1731,28 @@ function ild_migrate_page(): void {
 	echo '<p>Safe to run more than once: a page that already exists is left alone, so an interrupted run can simply be repeated.</p>';
 	echo '<p><strong>Images are not copied.</strong> Featured images are linked back to the source site, and pictures inside the article text keep pointing there too. That works as long as the old site stays up — move the media over properly before switching it off.</p>';
 
+	if ( isset( $_POST['ild_repair'] ) && check_admin_referer( 'ild_repair_imported' ) ) {
+		$base    = esc_url_raw( wp_unslash( $_POST['ild_source'] ?? ILD_SOURCE_DEFAULT ) );
+		$parents = array_filter( array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_POST['ild_parents'] ?? ILD_SOURCE_PARENTS ) ) ) ) );
+		$report  = ild_repair_imported( $base, $parents );
+
+		echo '<div class="notice notice-success"><p><strong>Repair finished.</strong></p><ul style="list-style:disc;margin-left:2em">';
+		foreach ( $report as $slug => $result ) {
+			if ( is_array( $result ) ) {
+				echo '<li><code>' . esc_html( $slug ) . '</code>: ' . (int) $result['images'] . ' images corrected';
+				if ( $result['cleared'] ) {
+					echo ', and its own borrowed article text cleared so it renders as an index';
+				}
+				echo '</li>';
+			} else {
+				echo '<li><code>' . esc_html( $slug ) . '</code>: ' . esc_html( $result ) . '</li>';
+			}
+		}
+		echo '</ul><p>The site is rebuilding — allow two to four minutes.</p></div>';
+
+		ild_trigger_deploy( 'imported content repaired' );
+	}
+
 	echo '<form method="post"><table class="form-table"><tbody>';
 	echo '<tr><th scope="row"><label for="ild_source">Source site</label></th><td>';
 	echo '<input type="url" class="large-text code" id="ild_source" name="ild_source" value="' . esc_attr( ILD_SOURCE_DEFAULT ) . '" /></td></tr>';
@@ -1611,6 +1763,20 @@ function ild_migrate_page(): void {
 	echo '</tbody></table>';
 	wp_nonce_field( 'ild_migrate_source' );
 	submit_button( 'Import content', 'primary', 'ild_migrate' );
+	echo '</form>';
+
+	echo '<hr style="margin:2em 0" /><h2>Fix content imported earlier</h2>';
+	echo '<p>The importer never touches a page that already exists, so improvements to it cannot reach content that came across before. Run this once after upgrading the plugin. It fixes two things:</p>';
+	echo '<ul style="list-style:disc;margin-left:2em">';
+	echo '<li><strong>Wrong featured images.</strong> The old site sets the same placeholder as the featured image on every South Coast page, so all 33 arrived showing the same picture. Each article\'s own in-content image is correct and specific, and is now used instead.</li>';
+	echo '<li><strong>Section pages showing an article.</strong> The source markup for a section page starts with its first attraction, so <code>/durban/</code> ended up displaying Golden Mile\'s text. Section pages are cleared so they render purely as an index of their articles.</li>';
+	echo '</ul>';
+	echo '<p>A page where you have set a Featured Image by hand is left alone.</p>';
+	echo '<form method="post">';
+	echo '<input type="hidden" name="ild_source" value="' . esc_attr( ILD_SOURCE_DEFAULT ) . '" />';
+	echo '<input type="hidden" name="ild_parents" value="' . esc_attr( ILD_SOURCE_PARENTS ) . '" />';
+	wp_nonce_field( 'ild_repair_imported' );
+	submit_button( 'Fix imported pages', 'secondary', 'ild_repair' );
 	echo '</form></div>';
 }
 
