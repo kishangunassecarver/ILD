@@ -24,10 +24,12 @@ export function SponsorTower({ className }: { className?: string }) {
     >
       <SponsorBackdrop sponsor={sponsor} />
 
-      <div
-        className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-[#12B5CB]/25 blur-3xl"
-        aria-hidden
-      />
+      {!sponsor.image && (
+        <div
+          className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-[#12B5CB]/25 blur-3xl"
+          aria-hidden
+        />
+      )}
 
       <div className="relative flex flex-col gap-4 p-5 text-center">
         <div>
@@ -65,16 +67,19 @@ export function SponsorTower({ className }: { className?: string }) {
           {sponsor.cta}
         </a>
 
-        {/* Abstract skyline anchoring the panel. */}
-        <div className="mt-2 flex items-end justify-center gap-1" aria-hidden>
-          {[10, 18, 14, 26, 20, 32, 16, 22, 12].map((height, i) => (
-            <span
-              key={i}
-              style={{ height: `${height * 3}px` }}
-              className="w-2.5 rounded-t-sm bg-white/12"
-            />
-          ))}
-        </div>
+        {/* Abstract skyline, to stop a plain panel looking empty. Dropped when
+            the partner has supplied a photograph, which it would only fight. */}
+        {!sponsor.image && (
+          <div className="mt-2 flex items-end justify-center gap-1" aria-hidden>
+            {[10, 18, 14, 26, 20, 32, 16, 22, 12].map((height, i) => (
+              <span
+                key={i}
+                style={{ height: `${height * 3}px` }}
+                className="w-2.5 rounded-t-sm bg-white/12"
+              />
+            ))}
+          </div>
+        )}
       </div>
     </aside>
   );

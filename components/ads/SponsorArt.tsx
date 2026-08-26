@@ -57,15 +57,18 @@ const LOGO_HEIGHTS = {
     medium: "max-h-7",
     large: "max-h-9",
   },
+  // The tower is ~304px wide and mostly vertical, and partner marks for it tend
+  // to be tall stacks — badge over wordmark over strapline. 64px was reading as
+  // a favicon.
   sidebar: {
-    small: "max-h-8",
-    medium: "max-h-12",
-    large: "max-h-16",
+    small: "max-h-14",
+    medium: "max-h-24",
+    large: "max-h-32",
   },
   leaderboard: {
     small: "max-h-8 sm:max-h-10",
-    medium: "max-h-12 sm:max-h-14",
-    large: "max-h-16 sm:max-h-20",
+    medium: "max-h-12 sm:max-h-16",
+    large: "max-h-16 sm:max-h-24",
   },
 } as const;
 
