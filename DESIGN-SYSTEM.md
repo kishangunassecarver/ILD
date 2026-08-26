@@ -4,23 +4,29 @@ Tokens live in `tailwind.config.ts`; the component classes they compose into liv
 in `app/globals.css`. Nothing here is editable from WordPress — it is brand, not
 content.
 
-## Colour
+## Colour — the night theme
+
+A deep-blue night theme, matched to the app reference (2026-08-26 restyle).
+The page blue `#001F3E` is the client's specified brand background.
 
 | Token | Value | Used for |
 |---|---|---|
-| `brand-500` | `#E4002B` | The heart. Every primary action, active state and accent. |
-| `brand-600` / `700` | `#C10024` / `#9B001D` | Hover and active on primary buttons. |
-| `brand-50` / `100` | `#FFF1F3` / `#FFE0E4` | Tinted backgrounds behind icons and active chips. |
-| `ink` | `#0A1A33` | Harbour navy. Header text, the quick-actions rail, the footer. |
-| `ink-800` … `ink-400` | | Footer ground, secondary text, muted icons. |
-| `gold` | `#F5A623` | Ratings, rewards, and the title partner's call to action. |
-| `paper` | `#F2F3F6` | Page background. Every card is white on top of it. |
-| `line` | `#E4E7EC` | Every border in the system. |
-| `muted` | `#667085` | Secondary and supporting text. |
+| `paper` | `#001F3E` | The page itself — the brand's deep blue. |
+| `night` / `-800` / `-700` | `#082B52` / `#0A305B` / `#113A6A` | Cards, panels, menus, elevated surfaces. |
+| `aqua-500` / `-400` / `-300` | `#04A4B4` / `#16C2D2` / `#4DD7E3` | **Every action**: buttons, links, active chips, verified checks, the raised nav disc. 500 is the client's specified brand accent. |
+| `coral-500` | `#F6514D` | Featured pills and deal flashes — the client's specified red accent. |
+| `brand-500` | `#E4002B` | The heart only: logo, save buttons, and error states (`brand-400` on dark). |
+| `snow` / `mist` / `muted` | `#F0F6FC` / `#AEC6DE` / `#7E9AB8` | Headings / secondary text / supporting text. |
+| `line` | `#1D426B` | Borders; cards themselves use a whisper of `white/5`. |
+| `ink` | `#0A1A33` | Legacy navy — sponsor overlays, store badges, scrims. |
+| `gold` | `#F5A623` | Star ratings and the title partner's default CTA. |
 
-Two rules keep it coherent: **red is for action, navy is for structure**, and a
-card is always white on `paper`. Sponsor panels are the only place other colours
-appear, and they come from the sponsor's own `art` gradient.
+The rules: **aqua is for action, coral is for badges, red is only for love and
+errors**. Cards are `night` on `paper`, separated by tone rather than outline.
+Photos are inset inside cards with their own rounded corners — never full-bleed.
+Sponsor panels are the only place other colours appear, from the sponsor's own
+`art` gradient, and the hero fades into `paper` at its foot so the search and
+quick actions sit in the blend.
 
 ## Type
 

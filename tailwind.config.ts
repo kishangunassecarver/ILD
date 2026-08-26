@@ -11,17 +11,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand red — the heart, the logo, every primary action.
+        // Brand red — the heart, badges and alerts. No longer the action
+        // colour: on the night theme actions are aqua, and red is reserved
+        // for the marks that mean "love" or "look at this".
+        // Same family as coral so the site carries exactly one red: the
+        // client's #F6514D.
         brand: {
-          50: "#FFF1F3",
-          100: "#FFE0E4",
-          200: "#FFC6CD",
-          400: "#FF5C6E",
-          500: "#E4002B",
-          600: "#C10024",
-          700: "#9B001D",
+          50: "#FEF0EF",
+          100: "#FDDEDD",
+          200: "#FBC2C1",
+          400: "#F97370",
+          500: "#F6514D",
+          600: "#DE3D39",
+          700: "#B92F2C",
         },
-        // Deep harbour navy — header rails, footer, overlays.
+        // Coral — the client's specified red accent. Featured pills and deal
+        // flashes, warm against the deep blue.
+        coral: {
+          400: "#F97370",
+          500: "#F6514D",
+          600: "#DE3D39",
+        },
+        // Ocean aqua — every action, link and active state. 500 is the
+        // client's specified brand accent.
+        aqua: {
+          200: "#8AE7EF",
+          300: "#4DD7E3",
+          400: "#16C2D2",
+          500: "#04A4B4",
+          600: "#038795",
+        },
+        // Deep harbour navy — bands, overlays, button-on-aqua text.
         ink: {
           DEFAULT: "#0A1A33",
           800: "#10233F",
@@ -29,14 +49,24 @@ const config: Config = {
           600: "#274468",
           400: "#5A7291",
         },
+        // Elevated night surfaces — the cards and panels, one step up from
+        // the page blue.
+        night: {
+          DEFAULT: "#082B52",
+          800: "#0A305B",
+          700: "#113A6A",
+        },
         // Warm gold for rewards, points and ratings.
         gold: {
           DEFAULT: "#F5A623",
           600: "#D48806",
         },
-        paper: "#F2F3F6",
-        line: "#E4E7EC",
-        muted: "#667085",
+        // Text on the night theme.
+        snow: "#F0F6FC",
+        mist: "#AEC6DE",
+        paper: "#001F3E", // the page itself — the brand's deep blue
+        line: "#1D426B", // every border
+        muted: "#7E9AB8", // secondary text
       },
       fontFamily: {
         // One family throughout. `display` exists as a separate token so the
@@ -49,21 +79,19 @@ const config: Config = {
           "-apple-system",
           "sans-serif",
         ],
-        display: [
-          "'Plus Jakarta Sans Variable'",
-          "'Plus Jakarta Sans'",
-          "system-ui",
-          "sans-serif",
-        ],
+        display: ["'Plus Jakarta Sans Variable'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        card: "0.875rem",
+        // Generous, app-like corners — the reference rounds everything.
+        card: "1.25rem",
         pill: "999px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06)",
-        lift: "0 12px 28px -8px rgba(10, 26, 51, 0.18)",
-        rail: "0 2px 10px rgba(10, 26, 51, 0.08)",
+        card: "0 1px 2px rgba(2, 8, 20, 0.5), 0 2px 6px rgba(2, 8, 20, 0.35)",
+        lift: "0 16px 32px -10px rgba(2, 8, 20, 0.6)",
+        rail: "0 2px 10px rgba(2, 8, 20, 0.5)",
+        // Soft aqua bloom behind primary actions.
+        glow: "0 4px 18px -4px rgba(4, 164, 180, 0.55)",
       },
       maxWidth: {
         shell: "78rem",

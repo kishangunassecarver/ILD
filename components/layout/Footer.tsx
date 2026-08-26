@@ -37,7 +37,7 @@ export function Footer() {
           </p>
           <p className="flex items-center gap-1.5">
             Proudly Durban
-            <Heart className="h-3.5 w-3.5 fill-brand-500 text-brand-500" aria-hidden />
+            <Heart className="h-3.5 w-3.5 fill-brand-500 text-aqua-300" aria-hidden />
           </p>
         </div>
       </div>

@@ -28,18 +28,18 @@ export default function DealsPage() {
         <SponsorTower />
 
         <section className="panel p-5">
-          <h2 className="text-sm font-bold text-ink">How deals work</h2>
+          <h2 className="text-sm font-bold text-snow">How deals work</h2>
           <ol className="mt-3 space-y-2.5 text-xs leading-relaxed text-muted">
             <li>
-              <span className="font-semibold text-ink">1. Find an offer.</span> Everything here is
+              <span className="font-semibold text-snow">1. Find an offer.</span> Everything here is
               live and dated.
             </li>
             <li>
-              <span className="font-semibold text-ink">2. Show it in the app.</span> One tap at the
+              <span className="font-semibold text-snow">2. Show it in the app.</span> One tap at the
               till or the till point.
             </li>
             <li>
-              <span className="font-semibold text-ink">3. Earn points.</span> Every redemption adds
+              <span className="font-semibold text-snow">3. Earn points.</span> Every redemption adds
               to your rewards balance.
             </li>
           </ol>

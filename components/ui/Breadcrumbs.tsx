@@ -7,13 +7,13 @@ export function Breadcrumbs({ trail }: { trail: { label: string; href?: string }
       <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
         {trail.map((crumb, i) => (
           <li key={`${crumb.label}-${i}`} className="flex items-center gap-1.5">
-            {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-line" aria-hidden />}
+            {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted/60" aria-hidden />}
             {crumb.href ? (
-              <Link href={crumb.href} className="transition hover:text-brand-500">
+              <Link href={crumb.href} className="transition hover:text-aqua-300">
                 {crumb.label}
               </Link>
             ) : (
-              <span className="font-medium text-ink-700" aria-current="page">
+              <span className="font-medium text-mist" aria-current="page">
                 {crumb.label}
               </span>
             )}

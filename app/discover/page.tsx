@@ -136,7 +136,7 @@ export default function DiscoverPage() {
 
           return (
             <section key={hood.id} id={hood.id} className="scroll-mt-24">
-              <h3 className="text-base font-bold text-ink">{hood.name}</h3>
+              <h3 className="text-base font-bold text-snow">{hood.name}</h3>
               <p className="mb-4 mt-1 max-w-2xl text-sm leading-relaxed text-muted">{hood.blurb}</p>
               <Cards listings={listings} />
             </section>

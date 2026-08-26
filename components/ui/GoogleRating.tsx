@@ -28,16 +28,25 @@ export function GoogleRating({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-ink-700">
+      <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-mist">
         Google rating
       </p>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {/* Outline row underneath, a clipped filled row on top. */}
-        <span className="relative inline-flex" role="img" aria-label={`${rating.toFixed(1)} out of 5`}>
+        <span
+          className="relative inline-flex"
+          role="img"
+          aria-label={`${rating.toFixed(1)} out of 5`}
+        >
           <span className="flex gap-0.5">
             {[0, 1, 2, 3, 4].map((i) => (
-              <Star key={i} className="h-[1.1rem] w-[1.1rem] text-gold" strokeWidth={1.5} aria-hidden />
+              <Star
+                key={i}
+                className="h-[1.1rem] w-[1.1rem] text-gold"
+                strokeWidth={1.5}
+                aria-hidden
+              />
             ))}
           </span>
 
@@ -56,7 +65,7 @@ export function GoogleRating({
           </span>
         </span>
 
-        <span className="text-base font-bold leading-none text-ink">{rating.toFixed(1)}</span>
+        <span className="text-base font-bold leading-none text-snow">{rating.toFixed(1)}</span>
 
         {typeof reviews === "number" && reviews > 0 && (
           <span className="text-sm text-muted">{groupNumber(reviews)} Google reviews</span>
@@ -68,7 +77,7 @@ export function GoogleRating({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 transition hover:text-brand-700"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-aqua-300 transition hover:text-aqua-200"
         >
           See reviews on Google
           <ArrowUpRight className="h-4 w-4" aria-hidden />

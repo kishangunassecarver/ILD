@@ -30,7 +30,7 @@ export default function EventsPage() {
         <SponsorTower />
 
         <section className="panel p-5">
-          <h2 className="text-sm font-bold text-ink">Running an event?</h2>
+          <h2 className="text-sm font-bold text-snow">Running an event?</h2>
           <p className="mt-1.5 text-xs leading-relaxed text-muted">
             Publish it to the city calendar and reach the people already planning their weekend.
           </p>

@@ -67,7 +67,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="min-w-0 space-y-6">
           <div className="panel p-5">
-            <p className="text-sm font-medium leading-relaxed text-ink-700">{event.blurb}</p>
+            <p className="text-sm font-medium leading-relaxed text-mist">{event.blurb}</p>
             {event.body?.map((paragraph) => (
               <p key={paragraph.slice(0, 32)} className="mt-3 text-sm leading-relaxed text-muted">
                 {paragraph}
@@ -89,14 +89,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
         <aside className="space-y-6 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
           <section className="panel p-5">
-            <h2 className="text-sm font-bold text-ink">Details</h2>
+            <h2 className="text-sm font-bold text-snow">Details</h2>
 
             <dl className="mt-3 space-y-3 text-xs">
               <div className="flex gap-2.5">
                 <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                 <div>
                   <dt className="sr-only">Date</dt>
-                  <dd className="font-semibold text-ink">
+                  <dd className="font-semibold text-snow">
                     {event.dateLabel ?? longDate(event.date)}
                   </dd>
                   {event.dateLabel && <dd className="text-muted">{longDate(event.date)}</dd>}
@@ -107,7 +107,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                 <div>
                   <dt className="sr-only">Venue</dt>
-                  <dd className="text-ink-700">{event.venue}</dd>
+                  <dd className="text-mist">{event.venue}</dd>
                   <dd className="text-muted">{event.area}</dd>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                   <div>
                     <dt className="sr-only">Price</dt>
-                    <dd className="text-ink-700">{event.price}</dd>
+                    <dd className="text-mist">{event.price}</dd>
                   </div>
                 </div>
               )}
@@ -140,7 +140,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </section>
 
           <section className="panel p-5">
-            <h2 className="text-sm font-bold text-ink">Never miss a weekend</h2>
+            <h2 className="text-sm font-bold text-snow">Never miss a weekend</h2>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">
               Get the week&apos;s events in your inbox every Thursday.
             </p>

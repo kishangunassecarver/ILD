@@ -137,7 +137,7 @@ export function HubBrowser({
                 setCategory(null);
                 setArea("");
               }}
-              className="chip gap-1 border-brand-200 text-brand-600"
+              className="chip gap-1 border-aqua-500/40 text-aqua-300"
             >
               <X className="h-3 w-3" aria-hidden />
               Clear
@@ -155,13 +155,13 @@ export function HubBrowser({
 
       {results.length === 0 ? (
         <div className="panel p-10 text-center">
-          <p className="text-sm font-semibold text-ink">Nothing matches that combination yet.</p>
+          <p className="text-sm font-semibold text-snow">Nothing matches that combination yet.</p>
           <p className="mt-1 text-xs text-muted">
             Try a different area, or clear the filters to see everything in {hub.label}.
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-2">
           {results.map((listing) => (
             <ListingCard key={listing.slug} listing={listing} fallbackCta={hub.defaultCta} />
           ))}

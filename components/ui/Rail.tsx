@@ -74,7 +74,7 @@ function RailButton({
       tabIndex={hidden ? -1 : 0}
       aria-hidden={hidden}
       className={cn(
-        "absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-white text-ink shadow-rail transition hover:border-ink-400 hover:text-brand-500 sm:grid",
+        "absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-night-700 text-snow shadow-rail transition hover:border-aqua-500/50 hover:text-aqua-300 sm:grid",
         side === "left" ? "-left-3" : "-right-3",
         hidden && "pointer-events-none opacity-0"
       )}

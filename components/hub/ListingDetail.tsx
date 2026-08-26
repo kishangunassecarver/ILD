@@ -74,7 +74,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
               </p>
             </div>
 
-            <p className="mt-3 text-sm font-medium leading-relaxed text-ink-700">{listing.blurb}</p>
+            <p className="mt-3 text-sm font-medium leading-relaxed text-mist">{listing.blurb}</p>
 
             {listing.body?.map((paragraph) => (
               <p key={paragraph.slice(0, 32)} className="mt-3 text-sm leading-relaxed text-muted">
@@ -96,12 +96,12 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
 
           {listing.amenities && listing.amenities.length > 0 && (
             <section className="panel p-5">
-              <h2 className="text-sm font-bold text-ink">Good to know</h2>
+              <h2 className="text-sm font-bold text-snow">Good to know</h2>
               <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {listing.amenities.map((amenity) => (
                   <li key={amenity} className="flex items-center gap-2 text-xs text-muted">
-                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-brand-50">
-                      <Check className="h-2.5 w-2.5 text-brand-500" aria-hidden />
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
+                      <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
                     </span>
                     {amenity}
                   </li>
@@ -113,7 +113,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
           {related.length > 0 && (
             <section>
               <h2 className="section-title mb-4">More in {hub.label}</h2>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 lg:grid-cols-2">
                 {related.map((item) => (
                   <ListingCard key={item.slug} listing={item} fallbackCta={hub.defaultCta} />
                 ))}
@@ -134,7 +134,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
           ) : null}
 
           <section className="panel p-5">
-            <h2 className="text-sm font-bold text-ink">Visit</h2>
+            <h2 className="text-sm font-bold text-snow">Visit</h2>
 
             <dl className="mt-3 space-y-3 text-xs">
               {listing.address && (
@@ -142,7 +142,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                   <div>
                     <dt className="sr-only">Address</dt>
-                    <dd className="leading-relaxed text-ink-700">{listing.address}</dd>
+                    <dd className="leading-relaxed text-mist">{listing.address}</dd>
                   </div>
                 </div>
               )}
@@ -155,7 +155,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                     <dd>
                       <a
                         href={`tel:${listing.phone.replace(/\s/g, "")}`}
-                        className="text-ink-700 hover:text-brand-500"
+                        className="text-mist hover:text-aqua-300"
                       >
                         {listing.phone}
                       </a>
@@ -174,7 +174,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                         href={listing.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="break-all text-ink-700 hover:text-brand-500"
+                        className="break-all text-mist hover:text-aqua-300"
                       >
                         {listing.website.replace(/^https?:\/\//, "")}
                       </a>
@@ -189,7 +189,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                   <div>
                     <dt className="sr-only">Opening hours</dt>
                     {listing.hours.map((line) => (
-                      <dd key={line} className="leading-relaxed text-ink-700">
+                      <dd key={line} className="leading-relaxed text-mist">
                         {line}
                       </dd>
                     ))}
@@ -207,7 +207,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
           </section>
 
           <section className="panel p-5">
-            <h2 className="text-sm font-bold text-ink">Is this your business?</h2>
+            <h2 className="text-sm font-bold text-snow">Is this your business?</h2>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">
               Claim this listing to update your details, hours and description yourself.
             </p>

@@ -43,7 +43,7 @@ export function HubPage({ slug }: { slug: HubSlug }) {
         {sidebarDeals.length > 0 && (
           <section aria-labelledby="hub-deals-title">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 id="hub-deals-title" className="text-base font-bold text-ink">
+              <h2 id="hub-deals-title" className="text-base font-bold text-snow">
                 {hub.label} deals
               </h2>
               <Link href="/deals" className="link-more text-xs">
@@ -60,7 +60,7 @@ export function HubPage({ slug }: { slug: HubSlug }) {
         )}
 
         <section className="panel p-5">
-          <h2 className="text-sm font-bold text-ink">
+          <h2 className="text-sm font-bold text-snow">
             Own a business in {hub.label.toLowerCase()}?
           </h2>
           <p className="mt-1.5 text-xs leading-relaxed text-muted">

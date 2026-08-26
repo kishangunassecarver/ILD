@@ -43,7 +43,7 @@ export function AccountMenu() {
         href="/join"
         aria-label="Join or sign in"
         title="Join or sign in"
-        className="hidden h-9 w-9 place-items-center rounded-md text-ink transition hover:bg-paper md:grid"
+        className="hidden h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5 md:grid"
       >
         <User className="h-[1.15rem] w-[1.15rem]" aria-hidden />
       </Link>
@@ -60,7 +60,7 @@ export function AccountMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Your account"
-        className="grid h-9 w-9 place-items-center rounded-full bg-brand-500 text-[0.8125rem] font-bold text-white transition hover:bg-brand-600"
+        className="grid h-9 w-9 place-items-center rounded-full bg-aqua-500 text-[0.8125rem] font-bold text-white transition hover:bg-aqua-400"
       >
         {initial}
       </button>
@@ -68,10 +68,10 @@ export function AccountMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-white shadow-lift"
+          className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-night-800 shadow-lift"
         >
           <div className="border-b border-line px-4 py-3">
-            {member.name && <p className="text-sm font-bold text-ink">{member.name}</p>}
+            {member.name && <p className="text-sm font-bold text-snow">{member.name}</p>}
             <p className="truncate text-xs text-muted">{member.email}</p>
           </div>
 
@@ -79,7 +79,7 @@ export function AccountMenu() {
             href="/saved"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-paper"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-white/5"
           >
             <Heart className="h-4 w-4 text-muted" aria-hidden />
             Saved places
@@ -89,7 +89,7 @@ export function AccountMenu() {
             href="/my-business"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-paper"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-white/5"
           >
             <Building2 className="h-4 w-4 text-muted" aria-hidden />
             My business
@@ -102,7 +102,7 @@ export function AccountMenu() {
               setOpen(false);
               void signOut();
             }}
-            className="flex w-full items-center gap-2.5 border-t border-line px-4 py-2.5 text-left text-sm text-ink-700 transition hover:bg-paper"
+            className="flex w-full items-center gap-2.5 border-t border-line px-4 py-2.5 text-left text-sm text-mist transition hover:bg-white/5"
           >
             <LogOut className="h-4 w-4 text-muted" aria-hidden />
             Sign out

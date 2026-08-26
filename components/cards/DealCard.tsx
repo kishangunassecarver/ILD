@@ -16,24 +16,24 @@ export function DealCard({
   const href = `/deals/${deal.slug}`;
 
   return (
-    <article className={cn("panel card-hover group overflow-hidden", className)}>
+    <article className={cn("panel card-hover group overflow-hidden p-2", className)}>
       <Link href={href} className="block">
         <Tile
           seed={deal.slug}
           image={deal.image}
-          className={layout === "wide" ? "h-40" : "h-[6.75rem]"}
+          className={cn("rounded-[0.875rem]", layout === "wide" ? "h-40" : "h-[6.75rem]")}
         >
           {/* The discount flash is the whole point of the card. */}
-          <span className="absolute left-0 top-2.5 rounded-r-md bg-brand-500 px-2.5 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wide text-white shadow-rail">
+          <span className="absolute left-2 top-2 rounded-pill bg-coral-500 px-2.5 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wide text-white shadow-rail">
             {deal.badge}
           </span>
         </Tile>
 
-        <div className="p-3.5">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink transition group-hover:text-brand-500">
+        <div className="p-2.5 pt-3">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-snow transition group-hover:text-aqua-300">
             {deal.business}
           </h3>
-          <p className="line-clamp-2 mt-0.5 text-xs text-muted">{deal.title}</p>
+          <p className="line-clamp-2 mt-0.5 text-xs font-semibold text-aqua-300">{deal.title}</p>
           {layout === "wide" && (
             <p className="line-clamp-2 mt-1.5 text-xs leading-relaxed text-muted">{deal.blurb}</p>
           )}

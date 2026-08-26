@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-screen flex-col">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-lift"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink focus:shadow-lift"
         >
           Skip to content
         </a>
@@ -51,17 +51,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteBanner />
           <QuickActions />
 
-        <main id="main" className="flex-1">
-          {children}
-        </main>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
 
-        {/* Wrapped so the floating bottom nav can watch for this whole block
+          {/* Wrapped so the floating bottom nav can watch for this whole block
             and step aside once any of it is on screen — the newsletter's email
             field sits right where the bar would otherwise cover it. */}
-        <div id="site-footer">
-          <Newsletter />
-          <Footer />
-        </div>
+          <div id="site-footer">
+            <Newsletter />
+            <Footer />
+          </div>
 
           <BottomNav />
         </MemberProvider>

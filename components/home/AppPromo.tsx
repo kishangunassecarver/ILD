@@ -26,7 +26,7 @@ export function AppPromo() {
           <ul className="mt-4 space-y-2">
             {APP_PROMO.points.map((point) => (
               <li key={point} className="flex items-center gap-2 text-sm text-white/85">
-                <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-brand-500">
+                <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-500">
                   <Check className="h-2.5 w-2.5 text-white" aria-hidden />
                 </span>
                 {point}
@@ -42,14 +42,15 @@ export function AppPromo() {
         {/* Device mock — abstract rather than a screenshot, so it never dates. */}
         <div className="hidden justify-center lg:flex">
           <div className="w-[11rem] rounded-[1.5rem] border border-white/25 bg-white/10 p-2 shadow-lift backdrop-blur">
-            <div className="space-y-2 rounded-[1.15rem] bg-white p-3">
+            {/* The phone screen shows the app in its own night theme. */}
+            <div className="space-y-2 rounded-[1.15rem] bg-paper p-3">
               <div className="h-1.5 w-10 rounded-full bg-line" aria-hidden />
-              <p className="text-[0.6875rem] font-bold text-ink">Good morning, Sam!</p>
-              <div className="rounded-lg bg-brand-50 px-2.5 py-2">
-                <p className="text-[0.5625rem] font-semibold uppercase tracking-wider text-brand-600">
+              <p className="text-[0.6875rem] font-bold text-snow">Good morning, Sam!</p>
+              <div className="rounded-lg bg-aqua-400/10 px-2.5 py-2">
+                <p className="text-[0.5625rem] font-semibold uppercase tracking-wider text-aqua-300">
                   Your points
                 </p>
-                <p className="text-sm font-extrabold text-ink">2 430</p>
+                <p className="text-sm font-extrabold text-snow">2 430</p>
               </div>
               <p className="text-[0.5625rem] font-semibold uppercase tracking-wider text-muted">
                 Nearby deals
@@ -57,7 +58,7 @@ export function AppPromo() {
               {["20% off · Umhlanga", "2 for 1 · Ballito"].map((row) => (
                 <div
                   key={row}
-                  className="rounded-md border border-line px-2 py-1.5 text-[0.5625rem] text-ink-700"
+                  className="rounded-md border border-line px-2 py-1.5 text-[0.5625rem] text-mist"
                 >
                   {row}
                 </div>

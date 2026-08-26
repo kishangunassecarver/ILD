@@ -1,5 +1,5 @@
 import { Star } from "lucide-react";
-import { groupNumber } from "@/lib/utils";
+import { cn, groupNumber } from "@/lib/utils";
 
 /** Rating line used on every listing card and detail header. */
 export function Rating({
@@ -7,11 +7,17 @@ export function Rating({
   reviews,
   price,
   className,
+  emphasis = false,
 }: {
   rating: number;
   reviews?: number;
   price?: string;
   className?: string;
+  /**
+   * The reference's leading meta row: the star sits in a tinted disc and the
+   * number reads bold white, like the salary line it echoes.
+   */
+  emphasis?: boolean;
 }) {
   // Ratings are out of five, so clamp: an editor typing 6 was showing "6.0"
   // next to a single star, which reads as broken rather than enthusiastic.
@@ -30,9 +36,20 @@ export function Rating({
 
   return (
     <div className={className}>
-      <span className="inline-flex items-center gap-1 text-xs">
-        <Star className="h-3.5 w-3.5 fill-gold text-gold" aria-hidden />
-        <span className="font-semibold text-ink">{rating.toFixed(1)}</span>
+      <span className={cn("inline-flex items-center text-xs", emphasis ? "gap-1.5" : "gap-1")}>
+        {emphasis ? (
+          // The aqua disc from the reference's leading meta row.
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-aqua-500">
+            <Star className="h-3 w-3 fill-white text-white" aria-hidden />
+          </span>
+        ) : (
+          <Star className="h-3.5 w-3.5 fill-gold text-gold" aria-hidden />
+        )}
+        <span
+          className={cn("text-snow", emphasis ? "text-[0.8125rem] font-bold" : "font-semibold")}
+        >
+          {rating.toFixed(1)}
+        </span>
         {typeof reviews === "number" && (
           <span className="text-muted">({groupNumber(reviews)})</span>
         )}

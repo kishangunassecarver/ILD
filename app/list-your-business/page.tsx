@@ -41,7 +41,7 @@ export default function ListYourBusinessPage() {
       <section className="panel grid gap-4 p-6 sm:grid-cols-4">
         {STATS.map((stat) => (
           <div key={stat.label}>
-            <p className="text-2xl font-extrabold tracking-tight text-ink">{stat.value}</p>
+            <p className="text-2xl font-extrabold tracking-tight text-snow">{stat.value}</p>
             <p className="mt-0.5 text-xs text-muted">{stat.label}</p>
           </div>
         ))}
@@ -52,10 +52,10 @@ export default function ListYourBusinessPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           {BENEFITS.map((benefit) => (
             <div key={benefit.title} className="panel p-5">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-50">
-                <benefit.icon className="h-4 w-4 text-brand-500" aria-hidden />
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
+                <benefit.icon className="h-4 w-4 text-aqua-300" aria-hidden />
               </span>
-              <h3 className="mt-3 text-sm font-bold text-ink">{benefit.title}</h3>
+              <h3 className="mt-3 text-sm font-bold text-snow">{benefit.title}</h3>
               <p className="mt-1.5 text-xs leading-relaxed text-muted">{benefit.body}</p>
             </div>
           ))}
@@ -70,20 +70,20 @@ export default function ListYourBusinessPage() {
               key={plan.name}
               className={cn(
                 "panel flex flex-col p-6",
-                plan.featured && "border-brand-200 ring-1 ring-brand-200"
+                plan.featured && "border-aqua-500/40 ring-1 ring-aqua-500/40"
               )}
             >
               {plan.featured && (
-                <span className="mb-3 self-start rounded-pill bg-brand-50 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand-600">
+                <span className="mb-3 self-start rounded-pill bg-aqua-400/10 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-aqua-300">
                   Most popular
                 </span>
               )}
 
-              <h3 className="text-base font-bold text-ink">{plan.name}</h3>
+              <h3 className="text-base font-bold text-snow">{plan.name}</h3>
               <p className="mt-1 text-xs leading-relaxed text-muted">{plan.summary}</p>
 
               <p className="mt-4 flex items-baseline gap-1.5">
-                <span className="text-3xl font-extrabold tracking-tight text-ink">
+                <span className="text-3xl font-extrabold tracking-tight text-snow">
                   {plan.price}
                 </span>
                 <span className="text-xs text-muted">{plan.period}</span>
@@ -91,9 +91,9 @@ export default function ListYourBusinessPage() {
 
               <ul className="mt-5 flex-1 space-y-2">
                 {plan.includes.map((item) => (
-                  <li key={item} className="flex gap-2 text-xs leading-relaxed text-ink-700">
-                    <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-brand-50">
-                      <Check className="h-2.5 w-2.5 text-brand-500" aria-hidden />
+                  <li key={item} className="flex gap-2 text-xs leading-relaxed text-mist">
+                    <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
+                      <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
                     </span>
                     {item}
                   </li>

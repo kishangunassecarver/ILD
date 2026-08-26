@@ -61,7 +61,8 @@ export function Newsletter() {
 
         {state === "done" ? (
           <p className="flex items-center gap-2 text-sm font-semibold text-white">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-500">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-aqua-500">
+              {" "}
               <Check className="h-3.5 w-3.5 text-white" aria-hidden />
             </span>
             You&apos;re on the list. Watch your inbox.
@@ -78,12 +79,12 @@ export function Newsletter() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="h-10 w-full min-w-0 rounded-l-lg border border-r-0 border-white/15 bg-white px-3.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-brand-500 sm:w-64"
+              className="h-10 w-full min-w-0 rounded-l-pill border border-r-0 border-white/15 bg-white/10 px-4 text-sm text-snow placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-aqua-400 sm:w-64"
             />
             <button
               type="submit"
               disabled={state === "sending"}
-              className="btn h-10 shrink-0 rounded-l-none rounded-r-lg bg-brand-500 px-5 text-white hover:bg-brand-600"
+              className="btn h-10 shrink-0 rounded-l-none rounded-r-pill bg-aqua-500 px-5 font-bold text-white hover:bg-aqua-400"
             >
               {state === "sending" ? "Sending…" : NEWSLETTER.cta}
             </button>
@@ -107,7 +108,7 @@ export function Newsletter() {
                   rel="noopener noreferrer"
                   aria-label={social.label}
                   title={social.label}
-                  className="grid h-8 w-8 place-items-center rounded-full border border-white/15 text-[0.6875rem] font-bold text-white/70 transition hover:border-brand-400 hover:text-white"
+                  className="grid h-8 w-8 place-items-center rounded-full border border-white/15 text-[0.6875rem] font-bold text-white/70 transition hover:border-aqua-400 hover:text-white"
                 >
                   {Mark ? (
                     <Mark className="h-4 w-4" strokeWidth={1.75} aria-hidden />

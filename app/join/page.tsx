@@ -22,12 +22,12 @@ export default function JoinPage() {
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <section className="panel p-6 sm:p-8">
-          <h2 className="text-sm font-bold text-ink">What you get</h2>
+          <h2 className="text-sm font-bold text-snow">What you get</h2>
           <ul className="mt-4 space-y-3">
             {APP_PROMO.points.map((point) => (
-              <li key={point} className="flex items-start gap-2.5 text-sm text-ink-700">
-                <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-brand-50">
-                  <Check className="h-2.5 w-2.5 text-brand-500" aria-hidden />
+              <li key={point} className="flex items-start gap-2.5 text-sm text-mist">
+                <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
+                  <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
                 </span>
                 {point}
               </li>
@@ -35,7 +35,7 @@ export default function JoinPage() {
           </ul>
 
           <div className="mt-6 rounded-lg bg-paper p-4">
-            <p className="text-xs font-bold text-ink">Why no password?</p>
+            <p className="text-xs font-bold text-snow">Why no password?</p>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">
               Because we would rather not hold one. Your email address is the account: we send you a
               link, you tap it, you are in. Nothing to remember, nothing to reset, and nothing of

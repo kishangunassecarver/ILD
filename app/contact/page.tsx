@@ -46,10 +46,10 @@ export default function ContactPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         {ROUTES.map((route) => (
           <div key={route.title} className="panel flex flex-col p-5">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-50">
-              <route.icon className="h-4 w-4 text-brand-500" aria-hidden />
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
+              <route.icon className="h-4 w-4 text-aqua-300" aria-hidden />
             </span>
-            <h2 className="mt-3 text-sm font-bold text-ink">{route.title}</h2>
+            <h2 className="mt-3 text-sm font-bold text-snow">{route.title}</h2>
             <p className="mt-1.5 flex-1 text-xs leading-relaxed text-muted">{route.body}</p>
             <Link href={route.href} className="link-more mt-3 text-xs">
               {route.cta} →

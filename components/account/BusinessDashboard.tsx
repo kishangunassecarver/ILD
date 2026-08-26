@@ -56,16 +56,20 @@ export function BusinessDashboard() {
   }, [member]);
 
   if (loading || (member && !fetched)) {
-    return <p className="panel p-10 text-center text-sm text-muted" aria-busy>Loading…</p>;
+    return (
+      <p className="panel p-10 text-center text-sm text-muted" aria-busy>
+        Loading…
+      </p>
+    );
   }
 
   if (!member) {
     return (
       <div className="panel p-12 text-center">
-        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-50">
-          <Building2 className="h-5 w-5 text-brand-500" aria-hidden />
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
+          <Building2 className="h-5 w-5 text-aqua-300" aria-hidden />
         </span>
-        <h2 className="mt-4 text-base font-bold text-ink">Sign in to manage your listing</h2>
+        <h2 className="mt-4 text-base font-bold text-snow">Sign in to manage your listing</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
           Managing a business starts with a free account — sign in, claim your listing, and once we
           approve the claim you can edit it here.
@@ -119,13 +123,13 @@ export function BusinessDashboard() {
         />
       ) : (
         <div className="panel p-6 sm:p-8">
-          <h2 className="text-sm font-bold text-ink">
+          <h2 className="text-sm font-bold text-snow">
             {claims.length > 0 ? "Manage another business?" : "Is your business listed here?"}
           </h2>
           <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted">
-            Claim the listing and, once we have checked the claim, you can update its details,
-            hours and description yourself. Not listed at all yet?{" "}
-            <Link href="/list-your-business" className="font-semibold text-brand-600 underline">
+            Claim the listing and, once we have checked the claim, you can update its details, hours
+            and description yourself. Not listed at all yet?{" "}
+            <Link href="/list-your-business" className="font-semibold text-aqua-300 underline">
               Get listed first
             </Link>
             .
@@ -144,7 +148,7 @@ export function BusinessDashboard() {
           <ul className="panel divide-y divide-line">
             {edits.map((edit) => (
               <li key={edit.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5">
-                <span className="text-sm font-semibold text-ink">{nameFor(edit.slug)}</span>
+                <span className="text-sm font-semibold text-snow">{nameFor(edit.slug)}</span>
                 <span className="text-xs text-muted">
                   {Object.keys(edit.fields).length}{" "}
                   {Object.keys(edit.fields).length === 1 ? "field" : "fields"} ·{" "}
@@ -172,9 +176,9 @@ function nameFor(slug: string): string {
 
 function StatusChip({ status, className }: { status: string; className?: string }) {
   const styles: Record<string, string> = {
-    pending: "bg-amber-50 text-amber-700",
-    approved: "bg-emerald-50 text-emerald-700",
-    applied: "bg-emerald-50 text-emerald-700",
+    pending: "bg-amber-400/15 text-amber-300",
+    approved: "bg-emerald-400/15 text-emerald-300",
+    applied: "bg-emerald-400/15 text-emerald-300",
     rejected: "bg-red-50 text-red-700",
     superseded: "bg-paper text-muted",
   };
@@ -205,7 +209,7 @@ function ClaimRow({ claim, onEdit }: { claim: Claim; onEdit: () => void }) {
   return (
     <div className="panel flex flex-wrap items-center gap-x-4 gap-y-2 p-5">
       <div className="min-w-0">
-        <p className="text-sm font-bold text-ink">
+        <p className="text-sm font-bold text-snow">
           {listing?.name ?? claim.business_name ?? claim.slug}
         </p>
         <p className="text-xs text-muted">{listing?.area ?? claim.hub}</p>
@@ -298,7 +302,7 @@ function ClaimForm({
     <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-bold text-ink">Claim your listing</h2>
+          <h2 className="text-base font-bold text-snow">Claim your listing</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
             Tell us which listing is yours and how to reach you. A person checks every claim before
             edit access is switched on.
@@ -308,7 +312,7 @@ function ClaimForm({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -316,9 +320,9 @@ function ClaimForm({
 
       {chosen ? (
         <div className="flex items-center gap-3 rounded-lg bg-paper p-4">
-          <BadgeCheck className="h-5 w-5 shrink-0 text-brand-500" aria-hidden />
+          <BadgeCheck className="h-5 w-5 shrink-0 text-aqua-300" aria-hidden />
           <div className="min-w-0">
-            <p className="text-sm font-bold text-ink">{chosen.name}</p>
+            <p className="text-sm font-bold text-snow">{chosen.name}</p>
             <p className="text-xs text-muted">
               {chosen.area} · {chosen.category}
             </p>
@@ -326,15 +330,15 @@ function ClaimForm({
           <button
             type="button"
             onClick={() => setChosen(null)}
-            className="ml-auto text-xs font-semibold text-brand-600 underline"
+            className="ml-auto text-xs font-semibold text-aqua-300 underline"
           >
             Change
           </button>
         </div>
       ) : (
         <div>
-          <label htmlFor="claim-search" className="mb-1.5 block text-xs font-semibold text-ink">
-            Find your business <span className="text-brand-500">*</span>
+          <label htmlFor="claim-search" className="mb-1.5 block text-xs font-semibold text-snow">
+            Find your business <span className="text-aqua-300">*</span>
           </label>
           <div className="relative">
             <Search
@@ -358,9 +362,9 @@ function ClaimForm({
                   <button
                     type="button"
                     onClick={() => setChosen(listing)}
-                    className="flex w-full items-baseline gap-2 px-4 py-2.5 text-left transition hover:bg-paper"
+                    className="flex w-full items-baseline gap-2 px-4 py-2.5 text-left transition hover:bg-white/5"
                   >
-                    <span className="text-sm font-semibold text-ink">{listing.name}</span>
+                    <span className="text-sm font-semibold text-snow">{listing.name}</span>
                     <span className="text-xs text-muted">
                       {listing.area} · {listing.category}
                     </span>
@@ -373,7 +377,7 @@ function ClaimForm({
           {query.trim().length >= 2 && matches.length === 0 && (
             <p className="mt-2 text-xs text-muted">
               No listing by that name.{" "}
-              <Link href="/list-your-business" className="font-semibold text-brand-600 underline">
+              <Link href="/list-your-business" className="font-semibold text-aqua-300 underline">
                 Get listed
               </Link>{" "}
               and it will appear here once it is live.
@@ -384,8 +388,8 @@ function ClaimForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="claim-role" className="mb-1.5 block text-xs font-semibold text-ink">
-            Your role <span className="text-brand-500">*</span>
+          <label htmlFor="claim-role" className="mb-1.5 block text-xs font-semibold text-snow">
+            Your role <span className="text-aqua-300">*</span>
           </label>
           <input
             id="claim-role"
@@ -396,8 +400,8 @@ function ClaimForm({
           />
         </div>
         <div>
-          <label htmlFor="claim-phone" className="mb-1.5 block text-xs font-semibold text-ink">
-            Phone <span className="text-brand-500">*</span>
+          <label htmlFor="claim-phone" className="mb-1.5 block text-xs font-semibold text-snow">
+            Phone <span className="text-aqua-300">*</span>
           </label>
           <input
             id="claim-phone"
@@ -410,13 +414,19 @@ function ClaimForm({
           />
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor="claim-name" className="mb-1.5 block text-xs font-semibold text-ink">
-            Your full name <span className="text-brand-500">*</span>
+          <label htmlFor="claim-name" className="mb-1.5 block text-xs font-semibold text-snow">
+            Your full name <span className="text-aqua-300">*</span>
           </label>
-          <input id="claim-name" name="contactName" required autoComplete="name" className="field" />
+          <input
+            id="claim-name"
+            name="contactName"
+            required
+            autoComplete="name"
+            className="field"
+          />
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor="claim-note" className="mb-1.5 block text-xs font-semibold text-ink">
+          <label htmlFor="claim-note" className="mb-1.5 block text-xs font-semibold text-snow">
             Anything that helps us verify it{" "}
             <span className="font-normal text-muted">(optional)</span>
           </label>
@@ -439,7 +449,7 @@ function ClaimForm({
           {state === "sending" ? "Sending…" : "Submit claim"}
         </button>
         {state === "error" && (
-          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-600">
+          <p role="alert" className="mt-2.5 text-xs font-medium text-aqua-300">
             {error}
           </p>
         )}
@@ -552,10 +562,10 @@ function ListingEditor({
   if (state === "sent") {
     return (
       <div className="panel p-8 text-center">
-        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-brand-50">
-          <BadgeCheck className="h-5 w-5 text-brand-500" aria-hidden />
+        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
+          <BadgeCheck className="h-5 w-5 text-aqua-300" aria-hidden />
         </span>
-        <h2 className="mt-3 text-base font-bold text-ink">Changes submitted</h2>
+        <h2 className="mt-3 text-base font-bold text-snow">Changes submitted</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
           We review every change before it goes live — usually within two working days. You can see
           its status on this page.
@@ -571,9 +581,7 @@ function ListingEditor({
     <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-bold text-ink">
-            Edit {listing?.name ?? claim.slug}
-          </h2>
+          <h2 className="text-base font-bold text-snow">Edit {listing?.name ?? claim.slug}</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
             Change what you need and submit. Changes are reviewed before they appear on the site.
           </p>
@@ -582,7 +590,7 @@ function ListingEditor({
           type="button"
           onClick={onClose}
           aria-label="Close editor"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -601,13 +609,16 @@ function ListingEditor({
           />
         </Field>
 
-        <Field label="One-line summary" id="edit-blurb" wide
-          hint="Shown on cards across the site. Keep it under 200 characters.">
+        <Field
+          label="One-line summary"
+          id="edit-blurb"
+          wide
+          hint="Shown on cards across the site. Keep it under 200 characters."
+        >
           <input id="edit-blurb" value={draft.blurb} onChange={set("blurb")} className="field" />
         </Field>
 
-        <Field label="Description" id="edit-body" wide
-          hint="Blank line between paragraphs.">
+        <Field label="Description" id="edit-body" wide hint="Blank line between paragraphs.">
           <textarea
             id="edit-body"
             value={draft.body}
@@ -696,7 +707,7 @@ function ListingEditor({
           Cancel
         </button>
         {state === "error" && (
-          <p role="alert" className="text-xs font-medium text-brand-600">
+          <p role="alert" className="text-xs font-medium text-aqua-300">
             {error}
           </p>
         )}
@@ -720,7 +731,7 @@ function Field({
 }) {
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-ink">
+      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-snow">
         {label}
       </label>
       {children}

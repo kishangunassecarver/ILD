@@ -17,7 +17,8 @@ export function SponsorBackdrop({ sponsor }: { sponsor: Sponsor }) {
 
   // Without a scrim, white copy over an arbitrary photo is a coin toss — but a
   // partner who has supplied artwork built for this may want less of it.
-  const opacity = typeof sponsor.overlay === "number" ? Math.min(100, Math.max(0, sponsor.overlay)) : 60;
+  const opacity =
+    typeof sponsor.overlay === "number" ? Math.min(100, Math.max(0, sponsor.overlay)) : 60;
 
   return (
     <>
@@ -30,11 +31,7 @@ export function SponsorBackdrop({ sponsor }: { sponsor: Sponsor }) {
         decoding="async"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div
-        className="absolute inset-0 bg-ink"
-        style={{ opacity: opacity / 100 }}
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-ink" style={{ opacity: opacity / 100 }} aria-hidden />
     </>
   );
 }
@@ -102,7 +99,11 @@ export function SponsorMark({
         alt={sponsor.name}
         loading="eager"
         decoding="async"
-        className={cn("w-auto max-w-full object-contain object-left", LOGO_HEIGHTS[slot][size], className)}
+        className={cn(
+          "w-auto max-w-full object-contain object-left",
+          LOGO_HEIGHTS[slot][size],
+          className
+        )}
       />
     );
   }
@@ -144,11 +145,16 @@ export function sponsorBackground(
 ): { className: string; style?: CSSProperties } {
   const gradient =
     sponsor.bgFrom && sponsor.bgTo
-      ? { backgroundImage: `linear-gradient(${GRADIENT_ANGLES[direction]}, ${sponsor.bgFrom}, ${sponsor.bgTo})` }
+      ? {
+          backgroundImage: `linear-gradient(${GRADIENT_ANGLES[direction]}, ${sponsor.bgFrom}, ${sponsor.bgTo})`,
+        }
       : undefined;
 
   return {
-    className: cn("bg-ink", !gradient && sponsor.art && `${GRADIENT_CLASSES[direction]} ${sponsor.art}`),
+    className: cn(
+      "bg-ink",
+      !gradient && sponsor.art && `${GRADIENT_CLASSES[direction]} ${sponsor.art}`
+    ),
     style: gradient,
   };
 }

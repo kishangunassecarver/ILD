@@ -25,18 +25,20 @@ export function EventCard({
         className
       )}
     >
-      <Link href={href} tabIndex={-1} aria-hidden className="block">
+      <Link href={href} tabIndex={-1} aria-hidden className="block p-2 pb-0">
         <Tile
           seed={event.slug}
           image={event.image}
-          className={compact ? "h-[6.5rem]" : "h-40 sm:h-44"}
+          className={cn("rounded-[0.875rem]", compact ? "h-[6.5rem]" : "h-40 sm:h-44")}
         >
           {/* The date tile is the card's anchor — it reads before the title. */}
+          {/* Solid white on purpose — it must pop off any photograph, and the
+              red day is the one place brand red still headlines. */}
           <div className="absolute left-2.5 top-2.5 overflow-hidden rounded-lg bg-white text-center shadow-rail">
             <div className="px-2 pt-1 text-base font-extrabold leading-none text-brand-500">
               {day}
             </div>
-            <div className="px-2 pb-1 text-[0.5625rem] font-bold uppercase tracking-wider text-muted">
+            <div className="px-2 pb-1 text-[0.5625rem] font-bold uppercase tracking-wider text-ink-400">
               {month}
             </div>
           </div>
@@ -44,8 +46,8 @@ export function EventCard({
       </Link>
 
       <div className="flex flex-1 flex-col gap-1.5 p-3.5">
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink">
-          <Link href={href} className="transition hover:text-brand-500">
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-snow">
+          <Link href={href} className="transition hover:text-aqua-300">
             {event.title}
           </Link>
         </h3>

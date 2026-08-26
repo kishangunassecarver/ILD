@@ -86,7 +86,7 @@ export default function PrivacyPage() {
 
         {SECTIONS.map((section) => (
           <section key={section.heading}>
-            <h2 className="text-base font-bold text-ink">{section.heading}</h2>
+            <h2 className="text-base font-bold text-snow">{section.heading}</h2>
             {section.body.map((paragraph) => (
               <p key={paragraph.slice(0, 32)} className="mt-2 text-sm leading-relaxed text-muted">
                 {paragraph}

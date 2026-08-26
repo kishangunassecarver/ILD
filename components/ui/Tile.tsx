@@ -32,11 +32,14 @@ export function Tile({
         />
       )}
 
-      {/* Bottom scrim keeps overlaid white text legible on any artwork. */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent"
-        aria-hidden
-      />
+      {/* A light scrim only when something is overlaid — bare photos stay
+          clean, as in the reference. */}
+      {children != null && (
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent"
+          aria-hidden
+        />
+      )}
       {children}
     </div>
   );

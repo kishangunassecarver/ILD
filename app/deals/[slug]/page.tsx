@@ -48,7 +48,7 @@ export default async function DealPage({ params }: { params: Promise<{ slug: str
             alt={deal.business}
             className="h-52 rounded-card sm:h-64"
           >
-            <span className="absolute left-0 top-4 rounded-r-lg bg-brand-500 px-3.5 py-1.5 text-sm font-extrabold uppercase tracking-wide text-white shadow-rail">
+            <span className="absolute left-3 top-3 rounded-pill bg-coral-500 px-3.5 py-1.5 text-sm font-extrabold uppercase tracking-wide text-white shadow-rail">
               {deal.badge}
             </span>
             <div className="absolute inset-x-0 bottom-0 p-5">
@@ -63,16 +63,16 @@ export default async function DealPage({ params }: { params: Promise<{ slug: str
           </Tile>
 
           <div className="panel p-5">
-            <p className="text-sm font-medium leading-relaxed text-ink-700">{deal.blurb}</p>
+            <p className="text-sm font-medium leading-relaxed text-mist">{deal.blurb}</p>
 
             {deal.terms && deal.terms.length > 0 && (
               <>
-                <h2 className="mt-5 text-sm font-bold text-ink">Terms</h2>
+                <h2 className="mt-5 text-sm font-bold text-snow">Terms</h2>
                 <ul className="mt-2 space-y-1.5">
                   {deal.terms.map((term) => (
                     <li key={term} className="flex gap-2 text-xs leading-relaxed text-muted">
                       <span
-                        className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand-500"
+                        className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-aqua-400"
                         aria-hidden
                       />
                       {term}
@@ -97,28 +97,28 @@ export default async function DealPage({ params }: { params: Promise<{ slug: str
 
         <aside className="space-y-6 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
           <section className="panel p-5">
-            <h2 className="text-sm font-bold text-ink">Claim this offer</h2>
+            <h2 className="text-sm font-bold text-snow">Claim this offer</h2>
 
             <dl className="mt-3 space-y-3 text-xs">
               <div className="flex gap-2.5">
                 <Store className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                 <div>
                   <dt className="sr-only">Business</dt>
-                  <dd className="text-ink-700">{deal.business}</dd>
+                  <dd className="text-mist">{deal.business}</dd>
                 </div>
               </div>
               <div className="flex gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                 <div>
                   <dt className="sr-only">Area</dt>
-                  <dd className="text-ink-700">{deal.area}</dd>
+                  <dd className="text-mist">{deal.area}</dd>
                 </div>
               </div>
               <div className="flex gap-2.5">
                 <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
                 <div>
                   <dt className="sr-only">Valid until</dt>
-                  <dd className="text-ink-700">Valid until {longDate(deal.validUntil)}</dd>
+                  <dd className="text-mist">Valid until {longDate(deal.validUntil)}</dd>
                 </div>
               </div>
             </dl>

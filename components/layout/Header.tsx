@@ -65,14 +65,14 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+      <header className="sticky top-0 z-50 border-b border-line bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/80">
         <div className="shell flex h-[var(--header-h)] items-center gap-4">
           <Logo className="shrink-0" />
 
           {/* xl rather than lg: nine top-level items plus the icons and the
             call to action do not fit at 1024, and the labels were wrapping
             mid-word. Below xl the drawer takes over. */}
-        <nav aria-label="Main" className="hidden flex-1 justify-center xl:flex">
+          <nav aria-label="Main" className="hidden flex-1 justify-center xl:flex">
             <ul className="flex items-center gap-0.5">
               {NAV.map((item) => {
                 const hasPanel = Boolean(item.columns?.length);
@@ -90,9 +90,7 @@ export function Header() {
                         href={item.href}
                         className={cn(
                           "whitespace-nowrap rounded-md px-2 py-2 text-xs font-semibold uppercase tracking-wide transition 2xl:px-2.5 2xl:text-[0.8125rem]",
-                          isCurrent(item.href)
-                            ? "text-brand-500"
-                            : "text-ink-700 hover:text-brand-500"
+                          isCurrent(item.href) ? "text-aqua-300" : "text-mist hover:text-aqua-300"
                         )}
                         aria-current={isCurrent(item.href) ? "page" : undefined}
                       >
@@ -105,7 +103,7 @@ export function Header() {
                           onClick={() => (isOpen ? setOpenMenu(null) : open(item.label))}
                           aria-expanded={isOpen}
                           aria-label={`${item.label} menu`}
-                          className="-ml-1.5 grid h-7 w-5 place-items-center text-ink-400 transition hover:text-brand-500"
+                          className="-ml-1.5 grid h-7 w-5 place-items-center text-muted transition hover:text-aqua-300"
                         >
                           <ChevronDown
                             className={cn(
@@ -147,7 +145,7 @@ export function Header() {
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
               aria-expanded={drawerOpen}
-              className="ml-1 grid h-9 w-9 place-items-center rounded-md text-ink transition hover:bg-paper xl:hidden"
+              className="ml-1 grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5 xl:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden />
             </button>
@@ -194,7 +192,7 @@ function IconLink({
       aria-label={label}
       title={label}
       className={cn(
-        "grid h-9 w-9 place-items-center rounded-full text-ink-700 transition hover:bg-paper hover:text-brand-500",
+        "grid h-9 w-9 place-items-center rounded-full text-mist transition hover:bg-white/5 hover:text-aqua-300",
         className
       )}
     >
@@ -206,7 +204,7 @@ function IconLink({
 function MegaMenu({ item, onNavigate }: { item: (typeof NAV)[number]; onNavigate: () => void }) {
   return (
     <div className="animate-slide-down" role="group" aria-label={`${item.label} links`}>
-      <div className="grid gap-6 rounded-card border border-line bg-white p-6 shadow-lift sm:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]">
+      <div className="grid gap-6 rounded-card border border-line bg-night-800 p-6 shadow-lift sm:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]">
         {item.columns?.map((column) => (
           <div key={column.heading}>
             <p className="mb-2.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted">
@@ -218,7 +216,7 @@ function MegaMenu({ item, onNavigate }: { item: (typeof NAV)[number]; onNavigate
                   <Link
                     href={link.href}
                     onClick={onNavigate}
-                    className="block text-[0.8125rem] font-medium text-ink-700 transition hover:text-brand-500"
+                    className="block text-[0.8125rem] font-medium text-mist transition hover:text-aqua-300"
                   >
                     {link.label}
                   </Link>
@@ -229,13 +227,13 @@ function MegaMenu({ item, onNavigate }: { item: (typeof NAV)[number]; onNavigate
         ))}
 
         {item.feature && (
-          <div className="rounded-lg bg-paper p-4">
-            <p className="text-sm font-bold text-ink">{item.feature.title}</p>
+          <div className="rounded-lg bg-white/5 p-4">
+            <p className="text-sm font-bold text-snow">{item.feature.title}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted">{item.feature.body}</p>
             <Link
               href={item.feature.href}
               onClick={onNavigate}
-              className="mt-3 inline-block text-xs font-semibold text-brand-500 hover:text-brand-600"
+              className="mt-3 inline-block text-xs font-semibold text-aqua-300 hover:text-aqua-200"
             >
               {item.feature.cta} →
             </Link>
@@ -291,14 +289,14 @@ function MobileDrawer({
        * dvh rather than vh so the height tracks mobile toolbars as they
        * collapse. The right-hand drawer returns at sm and up.
        */}
-      <div className="fixed left-0 top-0 z-50 flex h-[100dvh] w-[100vw] max-w-[100vw] flex-col bg-white shadow-lift sm:left-auto sm:right-0 sm:w-[22rem]">
+      <div className="fixed left-0 top-0 z-50 flex h-[100dvh] w-[100vw] max-w-[100vw] flex-col bg-night-800 shadow-lift sm:left-auto sm:right-0 sm:w-[22rem]">
         <div className="flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line px-4">
           <Logo />
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="grid h-9 w-9 place-items-center rounded-md text-ink transition hover:bg-paper"
+            className="grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5"
           >
             <X className="h-5 w-5" aria-hidden />
           </button>
@@ -318,7 +316,7 @@ function MobileDrawer({
                       onClick={onClose}
                       className={cn(
                         "flex-1 py-2.5 text-sm font-semibold",
-                        isCurrent(item.href) ? "text-brand-500" : "text-ink"
+                        isCurrent(item.href) ? "text-aqua-300" : "text-snow"
                       )}
                     >
                       {item.label}
@@ -329,7 +327,7 @@ function MobileDrawer({
                         onClick={() => setExpanded(isOpen ? null : item.label)}
                         aria-expanded={isOpen}
                         aria-label={`${item.label} sub-menu`}
-                        className="grid h-9 w-9 place-items-center rounded-md text-muted transition hover:bg-paper"
+                        className="grid h-9 w-9 place-items-center rounded-md text-muted transition hover:bg-white/5"
                       >
                         <ChevronDown
                           className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
@@ -348,7 +346,7 @@ function MobileDrawer({
                             <Link
                               href={link.href}
                               onClick={onClose}
-                              className="block py-1 text-[0.8125rem] text-muted transition hover:text-brand-500"
+                              className="block py-1 text-[0.8125rem] text-muted transition hover:text-aqua-300"
                             >
                               {link.label}
                             </Link>

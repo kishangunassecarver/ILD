@@ -44,13 +44,13 @@ export function TopPicks({ groups }: { groups: PickGroup[] }) {
               onClick={() => setActive(i)}
               className={cn(
                 "relative px-2.5 py-1.5 text-[0.8125rem] font-semibold transition",
-                i === active ? "text-brand-500" : "text-muted hover:text-ink"
+                i === active ? "text-aqua-300" : "text-muted hover:text-snow"
               )}
             >
               {group.label}
               {i === active && (
                 <span
-                  className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-brand-500"
+                  className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-aqua-400"
                   aria-hidden
                 />
               )}

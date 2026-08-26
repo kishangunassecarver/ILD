@@ -28,12 +28,12 @@ export function Logo({
           weight. Plus Jakarta Sans needs real weight and negative tracking to
           hold the same authority at this size. */}
       <span className="flex items-baseline gap-[0.12em] font-display text-[1.6rem] font-extrabold tracking-[-0.02em] sm:text-[1.85rem]">
-        <span className={onDark ? "text-white" : "text-ink"}>I</span>
+        <span className={onDark ? "text-white" : "text-snow"}>I</span>
         <Heart
           className="h-[0.85em] w-[0.85em] translate-y-[0.06em] fill-brand-500 text-brand-500 transition-transform duration-300 group-hover:scale-110"
           aria-hidden
         />
-        <span className={onDark ? "text-white" : "text-ink"}>DURBAN</span>
+        <span className={onDark ? "text-white" : "text-snow"}>DURBAN</span>
       </span>
       <span
         className={cn(

@@ -58,7 +58,10 @@ export function MemberProvider({ children }: { children: React.ReactNode }) {
     void load();
   }, [load]);
 
-  const isSaved = useCallback((kind: SaveKind, slug: string) => saved.has(saveKey(kind, slug)), [saved]);
+  const isSaved = useCallback(
+    (kind: SaveKind, slug: string) => saved.has(saveKey(kind, slug)),
+    [saved]
+  );
 
   const toggle = useCallback(
     async (kind: SaveKind, slug: string) => {

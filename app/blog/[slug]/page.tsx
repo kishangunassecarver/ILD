@@ -43,10 +43,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       />
 
       <article className="mx-auto max-w-3xl">
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-brand-500">
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-aqua-300">
           {post.category}
         </p>
-        <h1 className="mt-2 text-2xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
+        <h1 className="mt-2 text-2xl font-extrabold leading-tight tracking-tight text-snow sm:text-4xl">
           {post.title}
         </h1>
         <p className="mt-3 text-xs text-muted">
@@ -61,7 +61,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         />
 
         <div className="mt-6">
-          <p className="text-base font-medium leading-relaxed text-ink-700">{post.excerpt}</p>
+          <p className="text-base font-medium leading-relaxed text-mist">{post.excerpt}</p>
           {post.body.map((paragraph) => (
             <p
               key={paragraph.slice(0, 32)}
@@ -80,10 +80,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             {more.map((other) => (
               <li key={other.slug}>
                 <Link href={`/blog/${other.slug}`} className="panel card-hover block p-4">
-                  <p className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-brand-500">
+                  <p className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-aqua-300">
                     {other.category}
                   </p>
-                  <p className="mt-1 text-sm font-bold text-ink">{other.title}</p>
+                  <p className="mt-1 text-sm font-bold text-snow">{other.title}</p>
                   <p className="line-clamp-2 mt-1 text-xs leading-relaxed text-muted">
                     {other.excerpt}
                   </p>

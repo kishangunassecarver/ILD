@@ -72,6 +72,13 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
         aria-hidden
       />
 
+      {/* Gentle fade into the page below, so the quick-actions rail and search
+          read as sitting in the hero's tail rather than under a hard edge. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent via-paper/40 to-paper"
+        aria-hidden
+      />
+
       {/* A min-height rather than more padding: the band should keep its height
           whatever length of headline a partner sends, and the grid is already
           centring its content. 365px is the measured 281px plus 30%. */}

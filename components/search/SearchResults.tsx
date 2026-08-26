@@ -164,7 +164,7 @@ export function SearchResults() {
 
       {!results && (
         <div className="panel p-10 text-center">
-          <p className="text-sm font-semibold text-ink">Search the whole city</p>
+          <p className="text-sm font-semibold text-snow">Search the whole city</p>
           <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-muted">
             Places, events and deals — all at once. Search by name, suburb, category or the thing
             you actually feel like doing.
@@ -184,7 +184,7 @@ export function SearchResults() {
 
           {total === 0 && (
             <div className="panel p-10 text-center">
-              <p className="text-sm font-semibold text-ink">Nothing found for that.</p>
+              <p className="text-sm font-semibold text-snow">Nothing found for that.</p>
               <p className="mt-1.5 text-xs text-muted">
                 Try fewer words, or a suburb name like “Umhlanga” or “Glenwood”.
               </p>
@@ -194,7 +194,7 @@ export function SearchResults() {
           {results.listings.length > 0 && (
             <section className="mb-8">
               <h2 className="section-title mb-4">Places ({results.listings.length})</h2>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 lg:grid-cols-2">
                 {results.listings.slice(0, 12).map((listing) => (
                   <ListingCard
                     key={`${listing.hub}-${listing.slug}`}

@@ -84,7 +84,7 @@ export default function HomePage() {
                         {listingsIn(hub.slug).length} listings
                       </p>
                     </div>
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur transition group-hover:bg-brand-500 group-hover:ring-brand-500">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur transition group-hover:bg-aqua-500 group-hover:text-white group-hover:ring-aqua-500">
                       <Icon name={HUB_ICONS[hub.slug] ?? "map-pin"} className="h-4 w-4" />
                     </span>
                   </div>
@@ -109,7 +109,7 @@ export default function HomePage() {
         >
           {STATS.map((stat) => (
             <div key={stat.label}>
-              <p className="text-2xl font-extrabold tracking-tight text-ink">{stat.value}</p>
+              <p className="text-2xl font-extrabold tracking-tight text-snow">{stat.value}</p>
               <p className="mt-0.5 text-xs text-muted">{stat.label}</p>
             </div>
           ))}
@@ -121,7 +121,7 @@ export default function HomePage() {
 
         <section aria-labelledby="deals-title">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 id="deals-title" className="text-base font-bold text-ink">
+            <h2 id="deals-title" className="text-base font-bold text-snow">
               Deals of the day
             </h2>
             <Link href="/deals" className="link-more text-xs">

@@ -73,12 +73,45 @@ export function BottomNav() {
       >
         <ul
           className={cn(
-            "mx-auto flex max-w-md items-stretch justify-between gap-1 rounded-2xl border border-line/80 bg-white/90 p-1.5",
-            "shadow-[0_8px_30px_-6px_rgba(10,26,51,0.25)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/75"
+            "mx-auto flex max-w-md items-stretch justify-between gap-1 rounded-2xl border border-line/80 bg-night-800/95 p-1.5",
+            "shadow-[0_8px_30px_-6px_rgba(2,8,20,0.7)] backdrop-blur-xl supports-[backdrop-filter]:bg-night-800/80"
           )}
         >
-          {BOTTOM_NAV.items.map((item) => {
+          {BOTTOM_NAV.items.map((item, index) => {
             const active = isCurrent(item.href);
+            // The reference raises the middle action as a floating aqua disc.
+            const centred =
+              BOTTOM_NAV.items.length >= 3 && index === Math.floor(BOTTOM_NAV.items.length / 2);
+
+            if (centred) {
+              return (
+                <li key={item.href + item.label} className="min-w-0 flex-1">
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className="group -mt-6 flex flex-col items-center gap-1"
+                  >
+                    <span
+                      className={cn(
+                        "grid h-12 w-12 place-items-center rounded-full bg-aqua-500 text-white shadow-glow ring-4 ring-paper transition",
+                        "group-hover:bg-aqua-400",
+                        active && "bg-aqua-400"
+                      )}
+                    >
+                      <Icon name={item.icon} strokeWidth={2} className="h-5 w-5" />
+                    </span>
+                    <span
+                      className={cn(
+                        "w-full truncate text-center text-[0.625rem] leading-none tracking-tight",
+                        active ? "font-bold text-aqua-300" : "font-medium text-mist"
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </Link>
+                </li>
+              );
+            }
 
             return (
               <li key={item.href + item.label} className="min-w-0 flex-1">
@@ -87,7 +120,7 @@ export function BottomNav() {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group flex flex-col items-center gap-1 rounded-xl px-1 py-2 transition-colors duration-200",
-                    active ? "bg-brand-50 text-brand-600" : "text-ink-600 hover:bg-paper"
+                    active ? "text-aqua-300" : "text-mist hover:bg-white/5"
                   )}
                 >
                   <Icon

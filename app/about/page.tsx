@@ -21,7 +21,7 @@ export default function AboutPage() {
       <section className="panel grid gap-4 p-6 sm:grid-cols-4">
         {STATS.map((stat) => (
           <div key={stat.label}>
-            <p className="text-2xl font-extrabold tracking-tight text-ink">{stat.value}</p>
+            <p className="text-2xl font-extrabold tracking-tight text-snow">{stat.value}</p>
             <p className="mt-0.5 text-xs text-muted">{stat.label}</p>
           </div>
         ))}
@@ -43,8 +43,8 @@ export default function AboutPage() {
         <p className="mt-3 text-sm leading-relaxed text-muted">
           Editorial and advertising are kept apart. Paid placements are labelled as advertising
           everywhere they appear, and our{" "}
-          <span className="font-semibold text-ink">Durban Approved</span> list can never be bought —
-          it is only ever places our team has been to.
+          <span className="font-semibold text-snow">Durban Approved</span> list can never be bought
+          — it is only ever places our team has been to.
         </p>
       </section>
 

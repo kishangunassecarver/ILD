@@ -45,14 +45,14 @@ export default function RewardsPage() {
         {STEPS.map((step, i) => (
           <div key={step.title} className="panel p-5">
             <div className="flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-50">
-                <step.icon className="h-4 w-4 text-brand-500" aria-hidden />
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
+                <step.icon className="h-4 w-4 text-aqua-300" aria-hidden />
               </span>
               <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">
                 Step {i + 1}
               </span>
             </div>
-            <h2 className="mt-3 text-sm font-bold text-ink">{step.title}</h2>
+            <h2 className="mt-3 text-sm font-bold text-snow">{step.title}</h2>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">{step.body}</p>
           </div>
         ))}
@@ -68,7 +68,7 @@ export default function RewardsPage() {
             "If a business leaves the programme, points you already earned stay on your account.",
           ].map((line) => (
             <li key={line} className="flex gap-2 text-xs leading-relaxed text-muted">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand-500" aria-hidden />
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-aqua-400" aria-hidden />
               {line}
             </li>
           ))}

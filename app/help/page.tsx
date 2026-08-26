@@ -80,7 +80,7 @@ export default function HelpPage() {
                 {section.items.map((item) => (
                   /* Native disclosure — no JavaScript, keyboard-accessible for free. */
                   <details key={item.q} className="group px-5 py-4">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink marker:content-none">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-snow marker:content-none">
                       {item.q}
                       <ChevronDown
                         className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180"
@@ -96,7 +96,7 @@ export default function HelpPage() {
         </div>
 
         <aside className="panel p-5 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
-          <h2 className="text-sm font-bold text-ink">Still stuck?</h2>
+          <h2 className="text-sm font-bold text-snow">Still stuck?</h2>
           <p className="mt-1.5 text-xs leading-relaxed text-muted">
             Send us the details and we will come back within one working day.
           </p>

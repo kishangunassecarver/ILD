@@ -56,15 +56,16 @@ export function SaveButton({
         className={cn(
           "grid place-items-center transition",
           variant === "chip"
-            ? "h-9 w-9 rounded-full border border-line bg-white/95 shadow-rail hover:border-brand-200"
-            : "h-7 w-7 rounded-full hover:bg-brand-50",
+            ? "h-9 w-9 rounded-full border border-line bg-night-800/90 shadow-rail backdrop-blur hover:border-aqua-500/40"
+            : "h-7 w-7 rounded-full hover:bg-aqua-400/10",
           className
         )}
       >
         <Heart
           className={cn(
             "h-4 w-4 transition",
-            saved ? "scale-110 fill-brand-500 text-brand-500" : "text-muted hover:text-brand-500"
+            // The heart stays red — it is the brand mark, not an action.
+            saved ? "scale-110 fill-brand-500 text-brand-500" : "text-muted hover:text-brand-400"
           )}
           aria-hidden
         />
@@ -99,16 +100,16 @@ function SignInPrompt({ label, onClose }: { label: string; onClose: () => void }
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink"
+          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
 
-        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-brand-50">
-          <Heart className="h-5 w-5 text-brand-500" aria-hidden />
+        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-brand-500/15">
+          <Heart className="h-5 w-5 text-brand-400" aria-hidden />
         </span>
 
-        <h2 id="save-prompt-title" className="mt-3 text-base font-bold text-ink">
+        <h2 id="save-prompt-title" className="mt-3 text-base font-bold text-snow">
           Save {label}?
         </h2>
         <p className="mx-auto mt-1.5 max-w-xs text-sm leading-relaxed text-muted">
