@@ -68,10 +68,11 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
     >
       <SponsorBackdrop sponsor={sponsor} />
 
-      {/* A controlled column of shade behind the copy, so legibility does not
-          depend on what the partner's artwork happens to put in the middle. */}
+      {/* A light touch of shade behind the copy. The heavy lifting is the
+          sponsor's own configurable darkening (the CMS "Darkening" field) —
+          stacking a second strong scrim here was muting partner artwork. */}
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/35 via-ink/20 to-ink/45"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/15 via-transparent to-ink/25"
         aria-hidden
       />
 
