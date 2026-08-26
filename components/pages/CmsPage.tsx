@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Compass } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronDown, Compass } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Rating } from "@/components/ui/Rating";
 import { Tile } from "@/components/ui/Tile";
@@ -150,7 +150,54 @@ function SectionPage({ page, trail }: { page: Page; trail: { label: string; href
   );
 }
 
-/** The section's other articles, as a nested menu down the side. */
+/** The list of a section's articles, shared by both presentations below. */
+function SectionLinks({
+  siblings,
+  currentPath,
+  className,
+}: {
+  siblings: Page[];
+  currentPath: string;
+  className?: string;
+}) {
+  return (
+    <ul className={cn("overflow-y-auto p-2", className)}>
+      {siblings.map((item) => {
+        const current = item.path === currentPath;
+
+        return (
+          <li key={item.path}>
+            <Link
+              href={`/${item.path}`}
+              aria-current={current ? "page" : undefined}
+              className={cn(
+                "block rounded-lg px-3 py-2 text-xs leading-snug transition",
+                current
+                  ? "bg-brand-500 font-bold text-white"
+                  : "font-medium text-ink-700 hover:bg-paper hover:text-ink"
+              )}
+            >
+              {item.title}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/**
+ * The section's other articles.
+ *
+ * Two presentations of the same list. On a wide screen it is a sticky card
+ * beside the article. On a phone there is no column to put it in, so it becomes
+ * a collapsed disclosure above the article — one line closed, so it costs almost
+ * nothing before you read, and no JavaScript to open.
+ *
+ * The markup is duplicated rather than switched at runtime: a couple of
+ * kilobytes of links is a cheaper trade than shipping a media-query listener to
+ * decide which to render.
+ */
 function SectionNav({
   section,
   siblings,
@@ -160,49 +207,51 @@ function SectionNav({
   siblings: Page[];
   currentPath: string;
 }) {
-  return (
-    <nav
-      aria-label={`${section.title} articles`}
-      className="panel hidden overflow-hidden lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:block"
+  const heading = (
+    <Link
+      href={`/${section.path}`}
+      className="group flex items-center justify-between gap-2 border-b border-line bg-paper px-4 py-3 transition hover:bg-brand-50"
     >
-      <Link
-        href={`/${section.path}`}
-        className="group flex items-center justify-between gap-2 border-b border-line bg-paper px-4 py-3 transition hover:bg-brand-50"
+      <span className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink">
+        {section.title}
+      </span>
+      <ArrowUpRight
+        className="h-3.5 w-3.5 shrink-0 text-muted transition group-hover:text-brand-500"
+        aria-hidden
+      />
+    </Link>
+  );
+
+  return (
+    <>
+      <details className="panel group overflow-hidden lg:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
+          <span className="text-xs font-bold text-ink">
+            More in {section.title}
+            <span className="ml-1.5 font-medium text-muted">({siblings.length})</span>
+          </span>
+          <ChevronDown
+            className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180"
+            aria-hidden
+          />
+        </summary>
+
+        <nav aria-label={`${section.title} articles`} className="border-t border-line">
+          {heading}
+          <SectionLinks siblings={siblings} currentPath={currentPath} className="max-h-[60vh]" />
+        </nav>
+      </details>
+
+      <nav
+        aria-label={`${section.title} articles`}
+        className="panel hidden overflow-hidden lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:block"
       >
-        <span className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink">
-          {section.title}
-        </span>
-        <ArrowUpRight
-          className="h-3.5 w-3.5 shrink-0 text-muted transition group-hover:text-brand-500"
-          aria-hidden
-        />
-      </Link>
-
-      {/* Capped so a 34-article section cannot run past the viewport; the
-          section page itself carries the complete list. */}
-      <ul className="max-h-[60vh] overflow-y-auto p-2">
-        {siblings.map((item) => {
-          const current = item.path === currentPath;
-
-          return (
-            <li key={item.path}>
-              <Link
-                href={`/${item.path}`}
-                aria-current={current ? "page" : undefined}
-                className={cn(
-                  "block rounded-lg px-3 py-2 text-xs leading-snug transition",
-                  current
-                    ? "bg-brand-500 font-bold text-white"
-                    : "font-medium text-ink-700 hover:bg-paper hover:text-ink"
-                )}
-              >
-                {item.title}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+        {heading}
+        {/* Capped so a 34-article section cannot run past the viewport; the
+            section page itself carries the complete list. */}
+        <SectionLinks siblings={siblings} currentPath={currentPath} className="max-h-[60vh]" />
+      </nav>
+    </>
   );
 }
 
