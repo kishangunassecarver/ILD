@@ -56,7 +56,11 @@ export function ListingCard({
               {listing.name}
             </Link>
           </h3>
-          <SaveButton label={listing.name} className="-mr-1 -mt-0.5 shrink-0" />
+          <SaveButton
+            label={listing.name}
+            slug={listing.slug}
+            className="-mr-1 -mt-0.5 shrink-0"
+          />
         </div>
 
         <p className="flex items-center gap-1 text-xs text-muted">

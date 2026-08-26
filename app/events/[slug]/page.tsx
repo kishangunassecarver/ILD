@@ -47,7 +47,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         alt={event.title}
         className="mb-6 h-56 rounded-card sm:h-72"
       >
-        <SaveButton label={event.title} variant="chip" className="absolute right-3 top-3" />
+        <SaveButton
+          label={event.title}
+          kind="event"
+          slug={event.slug}
+          variant="chip"
+          className="absolute right-3 top-3"
+        />
         <div className="absolute inset-x-0 bottom-0 p-5">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white/75">
             {event.category}

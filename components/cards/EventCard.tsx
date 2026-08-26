@@ -63,7 +63,7 @@ export function EventCard({
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
           <span className="chip pointer-events-none py-1 text-[0.6875rem]">{event.category}</span>
-          <SaveButton label={event.title} className="shrink-0" />
+          <SaveButton label={event.title} kind="event" slug={event.slug} className="shrink-0" />
         </div>
       </div>
     </article>

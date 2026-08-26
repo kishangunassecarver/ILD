@@ -6,12 +6,12 @@ import { Check } from "lucide-react";
 /**
  * The site's only form primitive.
  *
- * A static export has nowhere to POST to, so submissions are validated by the
- * browser and acknowledged locally. Set `ENDPOINT` to a form handler (a
- * Cloudflare Worker, Formspree, the WordPress REST API) to make it live — the
- * markup and validation stay as they are.
+ * Submissions go to the member API Worker, which stores every enquiry in D1
+ * and forwards it by email. If the Worker is not deployed the send fails
+ * visibly rather than pretending — an enquiry silently dropped is a customer
+ * lost.
  */
-const ENDPOINT: string | null = null;
+const ENDPOINT = "/api/enquiries";
 
 export interface FieldSpec {
   name: string;
@@ -42,11 +42,6 @@ export function EnquiryForm({
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const payload = Object.fromEntries(new FormData(e.currentTarget).entries());
-
-    if (!ENDPOINT) {
-      setState("done");
-      return;
-    }
 
     setState("sending");
     try {

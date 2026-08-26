@@ -234,6 +234,34 @@ No code, no GitHub, no terminal.
 Unpublishing and deleting published entries also trigger a rebuild, so taking a
 listing down is the same two clicks as putting one up.
 
+## Owner Submissions — claims, edits and enquiries
+
+Business owners can create a free account on the website and, from
+**My business** (`/my-business/`), claim their listing and submit changes to it.
+Nothing they submit goes live on its own — it all lands in
+**I Love Durban → Owner Submissions**, and this screen is where you decide.
+
+One-time connection: enter the deployed site's URL and the admin token. The
+token has to match the Worker's `ADMIN_TOKEN` secret
+(`npx wrangler secret put ADMIN_TOKEN` in the site repo) — it is what stops
+anyone else reading the queue.
+
+Three queues appear:
+
+- **Claims.** Someone says a listing is theirs. *Verify before approving* —
+  call the business on a number you find independently, or ask for an email
+  from the business's own domain. Approving hands them edit access to that
+  listing; rejecting (with an optional reason) shows them the reason on their
+  dashboard.
+- **Edits.** A field-by-field table of what the listing says now against what
+  the owner wants it to say. **Apply & publish** writes the change into the
+  listing post — exactly as if you had typed it into the meta box yourself —
+  and triggers a rebuild. Owners can only touch contact details, hours,
+  descriptions and the like; ratings, featuring and URLs are not editable
+  from outside, whatever the queue claims.
+- **Enquiries.** Everything sent through the List Your Business form. Marking
+  one handled just clears it from the list.
+
 ## Migrating from the old ilovedurban.co.za
 
 **I Love Durban → Import from Live Site** copies the attraction articles and the

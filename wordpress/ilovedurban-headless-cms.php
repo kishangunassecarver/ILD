@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.4.0
+ * Version:      3.5.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -586,6 +586,15 @@ function ild_admin_menu(): void {
 		'manage_options',
 		'ild-starter',
 		'ild_starter_page'
+	);
+
+	add_submenu_page(
+		ILD_MENU,
+		'Owner Submissions',
+		'Owner Submissions',
+		'manage_options',
+		'ild-owners',
+		'ild_owners_page'
 	);
 }
 
@@ -2570,4 +2579,420 @@ function ild_trigger_deploy( string $reason ): void {
 	if ( is_wp_error( $res ) ) {
 		error_log( '[ilovedurban] deploy hook failed (' . $reason . '): ' . $res->get_error_message() );
 	}
+}
+
+/* -------------------------------------------------------------------------
+ * Owner submissions
+ *
+ * Business owners claim their listing and submit edits on the website. Those
+ * land in a queue on the site's Worker, and this screen is where a person
+ * decides on them. WordPress pulls from the queue rather than the Worker
+ * pushing into WordPress — so the Worker never holds WordPress credentials,
+ * and nothing an owner types can reach the site without someone here
+ * approving it.
+ * ---------------------------------------------------------------------- */
+
+const ILD_WORKER_URL_OPT   = 'ild_worker_url';
+const ILD_WORKER_TOKEN_OPT = 'ild_worker_token';
+
+/**
+ * Listing fields an owner's edit is allowed to touch.
+ *
+ * Mirrors EDITABLE in the Worker (worker/business.ts). The Worker validates on
+ * the way in; this list is the second gate on the way out, so a compromised or
+ * misbehaving queue still cannot flip `featured` or rewrite a Google rating.
+ */
+function ild_owner_editable(): array {
+	return array( 'name', 'blurb', 'body', 'category', 'area', 'price', 'cta', 'address', 'phone', 'website', 'hours', 'amenities', 'tags' );
+}
+
+/** Call the Worker's admin API. Returns decoded JSON or a WP_Error. */
+function ild_worker_request( string $method, string $path, ?array $body = null ) {
+	$base  = rtrim( get_option( ILD_WORKER_URL_OPT, '' ), '/' );
+	$token = get_option( ILD_WORKER_TOKEN_OPT, '' );
+
+	if ( ! $base || ! $token ) {
+		return new WP_Error( 'ild_unconfigured', 'Set the site URL and admin token below first.' );
+	}
+
+	$args = array(
+		'method'  => $method,
+		'timeout' => 20,
+		'headers' => array(
+			'Authorization' => 'Bearer ' . $token,
+			'Content-Type'  => 'application/json',
+		),
+	);
+
+	if ( null !== $body ) {
+		$args['body'] = wp_json_encode( $body );
+	}
+
+	$res = wp_remote_request( $base . $path, $args );
+
+	if ( is_wp_error( $res ) ) {
+		return $res;
+	}
+
+	$code = wp_remote_retrieve_response_code( $res );
+	$data = json_decode( wp_remote_retrieve_body( $res ), true );
+
+	if ( 401 === $code ) {
+		return new WP_Error( 'ild_token', 'The Worker rejected the admin token. Check it matches the ADMIN_TOKEN secret.' );
+	}
+
+	if ( $code < 200 || $code >= 300 || ! is_array( $data ) ) {
+		return new WP_Error( 'ild_worker', 'The Worker answered with HTTP ' . $code . '.' );
+	}
+
+	return $data;
+}
+
+/** Tell the Worker what was decided, so the owner sees the status change. */
+function ild_worker_decide( string $type, string $id, string $decision, string $note = '' ) {
+	return ild_worker_request(
+		'POST',
+		'/api/admin/decide',
+		array(
+			'type'     => $type,
+			'id'       => $id,
+			'decision' => $decision,
+			'note'     => $note,
+		)
+	);
+}
+
+/** Find the ild_listing post behind a slug, whatever its status. */
+function ild_find_listing( string $slug ): ?WP_Post {
+	$posts = get_posts(
+		array(
+			'post_type'   => 'ild_listing',
+			'post_status' => 'any',
+			'name'        => sanitize_title( $slug ),
+			'numberposts' => 1,
+		)
+	);
+
+	return $posts[0] ?? null;
+}
+
+/**
+ * Serialise one owner-submitted value into the text form the meta boxes use.
+ *
+ * `lines` fields are one entry per line; `paras` are blank-line separated —
+ * exactly what an editor typing into the meta box would produce, so an applied
+ * edit is indistinguishable from a manual one.
+ */
+function ild_owner_serialise( $value, string $type ): string {
+	if ( null === $value ) {
+		return '';
+	}
+
+	if ( is_array( $value ) ) {
+		$entries = array_map( 'sanitize_text_field', array_map( 'strval', $value ) );
+		$entries = array_values( array_filter( $entries, 'strlen' ) );
+
+		return implode( 'paras' === $type ? "\n\n" : "\n", $entries );
+	}
+
+	return sanitize_textarea_field( (string) $value );
+}
+
+/**
+ * Apply one approved edit to the listing post.
+ *
+ * Returns a human-readable summary, or a WP_Error. Only fields in
+ * ild_owner_editable() are touched, whatever the queue contains.
+ */
+function ild_apply_owner_edit( array $edit ) {
+	$slug   = (string) ( $edit['slug'] ?? '' );
+	$fields = is_array( $edit['fields'] ?? null ) ? $edit['fields'] : array();
+
+	$post = ild_find_listing( $slug );
+	if ( ! $post ) {
+		return new WP_Error( 'ild_missing', 'No listing found with the slug "' . esc_html( $slug ) . '". Import or create it first.' );
+	}
+
+	$schema  = ild_schema()['ild_listing']['fields'];
+	$allowed = ild_owner_editable();
+	$applied = array();
+
+	foreach ( $fields as $key => $value ) {
+		if ( ! in_array( $key, $allowed, true ) ) {
+			continue;
+		}
+
+		if ( 'name' === $key ) {
+			// The listing name is the post title, not meta.
+			wp_update_post(
+				array(
+					'ID'         => $post->ID,
+					'post_title' => sanitize_text_field( (string) $value ),
+				)
+			);
+			$applied[] = 'name';
+			continue;
+		}
+
+		$type = $schema[ $key ]['type'] ?? 'text';
+		update_post_meta( $post->ID, '_ild_' . $key, ild_owner_serialise( $value, $type ) );
+		$applied[] = $key;
+	}
+
+	if ( ! $applied ) {
+		return new WP_Error( 'ild_empty', 'The submission contained no fields this screen is allowed to apply.' );
+	}
+
+	return 'Applied ' . implode( ', ', $applied ) . ' to "' . $post->post_title . '".';
+}
+
+/** Current value of one listing field, in its stored text form, for the diff. */
+function ild_owner_current( ?WP_Post $post, string $key ): string {
+	if ( ! $post ) {
+		return '';
+	}
+
+	if ( 'name' === $key ) {
+		return $post->post_title;
+	}
+
+	return (string) get_post_meta( $post->ID, '_ild_' . $key, true );
+}
+
+function ild_owners_page(): void {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'You do not have permission to review submissions.' );
+	}
+
+	$notices = array();
+
+	// Save the connection settings.
+	if ( isset( $_POST['ild_owners_save'] ) && check_admin_referer( 'ild_owners_settings' ) ) {
+		update_option( ILD_WORKER_URL_OPT, esc_url_raw( wp_unslash( $_POST[ ILD_WORKER_URL_OPT ] ?? '' ) ) );
+		update_option( ILD_WORKER_TOKEN_OPT, sanitize_text_field( wp_unslash( $_POST[ ILD_WORKER_TOKEN_OPT ] ?? '' ) ) );
+		$notices[] = array( 'success', 'Connection settings saved.' );
+	}
+
+	// Decide on one submission.
+	if ( isset( $_POST['ild_owners_decide'] ) && check_admin_referer( 'ild_owners_decide' ) ) {
+		$type     = sanitize_key( $_POST['ild_type'] ?? '' );
+		$id       = sanitize_text_field( wp_unslash( $_POST['ild_id'] ?? '' ) );
+		$decision = sanitize_key( $_POST['ild_decision'] ?? '' );
+		$note     = sanitize_text_field( wp_unslash( $_POST['ild_note'] ?? '' ) );
+		$payload  = json_decode( base64_decode( (string) ( $_POST['ild_payload'] ?? '' ) ), true );
+
+		if ( 'edit' === $type && 'apply' === $decision ) {
+			// Apply to the listing first; only mark it decided once that worked.
+			$result = is_array( $payload )
+				? ild_apply_owner_edit( $payload )
+				: new WP_Error( 'ild_payload', 'The submission payload could not be read. Refresh and try again.' );
+
+			if ( is_wp_error( $result ) ) {
+				$notices[] = array( 'error', $result->get_error_message() );
+			} else {
+				$decided = ild_worker_decide( 'edit', $id, 'apply', $note );
+				if ( is_wp_error( $decided ) ) {
+					$notices[] = array( 'warning', $result . ' But the queue could not be updated: ' . $decided->get_error_message() );
+				} else {
+					$notices[] = array( 'success', $result . ' The site is rebuilding.' );
+				}
+				ild_trigger_deploy( 'owner edit applied' );
+			}
+		} else {
+			$map = array(
+				'claim:approve'  => array( 'claim', 'approve' ),
+				'claim:reject'   => array( 'claim', 'reject' ),
+				'edit:reject'    => array( 'edit', 'reject' ),
+				'enquiry:handle' => array( 'enquiry', 'handled' ),
+			);
+
+			$action = $map[ $type . ':' . $decision ] ?? null;
+
+			if ( $action ) {
+				$decided = ild_worker_decide( $action[0], $id, 'enquiry' === $action[0] ? 'handled' : $action[1], $note );
+				$notices[] = is_wp_error( $decided )
+					? array( 'error', $decided->get_error_message() )
+					: array( 'success', 'Done.' );
+			}
+		}
+	}
+
+	$base  = get_option( ILD_WORKER_URL_OPT, '' );
+	$token = get_option( ILD_WORKER_TOKEN_OPT, '' );
+	$queue = ( $base && $token ) ? ild_worker_request( 'GET', '/api/admin/submissions' ) : null;
+
+	echo '<div class="wrap"><h1>Owner Submissions</h1>';
+
+	foreach ( $notices as $notice ) {
+		printf(
+			'<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+			esc_attr( $notice[0] ),
+			wp_kses_post( $notice[1] )
+		);
+	}
+
+	echo '<p>Business owners claim their listing and submit changes on the website. Nothing goes live until it is approved here.</p>';
+
+	/* ---- Connection settings ---- */
+
+	echo '<h2>Connection</h2><form method="post">';
+	wp_nonce_field( 'ild_owners_settings' );
+	echo '<table class="form-table"><tbody>';
+	printf(
+		'<tr><th scope="row"><label for="%1$s">Site URL</label></th><td><input type="url" id="%1$s" name="%1$s" value="%2$s" class="regular-text" placeholder="https://ild.kishan-bde.workers.dev"><p class="description">The deployed site (the Worker that runs its API).</p></td></tr>',
+		esc_attr( ILD_WORKER_URL_OPT ),
+		esc_attr( $base )
+	);
+	printf(
+		'<tr><th scope="row"><label for="%1$s">Admin token</label></th><td><input type="password" id="%1$s" name="%1$s" value="%2$s" class="regular-text" autocomplete="off"><p class="description">Must match the Worker&rsquo;s <code>ADMIN_TOKEN</code> secret (<code>npx wrangler secret put ADMIN_TOKEN</code>).</p></td></tr>',
+		esc_attr( ILD_WORKER_TOKEN_OPT ),
+		esc_attr( $token )
+	);
+	echo '</tbody></table>';
+	submit_button( 'Save connection', 'secondary', 'ild_owners_save' );
+	echo '</form><hr>';
+
+	if ( null === $queue ) {
+		echo '<p>Fill in the connection settings above to load the queue.</p></div>';
+		return;
+	}
+
+	if ( is_wp_error( $queue ) ) {
+		printf( '<div class="notice notice-error"><p>%s</p></div></div>', esc_html( $queue->get_error_message() ) );
+		return;
+	}
+
+	$claims    = $queue['claims'] ?? array();
+	$edits     = $queue['edits'] ?? array();
+	$enquiries = $queue['enquiries'] ?? array();
+
+	/* ---- Claims ---- */
+
+	printf( '<h2>Claims awaiting review (%d)</h2>', count( $claims ) );
+
+	if ( ! $claims ) {
+		echo '<p>None. New claims appear here as owners submit them.</p>';
+	}
+
+	foreach ( $claims as $claim ) {
+		$listing = ild_find_listing( (string) ( $claim['slug'] ?? '' ) );
+
+		echo '<div style="border:1px solid #c3c4c7;border-radius:4px;padding:16px;margin-bottom:12px;background:#fff;max-width:720px">';
+		printf(
+			'<p style="margin:0 0 4px"><strong>%s</strong> &middot; <code>%s</code>%s</p>',
+			esc_html( $claim['business_name'] ?: $claim['slug'] ),
+			esc_html( $claim['hub'] . '/' . $claim['slug'] ),
+			$listing ? '' : ' <span style="color:#b32d2e">&mdash; no matching listing in WordPress!</span>'
+		);
+		printf(
+			'<p style="margin:0 0 4px">Claimed by <strong>%s</strong> (%s), %s &middot; %s</p>',
+			esc_html( $claim['contact_name'] ?: $claim['member_name'] ?: '—' ),
+			esc_html( $claim['role'] ?: 'role not given' ),
+			esc_html( $claim['member_email'] ?? '' ),
+			esc_html( $claim['contact_phone'] ?: 'no phone' )
+		);
+		if ( ! empty( $claim['note'] ) ) {
+			printf( '<p style="margin:0 0 8px;color:#50575e">&ldquo;%s&rdquo;</p>', esc_html( $claim['note'] ) );
+		}
+		echo '<p style="margin:8px 0 0;color:#b32d2e;font-size:12px">Verify before approving &mdash; call the business on a number you find independently, or ask for an email from the business&rsquo;s own domain. Approval hands this person the keys to the listing.</p>';
+
+		ild_owner_decide_form( 'claim', (string) $claim['id'], 'approve', 'Approve claim' );
+		ild_owner_decide_form( 'claim', (string) $claim['id'], 'reject', 'Reject', true );
+		echo '</div>';
+	}
+
+	/* ---- Edits ---- */
+
+	printf( '<h2>Edits awaiting review (%d)</h2>', count( $edits ) );
+
+	if ( ! $edits ) {
+		echo '<p>None. Approved owners&rsquo; changes appear here.</p>';
+	}
+
+	foreach ( $edits as $edit ) {
+		$slug    = (string) ( $edit['slug'] ?? '' );
+		$listing = ild_find_listing( $slug );
+		$fields  = is_array( $edit['fields'] ?? null ) ? $edit['fields'] : array();
+		$schema  = ild_schema()['ild_listing']['fields'];
+
+		echo '<div style="border:1px solid #c3c4c7;border-radius:4px;padding:16px;margin-bottom:12px;background:#fff;max-width:900px">';
+		printf(
+			'<p style="margin:0 0 8px"><strong>%s</strong> &middot; submitted by %s%s</p>',
+			esc_html( $listing ? $listing->post_title : $slug ),
+			esc_html( $edit['member_email'] ?? '' ),
+			$listing ? '' : ' <span style="color:#b32d2e">&mdash; no matching listing in WordPress!</span>'
+		);
+
+		echo '<table class="widefat striped" style="margin:8px 0"><thead><tr><th style="width:18%">Field</th><th>Currently</th><th>Proposed</th></tr></thead><tbody>';
+		foreach ( $fields as $key => $value ) {
+			$type = $schema[ $key ]['type'] ?? 'text';
+			printf(
+				'<tr><td><strong>%s</strong></td><td><pre style="white-space:pre-wrap;margin:0;font-size:12px">%s</pre></td><td><pre style="white-space:pre-wrap;margin:0;font-size:12px">%s</pre></td></tr>',
+				esc_html( $key ),
+				esc_html( ild_owner_current( $listing, (string) $key ) ?: '—' ),
+				esc_html( ild_owner_serialise( $value, $type ) ?: '—' )
+			);
+		}
+		echo '</tbody></table>';
+
+		ild_owner_decide_form( 'edit', (string) $edit['id'], 'apply', 'Apply &amp; publish', false, $edit );
+		ild_owner_decide_form( 'edit', (string) $edit['id'], 'reject', 'Reject', true );
+		echo '</div>';
+	}
+
+	/* ---- Enquiries ---- */
+
+	printf( '<h2>Listing enquiries (%d)</h2>', count( $enquiries ) );
+
+	if ( ! $enquiries ) {
+		echo '<p>None outstanding.</p>';
+	}
+
+	foreach ( $enquiries as $enquiry ) {
+		echo '<div style="border:1px solid #c3c4c7;border-radius:4px;padding:16px;margin-bottom:12px;background:#fff;max-width:720px">';
+		printf(
+			'<p style="margin:0 0 4px"><strong>%s</strong> &middot; %s &middot; %s</p>',
+			esc_html( $enquiry['business'] ?: $enquiry['name'] ),
+			esc_html( $enquiry['email'] ),
+			esc_html( $enquiry['phone'] ?: 'no phone' )
+		);
+		printf(
+			'<p style="margin:0 0 4px;color:#50575e">From %s &middot; interested in %s</p>',
+			esc_html( $enquiry['name'] ),
+			esc_html( $enquiry['plan'] ?: 'no plan chosen' )
+		);
+		if ( ! empty( $enquiry['message'] ) ) {
+			printf( '<pre style="white-space:pre-wrap;margin:4px 0 8px;font-size:12px">%s</pre>', esc_html( $enquiry['message'] ) );
+		}
+		ild_owner_decide_form( 'enquiry', (string) $enquiry['id'], 'handle', 'Mark as handled' );
+		echo '</div>';
+	}
+
+	echo '</div>';
+}
+
+/** One decide button, as its own small form so each action posts independently. */
+function ild_owner_decide_form( string $type, string $id, string $decision, string $label, bool $with_note = false, ?array $payload = null ): void {
+	echo '<form method="post" style="display:inline-block;margin:4px 8px 0 0">';
+	wp_nonce_field( 'ild_owners_decide' );
+	printf( '<input type="hidden" name="ild_type" value="%s">', esc_attr( $type ) );
+	printf( '<input type="hidden" name="ild_id" value="%s">', esc_attr( $id ) );
+	printf( '<input type="hidden" name="ild_decision" value="%s">', esc_attr( $decision ) );
+
+	if ( null !== $payload ) {
+		// The payload rides along base64-encoded so Apply uses exactly what was
+		// reviewed, even if the queue changes between render and click.
+		printf( '<input type="hidden" name="ild_payload" value="%s">', esc_attr( base64_encode( wp_json_encode( $payload ) ) ) );
+	}
+
+	if ( $with_note ) {
+		printf( '<input type="text" name="ild_note" placeholder="Reason shown to the owner (optional)" style="width:280px;margin-right:6px">' );
+	}
+
+	printf(
+		'<button type="submit" name="ild_owners_decide" value="1" class="button%s">%s</button>',
+		'reject' === $decision ? '' : ' button-primary',
+		$label // Already escaped by callers; may contain an entity.
+	);
+	echo '</form>';
 }

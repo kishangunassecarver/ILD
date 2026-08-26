@@ -2,12 +2,33 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ilovedurban",
   "compatibility_date": "2026-08-20",
-  // Static-only deploy: `next build` with output: "export" emits plain files
-  // into out/. No Worker script, so no SSR adapter is involved.
+  // The site is a static export in out/. Assets are matched first, so a normal
+  // page load never touches the Worker; only /api/* falls through to it.
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./out",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Without this, /api/* would be answered by the 404 page before the Worker
+    // ever ran, since no asset matches those paths.
+    "run_worker_first": ["/api/*"]
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ilovedurban",
+      // Replaced by the real id from `wrangler d1 create ilovedurban`.
+      "database_id": "REPLACE_WITH_DATABASE_ID"
+    }
+  ],
+  "vars": {
+    "SITE_URL": "https://ild.kishan-bde.workers.dev"
+  },
+  // RESEND_API_KEY and MAIL_FROM are secrets, set with:
+  //   npx wrangler secret put RESEND_API_KEY
+  //   npx wrangler secret put MAIL_FROM
+  // Until they are set, sign-in links are written to the Worker log instead of
+  // emailed, which keeps the flow testable.
   "observability": {
     "enabled": true
   }

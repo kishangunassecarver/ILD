@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { MemberProvider } from "@/components/account/MemberProvider";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -45,9 +46,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
 
-        <Header />
-        <SiteBanner />
-        <QuickActions />
+        <MemberProvider>
+          <Header />
+          <SiteBanner />
+          <QuickActions />
 
         <main id="main" className="flex-1">
           {children}
@@ -61,7 +63,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </div>
 
-        <BottomNav />
+          <BottomNav />
+        </MemberProvider>
       </body>
     </html>
   );

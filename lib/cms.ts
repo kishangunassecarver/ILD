@@ -256,6 +256,7 @@ const RESERVED_TOP_LEVEL = new Set([
   "help",
   "join",
   "list-your-business",
+  "my-business",
   "privacy",
   "rewards",
   "saved",

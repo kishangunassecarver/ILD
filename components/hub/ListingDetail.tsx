@@ -34,7 +34,12 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
         alt={listing.name}
         className="mb-6 h-56 rounded-card sm:h-72"
       >
-        <SaveButton label={listing.name} variant="chip" className="absolute right-3 top-3" />
+        <SaveButton
+          label={listing.name}
+          slug={listing.slug}
+          variant="chip"
+          className="absolute right-3 top-3"
+        />
         {listing.featured && (
           <span className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-ink shadow-rail">
             Featured
@@ -204,9 +209,12 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
           <section className="panel p-5">
             <h2 className="text-sm font-bold text-ink">Is this your business?</h2>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">
-              Claim this listing to update your details, add photos and publish offers.
+              Claim this listing to update your details, hours and description yourself.
             </p>
-            <Link href="/list-your-business" className="btn-ghost mt-3 w-full py-2 text-xs">
+            <Link
+              href={`/my-business/?claim=${listing.slug}`}
+              className="btn-ghost mt-3 w-full py-2 text-xs"
+            >
               Claim this listing
             </Link>
           </section>

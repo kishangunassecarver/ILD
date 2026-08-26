@@ -97,16 +97,51 @@ input rather than a developer's guess:
    with a warning in the source. POPIA requires a registered Information
    Officer, and trading terms need CPA and ECTA disclosures. Have an attorney
    review both before launch.
-3. **Forms and the newsletter acknowledge locally and send nothing.** A static
-   export has nowhere to POST to. Set `ENDPOINT` in
-   `components/forms/EnquiryForm.tsx` and `components/layout/Newsletter.tsx` to
-   a form handler (a Cloudflare Worker, Formspree, or the WordPress REST API).
+3. **The member API needs its database and secrets created once.** Enquiries,
+   member sign-in and the business-owner dashboard all run through the Worker in
+   `worker/` — see *Member accounts & the Worker API* below for the one-time
+   setup. Until `RESEND_API_KEY` is set, sign-in links are logged instead of
+   emailed. The newsletter form in `components/layout/Newsletter.tsx` still
+   acknowledges locally — point it at your mailing-list provider.
 
 Also worth doing before launch: drop the real logo artwork into
 `components/ui/Logo.tsx` (one file, every placement goes through it), add real
 photography through the CMS media library so `Tile` stops falling back to
 generated gradients, and add brand SVGs for the social networks lucide does not
 ship (TikTok, X).
+
+## Member accounts & the Worker API
+
+The static site is only half the deployment. `worker/` is a small API that runs
+in front of it on the same domain (`run_worker_first: ["/api/*"]` in
+`wrangler.jsonc`) and backs four things:
+
+- **Member sign-in** — passwordless, by emailed one-time link. No password is
+  stored anywhere, deliberately.
+- **Saved places** — the heart buttons, listed on `/saved/`.
+- **Business owners** — `/my-business/`: claim a listing, and once the claim is
+  approved, submit edits. Nothing an owner submits goes live until it is
+  approved in WordPress (**I Love Durban → Owner Submissions**), which applies
+  the change to the listing post and triggers a rebuild. WordPress stays the
+  single source of truth.
+- **Enquiries** — the List Your Business form stores every enquiry in D1 and
+  forwards it by email.
+
+One-time setup:
+
+```bash
+npx wrangler d1 create ilovedurban        # then put database_id in wrangler.jsonc
+npm run db:remote                         # apply worker/schema.sql
+npx wrangler secret put RESEND_API_KEY    # sign-in + notification email (resend.com)
+npx wrangler secret put MAIL_FROM         # e.g. "I Love Durban <hello@ilovedurban.co.za>"
+npx wrangler secret put ADMIN_TOKEN       # any long random string; paste the same
+                                          # value into WordPress → Owner Submissions
+npx wrangler secret put REVIEW_EMAIL      # where "edit awaiting review" mail goes
+npx wrangler secret put ENQUIRY_EMAIL     # where enquiries go (falls back to REVIEW_EMAIL)
+```
+
+Local development: `npm run db:local`, then `npx wrangler dev --port 8788` —
+sign-in links appear in the terminal instead of being emailed.
 
 ## Deploy — GitHub → Cloudflare
 

@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Heart, Menu, Search, User, X } from "lucide-react";
+import { ChevronDown, Heart, Menu, Search, X } from "lucide-react";
+import { AccountMenu } from "@/components/account/AccountMenu";
+import { useMember } from "@/components/account/MemberProvider";
 import { Logo } from "@/components/ui/Logo";
 import { NAV } from "@/lib/cms";
 import { cn } from "@/lib/utils";
@@ -128,9 +130,7 @@ export function Header() {
             <IconLink href="/saved" label="Saved places" className="hidden 2xl:grid">
               <Heart className="h-[1.15rem] w-[1.15rem]" aria-hidden />
             </IconLink>
-            <IconLink href="/join" label="Your account" className="hidden 2xl:grid">
-              <User className="h-[1.15rem] w-[1.15rem]" aria-hidden />
-            </IconLink>
+            <AccountMenu />
 
             <Link
               href="/list-your-business"
@@ -366,11 +366,29 @@ function MobileDrawer({
           <Link href="/list-your-business" onClick={onClose} className="btn-primary w-full">
             List Your Business
           </Link>
-          <Link href="/join" onClick={onClose} className="btn-ghost w-full">
-            Join for free
-          </Link>
+          <DrawerAccountLink onClose={onClose} />
         </div>
       </div>
     </div>
+  );
+}
+
+/** "Join for free" until you have joined, then a way back to your saves. */
+function DrawerAccountLink({ onClose }: { onClose: () => void }) {
+  const { member, loading } = useMember();
+
+  if (loading || !member) {
+    return (
+      <Link href="/join" onClick={onClose} className="btn-ghost w-full">
+        Join for free
+      </Link>
+    );
+  }
+
+  return (
+    <Link href="/saved" onClick={onClose} className="btn-ghost w-full">
+      <Heart className="mr-1.5 h-4 w-4" aria-hidden />
+      Your saved places
+    </Link>
   );
 }
