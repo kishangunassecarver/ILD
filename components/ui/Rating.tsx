@@ -13,6 +13,10 @@ export function Rating({
   price?: string;
   className?: string;
 }) {
+  // Ratings are out of five, so clamp: an editor typing 6 was showing "6.0"
+  // next to a single star, which reads as broken rather than enthusiastic.
+  rating = Math.min(5, rating);
+
   // A listing with no rating yet — a new business, or one nobody has reviewed —
   // should show nothing rather than a damning "0.0 (0)".
   if (!(rating > 0)) {
