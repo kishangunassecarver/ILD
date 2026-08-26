@@ -67,7 +67,10 @@ export function Header() {
         <div className="shell flex h-[var(--header-h)] items-center gap-4">
           <Logo className="shrink-0" />
 
-          <nav aria-label="Main" className="hidden flex-1 justify-center lg:flex">
+          {/* xl rather than lg: nine top-level items plus the icons and the
+            call to action do not fit at 1024, and the labels were wrapping
+            mid-word. Below xl the drawer takes over. */}
+        <nav aria-label="Main" className="hidden flex-1 justify-center xl:flex">
             <ul className="flex items-center gap-0.5">
               {NAV.map((item) => {
                 const hasPanel = Boolean(item.columns?.length);
@@ -84,7 +87,7 @@ export function Header() {
                       <Link
                         href={item.href}
                         className={cn(
-                          "rounded-md px-2.5 py-2 text-[0.8125rem] font-semibold uppercase tracking-wide transition",
+                          "whitespace-nowrap rounded-md px-2 py-2 text-xs font-semibold uppercase tracking-wide transition 2xl:px-2.5 2xl:text-[0.8125rem]",
                           isCurrent(item.href)
                             ? "text-brand-500"
                             : "text-ink-700 hover:text-brand-500"
@@ -118,22 +121,25 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="ml-auto flex items-center gap-1 lg:ml-0">
+          <div className="ml-auto flex items-center gap-1 xl:ml-0">
             <IconLink href="/search" label="Search">
               <Search className="h-[1.15rem] w-[1.15rem]" aria-hidden />
             </IconLink>
-            <IconLink href="/saved" label="Saved places" className="hidden sm:grid">
+            <IconLink href="/saved" label="Saved places" className="hidden 2xl:grid">
               <Heart className="h-[1.15rem] w-[1.15rem]" aria-hidden />
             </IconLink>
-            <IconLink href="/join" label="Your account" className="hidden sm:grid">
+            <IconLink href="/join" label="Your account" className="hidden 2xl:grid">
               <User className="h-[1.15rem] w-[1.15rem]" aria-hidden />
             </IconLink>
 
             <Link
               href="/list-your-business"
-              className="btn-primary ml-1.5 hidden py-2 text-[0.8125rem] md:inline-flex"
+              className="btn-primary ml-1.5 hidden whitespace-nowrap px-3 py-2 text-xs md:inline-flex xl:px-4 xl:text-[0.8125rem]"
             >
-              List Your Business
+              {/* Shortened until there is room for the full label — it was
+                  wrapping to two lines and dragging the header taller. */}
+              <span className="xl:hidden">List Business</span>
+              <span className="hidden xl:inline">List Your Business</span>
             </Link>
 
             <button
@@ -141,7 +147,7 @@ export function Header() {
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
               aria-expanded={drawerOpen}
-              className="ml-1 grid h-9 w-9 place-items-center rounded-md text-ink transition hover:bg-paper lg:hidden"
+              className="ml-1 grid h-9 w-9 place-items-center rounded-md text-ink transition hover:bg-paper xl:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden />
             </button>
@@ -152,7 +158,7 @@ export function Header() {
           the nav item, so it can never be pushed off the edge of the viewport. */}
         {openItem && (
           <div
-            className="absolute inset-x-0 top-full hidden lg:block"
+            className="absolute inset-x-0 top-full hidden xl:block"
             onMouseEnter={clearTimer}
             onMouseLeave={scheduleClose}
           >
@@ -258,7 +264,7 @@ function MobileDrawer({
    * broken the page rather than simply failed to open.
    */
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         onClick={onClose}

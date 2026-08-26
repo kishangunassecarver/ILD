@@ -10,8 +10,9 @@ import { cn } from "@/lib/utils";
 /**
  * Floating bottom navigation.
  *
- * Below `lg` only — the desktop header already carries the full mega menu, and
- * a second persistent nav there would duplicate it and cover content.
+ * Below `xl` only — the same breakpoint at which the header switches to its
+ * drawer. Above it the header carries the full mega menu, and a second
+ * persistent nav would duplicate it and cover content.
  *
  * The bar stays put the whole way down the page and only steps aside once the
  * footer block comes into view, where it would otherwise sit on top of the
@@ -59,12 +60,12 @@ export function BottomNav() {
   return (
     <>
       {/* Keeps the fixed bar from covering the end of the page. */}
-      <div className="h-24 lg:hidden" aria-hidden />
+      <div className="h-24 xl:hidden" aria-hidden />
 
       <nav
         aria-label="Quick navigation"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 px-3 pb-3 transition-transform duration-300 ease-out lg:hidden",
+          "fixed inset-x-0 bottom-0 z-40 px-3 pb-3 transition-transform duration-300 ease-out xl:hidden",
           // Clears the iOS home indicator without leaving a gap on Android.
           "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
           hidden && "translate-y-[130%]"
