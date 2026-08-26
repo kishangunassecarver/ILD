@@ -169,10 +169,19 @@ export interface Sponsor {
   cta: string;
   href: string;
   /**
-   * Tailwind gradient classes for the panel background. Used when no
-   * background image is supplied, and as the base layer underneath one.
+   * Legacy Tailwind gradient classes.
+   *
+   * Only works for values that literally appear in lib/data.ts — Tailwind
+   * generates utilities by scanning source, so anything typed into WordPress
+   * produces no CSS and the panel comes out colourless. Prefer bgFrom/bgTo.
    */
-  art: string;
+  art?: string;
+  /**
+   * Panel background gradient, as any two CSS colours. Applied inline, so
+   * unlike `art` these work whatever an editor types.
+   */
+  bgFrom?: string;
+  bgTo?: string;
   /** Small print above the headline, e.g. "Proudly brought to you by". */
   eyebrow?: string;
   /**

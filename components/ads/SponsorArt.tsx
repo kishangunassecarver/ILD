@@ -121,3 +121,48 @@ export function sponsorCtaStyle(sponsor: Sponsor): CSSProperties | undefined {
 
   return Object.keys(style).length ? style : undefined;
 }
+
+/**
+ * The panel's background.
+ *
+ * Three layers, in order of preference, so a panel can never come out
+ * colourless: explicit colours applied inline, then the legacy Tailwind
+ * gradient classes, and underneath both a solid navy.
+ *
+ * The last of those is the point. `art` only works for values that literally
+ * appear in lib/data.ts, because Tailwind builds its utilities by scanning
+ * source rather than data — so a sponsor whose gradient field was left blank, or
+ * filled in with a colour of their own, rendered `bg-gradient-to-r` with no
+ * stops and came out white.
+ */
+export function sponsorBackground(
+  sponsor: Sponsor,
+  direction: "to-r" | "to-br" | "to-b"
+): { className: string; style?: CSSProperties } {
+  const gradient =
+    sponsor.bgFrom && sponsor.bgTo
+      ? { backgroundImage: `linear-gradient(${GRADIENT_ANGLES[direction]}, ${sponsor.bgFrom}, ${sponsor.bgTo})` }
+      : undefined;
+
+  return {
+    className: cn("bg-ink", !gradient && sponsor.art && `${GRADIENT_CLASSES[direction]} ${sponsor.art}`),
+    style: gradient,
+  };
+}
+
+const GRADIENT_ANGLES = {
+  "to-r": "to right",
+  "to-br": "to bottom right",
+  "to-b": "to bottom",
+} as const;
+
+/**
+ * Written out rather than interpolated. `bg-gradient-${direction}` would be a
+ * dynamic class name, and Tailwind cannot generate what it cannot read — the
+ * same trap that left the sponsor panels white in the first place.
+ */
+const GRADIENT_CLASSES = {
+  "to-r": "bg-gradient-to-r",
+  "to-br": "bg-gradient-to-br",
+  "to-b": "bg-gradient-to-b",
+} as const;

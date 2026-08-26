@@ -161,10 +161,15 @@ What you can control per sponsor, without a developer:
 | Featured image or Image URL | Background photograph. |
 | Darkening | 0–100 over that photo. Blank means 60. Lower it for artwork already built to sit behind text. |
 | Button colour / Button text colour | Any CSS colour, e.g. `#FFB800`. Blank keeps the site default. |
+| Panel colour, from / to | The panel's gradient, as two CSS colours. Blank on both gives the site navy. |
 
-The *Gradient classes* field is the exception — it is Tailwind syntax and only
-works for values that already exist in the code, so ask the developers rather
-than typing one. Use a background image instead where you can.
+Leave the panel colours blank and you get navy — never a colourless panel.
+
+The *Gradient classes* field is a legacy escape hatch and best left alone. It
+takes Tailwind syntax, which only works for values that already exist in the
+code, so anything typed there that the developers have not added produces no
+colour at all. That is exactly what emptied the title band. Use **Panel colour,
+from / to** instead.
 
 **Blog posts** are ordinary WordPress posts. The first category becomes the
 post's label on the site, the excerpt becomes the card summary, and the content

@@ -1,5 +1,11 @@
-import { SponsorBackdrop, SponsorMark, sponsorCtaStyle } from "@/components/ads/SponsorArt";
+import {
+  SponsorBackdrop,
+  SponsorMark,
+  sponsorBackground,
+  sponsorCtaStyle,
+} from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
+import { cn } from "@/lib/utils";
 
 /**
  * The title-partner strip that opens every page.
@@ -21,7 +27,8 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
     return (
       <section
         aria-label={`${sponsor.name} — title partner`}
-        className={`bg-gradient-to-r ${sponsor.art}`}
+        className={sponsorBackground(sponsor, "to-r").className}
+        style={sponsorBackground(sponsor, "to-r").style}
       >
         <div className="shell flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5">
           <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-white/60">
@@ -50,7 +57,8 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
   return (
     <section
       aria-label={`${sponsor.name} — title partner`}
-      className={`relative overflow-hidden bg-gradient-to-br ${sponsor.art}`}
+      className={cn("relative overflow-hidden", sponsorBackground(sponsor, "to-br").className)}
+      style={sponsorBackground(sponsor, "to-br").style}
     >
       <SponsorBackdrop sponsor={sponsor} />
 

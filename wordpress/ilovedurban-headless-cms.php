@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.3.0
+ * Version:      3.4.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -151,7 +151,9 @@ function ild_schema(): array {
 				'ctaText'   => array( 'type' => 'text', 'label' => 'Button text colour — e.g. #0A1A33 or white.' ),
 				'overlay'   => array( 'type' => 'int', 'label' => 'Darkening over the background image, 0–100. Blank means 60. Lower it for artwork already built to sit behind text; raise it if the copy is hard to read.' ),
 				'imageUrl'  => array( 'type' => 'text', 'label' => 'Background image URL — an alternative to the Featured Image. Sits under a dark scrim so the copy stays readable.' ),
-				'art'       => array( 'type' => 'text', 'label' => 'Gradient classes (ask the developers — e.g. "from-[#3B1E7A] via-[#5B2AA8] to-[#8E2DE2]"). Used on its own, or underneath a background image.' ),
+				'bgFrom'    => array( 'type' => 'text', 'label' => 'Panel colour, from — any CSS colour, e.g. #3B1E7A. Set both this and "to" for a gradient. Leave both blank for the site navy.' ),
+				'bgTo'      => array( 'type' => 'text', 'label' => 'Panel colour, to — e.g. #8E2DE2.' ),
+				'art'       => array( 'type' => 'text', 'label' => 'ADVANCED, and only for values already in the code: Tailwind gradient classes. Anything typed here that the developers have not added produces no colour at all. Use the two colour fields above instead.' ),
 			),
 		),
 		'ild_plan'     => array(

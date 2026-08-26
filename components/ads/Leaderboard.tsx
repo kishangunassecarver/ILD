@@ -1,5 +1,11 @@
-import { SponsorBackdrop, SponsorMark, sponsorCtaStyle } from "@/components/ads/SponsorArt";
+import {
+  SponsorBackdrop,
+  SponsorMark,
+  sponsorBackground,
+  sponsorCtaStyle,
+} from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
+import { cn } from "@/lib/utils";
 
 /** Wide in-content banner placement. */
 export function Leaderboard() {
@@ -9,7 +15,11 @@ export function Leaderboard() {
   return (
     <aside
       aria-label={`Advertisement — ${sponsor.name}`}
-      className={`relative overflow-hidden rounded-card bg-gradient-to-r ${sponsor.art} shadow-card`}
+      className={cn(
+        "relative overflow-hidden rounded-card shadow-card",
+        sponsorBackground(sponsor, "to-r").className
+      )}
+      style={sponsorBackground(sponsor, "to-r").style}
     >
       <SponsorBackdrop sponsor={sponsor} />
 

@@ -1,4 +1,9 @@
-import { SponsorBackdrop, SponsorMark, sponsorCtaStyle } from "@/components/ads/SponsorArt";
+import {
+  SponsorBackdrop,
+  SponsorMark,
+  sponsorBackground,
+  sponsorCtaStyle,
+} from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
@@ -11,9 +16,11 @@ export function SponsorTower({ className }: { className?: string }) {
     <aside
       aria-label={`Advertisement — ${sponsor.name}`}
       className={cn(
-        `relative overflow-hidden rounded-card bg-gradient-to-b ${sponsor.art} shadow-card`,
+        "relative overflow-hidden rounded-card shadow-card",
+        sponsorBackground(sponsor, "to-b").className,
         className
       )}
+      style={sponsorBackground(sponsor, "to-b").style}
     >
       <SponsorBackdrop sponsor={sponsor} />
 
