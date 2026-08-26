@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.1.0
+ * Version:      3.2.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -1702,7 +1702,7 @@ function ild_media_page(): void {
  * Cheap enough for one request: the source API returns a whole section's
  * children in a single call, so this is four or five requests, not one per page.
  */
-function ild_repair_imported( string $base, array $parent_slugs ): array {
+function ild_repair_imported( string $base, array $parent_slugs, bool $force_images = false ): array {
 	$base   = untrailingslashit( $base );
 	$report = array();
 
@@ -1732,10 +1732,12 @@ function ild_repair_imported( string $base, array $parent_slugs ): array {
 		$cleared  = false;
 		$repaired = 0;
 
-		// A section page is an index; its own prose was the first article's.
-		if ( '' !== trim( wp_strip_all_tags( $section->post_content ) ) ) {
-			wp_update_post( array( 'ID' => $section->ID, 'post_content' => '' ) );
-			delete_post_meta( $section->ID, '_ild_page_image' );
+		/*
+		 * A section page is an index. Both its body and its excerpt were taken
+		 * from the first article, so both go.
+		 */
+		if ( '' !== trim( wp_strip_all_tags( $section->post_content ) ) || '' !== trim( (string) $section->post_excerpt ) ) {
+			wp_update_post( array( 'ID' => $section->ID, 'post_content' => '', 'post_excerpt' => '' ) );
 			$cleared = true;
 		}
 
@@ -1778,14 +1780,26 @@ function ild_repair_imported( string $base, array $parent_slugs ): array {
 
 				$extracted = ild_extract_article( (string) ( $child['content']['rendered'] ?? '' ) );
 
-				// Leave a genuine local Featured Image alone; only the remote
-				// stand-in is being corrected.
-				if ( '' === $extracted['image'] || get_post_thumbnail_id( $local[0]->ID ) ) {
+				/*
+				 * Normally a local Featured Image is left alone. But if Copy
+				 * Media ran before this fix existed, the wrong image was already
+				 * pulled local and set as the thumbnail — so there is a real
+				 * Featured Image standing in the way of the correction. Forcing
+				 * unsets it and points the page back at the right source, ready
+				 * for Copy Media to localise.
+				 */
+				$blocked = get_post_thumbnail_id( $local[0]->ID ) && ! $force_images;
+
+				if ( '' === $extracted['image'] || $blocked ) {
 					$summary = ild_excerpt_from( '' !== $extracted['html'] ? $extracted['html'] : (string) ( $child['content']['rendered'] ?? '' ) );
 					if ( '' !== $summary ) {
 						wp_update_post( array( 'ID' => $local[0]->ID, 'post_excerpt' => $summary ) );
 					}
 					continue;
+				}
+
+				if ( $force_images ) {
+					delete_post_thumbnail( $local[0]->ID );
 				}
 
 				update_post_meta( $local[0]->ID, '_ild_page_image', esc_url_raw( $extracted['image'] ) );
@@ -1851,7 +1865,7 @@ function ild_migrate_page(): void {
 	if ( isset( $_POST['ild_repair'] ) && check_admin_referer( 'ild_repair_imported' ) ) {
 		$base    = esc_url_raw( wp_unslash( $_POST['ild_source'] ?? ILD_SOURCE_DEFAULT ) );
 		$parents = array_filter( array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_POST['ild_parents'] ?? ILD_SOURCE_PARENTS ) ) ) ) );
-		$report  = ild_repair_imported( $base, $parents );
+		$report  = ild_repair_imported( $base, $parents, isset( $_POST['ild_force_images'] ) );
 
 		echo '<div class="notice notice-success"><p><strong>Repair finished.</strong></p><ul style="list-style:disc;margin-left:2em">';
 		foreach ( $report as $slug => $result ) {
@@ -1888,8 +1902,11 @@ function ild_migrate_page(): void {
 	echo '<li><strong>Wrong featured images.</strong> The old site sets the same placeholder as the featured image on every South Coast page, so all 33 arrived showing the same picture. Each article\'s own in-content image is correct and specific, and is now used instead.</li>';
 	echo '<li><strong>Section pages showing an article.</strong> The source markup for a section page starts with its first attraction, so <code>/durban/</code> ended up displaying Golden Mile\'s text. Section pages are cleared so they render purely as an index of their articles.</li>';
 	echo '</ul>';
-	echo '<p>A page where you have set a Featured Image by hand is left alone.</p>';
+	echo '<p>A page where you have set a Featured Image by hand is left alone — unless you tick the box below.</p>';
 	echo '<form method="post">';
+	echo '<p><label><input type="checkbox" name="ild_force_images" value="1" /> ';
+	echo 'Replace images even where one is already set</label><br />';
+	echo '<span class="description">Needed if <strong>Copy Media</strong> ran before this fix existed. In that case the wrong image was already pulled into your library and set as the Featured Image, so there is nothing "missing" for the fix to fill — it has to be told to overwrite. Ticking this unsets those images and points the pages back at the correct source; <strong>run Copy Media again afterwards</strong> to pull the right files in.</span></p>';
 	echo '<input type="hidden" name="ild_source" value="' . esc_attr( ILD_SOURCE_DEFAULT ) . '" />';
 	echo '<input type="hidden" name="ild_parents" value="' . esc_attr( ILD_SOURCE_PARENTS ) . '" />';
 	wp_nonce_field( 'ild_repair_imported' );
