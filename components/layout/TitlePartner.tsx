@@ -1,4 +1,4 @@
-import { SponsorBackdrop, SponsorMark } from "@/components/ads/SponsorArt";
+import { SponsorBackdrop, SponsorMark, sponsorCtaStyle } from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
 
 /**
@@ -29,7 +29,7 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
           </p>
           <SponsorMark
             sponsor={sponsor}
-            height="max-h-6"
+            slot="band"
             typeClassName="font-display text-lg font-extrabold leading-none tracking-tight text-white"
           />
           <p className="hidden text-xs font-medium text-white/80 sm:block">{sponsor.headline}</p>
@@ -37,7 +37,8 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
             href={sponsor.href}
             rel="noopener sponsored"
             target="_blank"
-            className="ml-auto rounded-md bg-gold px-3 py-1.5 text-[0.6875rem] font-bold uppercase tracking-wide text-ink transition hover:bg-gold-600"
+            style={sponsorCtaStyle(sponsor)}
+            className="ml-auto rounded-md bg-gold px-3 py-1.5 text-[0.6875rem] font-bold uppercase tracking-wide text-ink transition hover:opacity-90"
           >
             {sponsor.cta}
           </a>
@@ -76,7 +77,7 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
 
           <SponsorMark
             sponsor={sponsor}
-            height="max-h-14 sm:max-h-20 lg:max-h-24"
+            slot="title"
             typeClassName="font-display text-4xl font-extrabold leading-none tracking-tight text-white sm:text-5xl lg:text-6xl"
             className={sponsor.logo ? "mt-3 mx-auto lg:mx-0" : "mt-3"}
           />
@@ -87,7 +88,8 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
             href={sponsor.href}
             rel="noopener sponsored"
             target="_blank"
-            className="btn mt-5 bg-gold px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-ink hover:bg-gold-600"
+            style={sponsorCtaStyle(sponsor)}
+            className="btn mt-6 bg-gold px-7 py-3 text-sm font-bold uppercase tracking-wide text-ink transition hover:opacity-90"
           >
             {sponsor.cta}
           </a>

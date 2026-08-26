@@ -20,10 +20,15 @@
    * own overflow containers. Clamping it here stops a single mis-sized element
    * from widening the layout viewport, which on mobile pushes fixed, viewport-
    * anchored elements (the menu drawer) outside the visible area.
+   *
+   * `clip`, not `hidden`. Both stop the overflow, but `hidden` makes the element
+   * a scroll container — and `position: sticky` anchors to its nearest scrolling
+   * ancestor, so every sticky sidebar on the site silently stopped sticking when
+   * this rule was added. `clip` does not create one.
    */
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body {

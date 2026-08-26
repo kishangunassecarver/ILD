@@ -1,4 +1,4 @@
-import { SponsorBackdrop, SponsorMark } from "@/components/ads/SponsorArt";
+import { SponsorBackdrop, SponsorMark, sponsorCtaStyle } from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ export function SponsorTower({ className }: { className?: string }) {
         <div>
           <SponsorMark
             sponsor={sponsor}
-            height="max-h-10"
+            slot="sidebar"
             typeClassName="font-display text-2xl font-extrabold leading-none tracking-tight text-white"
             className={sponsor.logo ? "mx-auto object-center" : undefined}
           />
@@ -52,7 +52,8 @@ export function SponsorTower({ className }: { className?: string }) {
         <a
           href={sponsor.href}
           rel="noopener sponsored"
-          className="btn mx-auto bg-white py-2 text-xs font-bold uppercase tracking-wide text-ink hover:bg-white/90"
+          style={sponsorCtaStyle(sponsor)}
+          className="btn mx-auto bg-white py-2 text-xs font-bold uppercase tracking-wide text-ink transition hover:opacity-90"
         >
           {sponsor.cta}
         </a>

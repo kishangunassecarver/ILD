@@ -150,8 +150,21 @@ calendar ordering. The optional *Date label* is what humans read
 
 **Sponsors** need a **Placement**: `title` (the band under the header),
 `sidebar` (the tall tower) or `leaderboard` (the wide in-content banner). One
-sponsor per placement — the first published entry wins. The *Gradient classes*
-field is Tailwind syntax; ask the developers for the value rather than guessing.
+sponsor per placement — the first published entry wins.
+
+What you can control per sponsor, without a developer:
+
+| Field | Does |
+|---|---|
+| Logo URL | The wordmark. Blank sets their name in type instead. |
+| Logo size | small / medium / large. Medium suits most; large for a square mark. |
+| Featured image or Image URL | Background photograph. |
+| Darkening | 0–100 over that photo. Blank means 60. Lower it for artwork already built to sit behind text. |
+| Button colour / Button text colour | Any CSS colour, e.g. `#FFB800`. Blank keeps the site default. |
+
+The *Gradient classes* field is the exception — it is Tailwind syntax and only
+works for values that already exist in the code, so ask the developers rather
+than typing one. Use a background image instead where you can.
 
 **Blog posts** are ordinary WordPress posts. The first category becomes the
 post's label on the site, the excerpt becomes the card summary, and the content

@@ -1,4 +1,4 @@
-import { SponsorBackdrop, SponsorMark } from "@/components/ads/SponsorArt";
+import { SponsorBackdrop, SponsorMark, sponsorCtaStyle } from "@/components/ads/SponsorArt";
 import { sponsorFor } from "@/lib/cms";
 
 /** Wide in-content banner placement. */
@@ -29,7 +29,7 @@ export function Leaderboard() {
         <div className="min-w-[8rem]">
           <SponsorMark
             sponsor={sponsor}
-            height="max-h-8 sm:max-h-10"
+            slot="leaderboard"
             typeClassName="font-display text-2xl font-extrabold leading-none tracking-tight text-white"
           />
           {sponsor.eyebrow && (
@@ -46,7 +46,8 @@ export function Leaderboard() {
         <a
           href={sponsor.href}
           rel="noopener sponsored"
-          className="btn-primary shrink-0 py-2 text-xs uppercase tracking-wide"
+          style={sponsorCtaStyle(sponsor)}
+          className="btn-primary shrink-0 py-2 text-xs uppercase tracking-wide transition hover:opacity-90"
         >
           {sponsor.cta}
         </a>

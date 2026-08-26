@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.2.0
+ * Version:      3.3.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -141,7 +141,15 @@ function ild_schema(): array {
 				'body'      => array( 'type' => 'textarea', 'label' => 'Body copy (sidebar only)' ),
 				'cta'       => array( 'type' => 'text', 'label' => 'Button label' ),
 				'href'      => array( 'type' => 'text', 'label' => 'Link' ),
-				'logo'      => array( 'type' => 'text', 'label' => 'Logo URL — upload to the Media Library and paste the file URL here. Transparent PNG or SVG; it sits on the panel background. Leave blank to set the partner name in type instead.' ),
+				'logo'      => array( 'type' => 'text', 'label' => 'Logo URL — upload to the Media Library and paste the file URL here. Transparent PNG or SVG; it sits on the panel background. Leave blank to set the partner name in type instead. (AVIF works in current browsers but PNG or SVG is the safer choice for a logo.)' ),
+				'logoSize'  => array(
+					'type'    => 'select',
+					'label'   => 'Logo size',
+					'options' => array( 'small', 'medium', 'large' ),
+				),
+				'ctaBg'     => array( 'type' => 'text', 'label' => 'Button colour — any CSS colour, e.g. #FFB800. Blank keeps the site default for this placement.' ),
+				'ctaText'   => array( 'type' => 'text', 'label' => 'Button text colour — e.g. #0A1A33 or white.' ),
+				'overlay'   => array( 'type' => 'int', 'label' => 'Darkening over the background image, 0–100. Blank means 60. Lower it for artwork already built to sit behind text; raise it if the copy is hard to read.' ),
 				'imageUrl'  => array( 'type' => 'text', 'label' => 'Background image URL — an alternative to the Featured Image. Sits under a dark scrim so the copy stays readable.' ),
 				'art'       => array( 'type' => 'text', 'label' => 'Gradient classes (ask the developers — e.g. "from-[#3B1E7A] via-[#5B2AA8] to-[#8E2DE2]"). Used on its own, or underneath a background image.' ),
 			),

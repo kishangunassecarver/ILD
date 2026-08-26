@@ -185,6 +185,19 @@ export interface Sponsor {
    * Covers the panel with a scrim over it so the copy stays legible.
    */
   image?: string;
+  /** How large the wordmark sits in the panel. Defaults to "medium". */
+  logoSize?: "small" | "medium" | "large";
+  /**
+   * Button colours, as any CSS colour.
+   *
+   * Applied as inline styles rather than Tailwind classes: Tailwind generates
+   * utilities by scanning source files, so a colour typed into WordPress would
+   * never produce a class. Left blank, each placement keeps its own default.
+   */
+  ctaBg?: string;
+  ctaText?: string;
+  /** Scrim strength over the background photo, 0–100. Defaults to 60. */
+  overlay?: number;
 }
 
 /**
