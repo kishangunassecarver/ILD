@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      2.3.0
+ * Version:      2.4.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -102,6 +102,8 @@ function ild_schema(): array {
 				'body'      => array( 'type' => 'paras', 'label' => 'Full description — blank line between paragraphs' ),
 				'price'     => array( 'type' => 'text', 'label' => 'Price (e.g. "From R350", "Free entry")' ),
 				'ticketUrl' => array( 'type' => 'text', 'label' => 'Ticket link' ),
+				'imageUrl'    => array( 'type' => 'text', 'label' => 'Image URL — an alternative to setting a Featured Image, for photos hosted elsewhere. The Featured Image wins if both are set.' ),
+				'imageCredit' => array( 'type' => 'text', 'label' => 'Photo credit — required for anything not shot by us or supplied by the business.' ),
 				'featured'  => array( 'type' => 'bool', 'label' => 'Feature this event' ),
 			),
 		),
@@ -117,6 +119,8 @@ function ild_schema(): array {
 				'area'       => array( 'type' => 'text', 'label' => 'Area' ),
 				'blurb'      => array( 'type' => 'textarea', 'label' => 'What the offer is' ),
 				'terms'      => array( 'type' => 'lines', 'label' => 'Terms — one per line' ),
+				'imageUrl'    => array( 'type' => 'text', 'label' => 'Image URL — an alternative to setting a Featured Image, for photos hosted elsewhere. The Featured Image wins if both are set.' ),
+				'imageCredit' => array( 'type' => 'text', 'label' => 'Photo credit — required for anything not shot by us or supplied by the business.' ),
 			),
 		),
 		'ild_sponsor'  => array(
@@ -137,6 +141,7 @@ function ild_schema(): array {
 				'cta'       => array( 'type' => 'text', 'label' => 'Button label' ),
 				'href'      => array( 'type' => 'text', 'label' => 'Link' ),
 				'logo'      => array( 'type' => 'text', 'label' => 'Logo URL — upload to the Media Library and paste the file URL here. Transparent PNG or SVG; it sits on the panel background. Leave blank to set the partner name in type instead.' ),
+				'imageUrl'  => array( 'type' => 'text', 'label' => 'Background image URL — an alternative to the Featured Image. Sits under a dark scrim so the copy stays readable.' ),
 				'art'       => array( 'type' => 'text', 'label' => 'Gradient classes (ask the developers — e.g. "from-[#3B1E7A] via-[#5B2AA8] to-[#8E2DE2]"). Used on its own, or underneath a background image.' ),
 			),
 		),
@@ -419,7 +424,12 @@ function ild_pages(): array {
 			'excerpt' => ild_text( wp_strip_all_tags( get_the_excerpt( $page ) ) ),
 		);
 
+		// A local thumbnail wins; imported pages fall back to the URL recorded
+		// against them, since their media still lives on the source site.
 		$image = get_the_post_thumbnail_url( $page, 'full' );
+		if ( ! $image ) {
+			$image = (string) get_post_meta( $page->ID, '_ild_page_image', true );
+		}
 		if ( $image ) {
 			$entry['image'] = $image;
 		}
@@ -472,6 +482,15 @@ function ild_admin_menu(): void {
 	);
 
 	add_submenu_page( ILD_MENU, 'Site Copy & Deploy', 'Site Copy & Deploy', 'edit_posts', ILD_MENU, 'ild_settings_page' );
+
+	add_submenu_page(
+		ILD_MENU,
+		'Import from Live Site',
+		'Import from Live Site',
+		'manage_options',
+		'ild-migrate',
+		'ild_migrate_page'
+	);
 
 	add_submenu_page(
 		ILD_MENU,
@@ -704,6 +723,319 @@ function ild_backfill_demo_images(): array {
 	}
 
 	return $tally;
+}
+
+/* -------------------------------------------------------------------------
+ * Migration from another WordPress site
+ *
+ * Pulls attraction pages and blog posts across from the old ilovedurban.co.za
+ * over its public REST API. Slugs and parent/child structure are preserved, so
+ * /durban/golden-mile/ stays /durban/golden-mile/ on the new site — the URLs
+ * keep working and nothing needs redirecting.
+ * ---------------------------------------------------------------------- */
+
+const ILD_SOURCE_DEFAULT = 'https://www.ilovedurban.co.za';
+const ILD_SOURCE_PARENTS = 'durban, south-coast, north-coast, kzn-and-midlands';
+
+function ild_remote_json( string $url ) {
+	$res = wp_remote_get( $url, array( 'timeout' => 30, 'headers' => array( 'Accept' => 'application/json' ) ) );
+
+	if ( is_wp_error( $res ) || 200 !== (int) wp_remote_retrieve_response_code( $res ) ) {
+		return null;
+	}
+
+	$data = json_decode( wp_remote_retrieve_body( $res ), true );
+
+	return is_array( $data ) ? $data : null;
+}
+
+/**
+ * Pull the actual article out of an Elementor page.
+ *
+ * The source site builds pages with Elementor, so content.rendered is ~25KB of
+ * widget markup per page. Of that, roughly 58 links and 50 list items are the
+ * theme's sidebar navigation rendered inline, and several blocks are advertiser
+ * panels. Importing it verbatim gives you 124 pages of duplicated navigation
+ * with the article buried inside.
+ *
+ * The prose always sits in the first `elementor-widget-text-editor` widget, so
+ * that is what we take. Everything else — nav menus, ad panels, the container
+ * scaffolding — is left behind, and wp_kses_post strips the remaining Elementor
+ * attributes.
+ *
+ * If the markup ever stops matching, this returns an empty body rather than
+ * guessing, and the caller falls back to importing the page whole.
+ */
+function ild_extract_article( string $html ): array {
+	$body = '';
+
+	if ( preg_match( '/elementor-widget-text-editor.*?<div class="elementor-widget-container">(.*?)<\/div>/s', $html, $match ) ) {
+		$body = trim( $match[1] );
+	}
+
+	/*
+	 * The first image is the article's own photograph. Later ones are advertiser
+	 * creatives, which WordPress has resized — so anything carrying a
+	 * "-520x397"-style dimension suffix is skipped.
+	 */
+	$image = '';
+
+	if ( preg_match_all( '/<img[^>]*?src="([^"]+)"/', $html, $images ) ) {
+		foreach ( $images[1] as $candidate ) {
+			if ( ! preg_match( '/-\d{2,4}x\d{2,4}\.(jpe?g|png|webp|gif)$/i', $candidate ) ) {
+				$image = $candidate;
+				break;
+			}
+		}
+	}
+
+	return array(
+		'html'  => $body ? wp_kses_post( $body ) : '',
+		'image' => $image,
+	);
+}
+
+/** The extracted article if the markup matched, otherwise the page as it came. */
+function ild_article_or_raw( string $html ): string {
+	$extracted = ild_extract_article( $html );
+
+	return '' !== $extracted['html'] ? $extracted['html'] : $html;
+}
+
+/** Create one page from a remote REST record, or report that it already exists. */
+function ild_import_page( array $remote, int $parent_id, string $source ): array {
+	$slug = sanitize_title( $remote['slug'] ?? '' );
+	if ( '' === $slug ) {
+		return array( 'status' => 'skipped', 'id' => 0 );
+	}
+
+	$existing = get_posts(
+		array(
+			'post_type'        => 'page',
+			'name'             => $slug,
+			'post_parent'      => $parent_id,
+			'post_status'      => 'any',
+			'numberposts'      => 1,
+			'suppress_filters' => false,
+		)
+	);
+
+	if ( $existing ) {
+		return array( 'status' => 'existed', 'id' => (int) $existing[0]->ID );
+	}
+
+	$raw       = (string) ( $remote['content']['rendered'] ?? '' );
+	$extracted = ild_extract_article( $raw );
+	// Fall back to the whole page if the markup did not match, rather than
+	// importing an empty article.
+	$content   = '' !== $extracted['html'] ? $extracted['html'] : $raw;
+
+	$post_id = wp_insert_post(
+		array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => ild_text( $remote['title']['rendered'] ?? $slug ),
+			'post_name'    => $slug,
+			'post_parent'  => $parent_id,
+			'post_content' => $content,
+			'post_excerpt' => ild_text( wp_strip_all_tags( $remote['excerpt']['rendered'] ?? '' ) ),
+			'menu_order'   => (int) ( $remote['menu_order'] ?? 0 ),
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		return array( 'status' => 'failed', 'id' => 0 );
+	}
+
+	/*
+	 * Remember the source URL. The featured image lives on the old site and is
+	 * not copied across, so the front end needs somewhere to read a remote URL
+	 * from — and if anything looks wrong later, this says where it came from.
+	 */
+	update_post_meta( $post_id, '_ild_imported_from', esc_url_raw( $remote['link'] ?? $source ) );
+
+	$image = ild_remote_featured_image( $remote );
+	if ( ! $image ) {
+		$image = $extracted['image'];
+	}
+	if ( $image ) {
+		update_post_meta( $post_id, '_ild_page_image', esc_url_raw( $image ) );
+	}
+
+	return array( 'status' => 'created', 'id' => (int) $post_id );
+}
+
+/** Read the featured image URL out of an _embed-ed REST record. */
+function ild_remote_featured_image( array $remote ): string {
+	$media = $remote['_embedded']['wp:featuredmedia'][0]['source_url'] ?? '';
+
+	return is_string( $media ) ? $media : '';
+}
+
+function ild_import_from_source( string $base, array $parent_slugs, bool $with_posts ): array {
+	$base   = untrailingslashit( $base );
+	$report = array();
+
+	foreach ( $parent_slugs as $slug ) {
+		$slug = sanitize_title( $slug );
+		if ( '' === $slug ) {
+			continue;
+		}
+
+		$found = ild_remote_json( $base . '/wp-json/wp/v2/pages?slug=' . $slug . '&_embed=wp:featuredmedia' );
+
+		if ( ! $found || ! isset( $found[0]['id'] ) ) {
+			$report[ $slug ] = 'not found on the source site';
+			continue;
+		}
+
+		$parent = ild_import_page( $found[0], 0, $base );
+		$tally  = array( 'created' => 0, 'existed' => 0, 'failed' => 0, 'skipped' => 0 );
+		$tally[ $parent['status'] ]++;
+
+		if ( ! $parent['id'] ) {
+			$report[ $slug ] = 'could not create the section page';
+			continue;
+		}
+
+		// 100 per page covers the largest section; loop in case that changes.
+		for ( $page = 1; $page <= 5; $page++ ) {
+			$children = ild_remote_json(
+				$base . '/wp-json/wp/v2/pages?parent=' . (int) $found[0]['id']
+				. '&per_page=100&page=' . $page . '&orderby=menu_order&order=asc&_embed=wp:featuredmedia'
+			);
+
+			if ( ! $children ) {
+				break;
+			}
+
+			foreach ( $children as $child ) {
+				$result = ild_import_page( $child, $parent['id'], $base );
+				$tally[ $result['status'] ]++;
+			}
+
+			if ( count( $children ) < 100 ) {
+				break;
+			}
+		}
+
+		$report[ $slug ] = $tally;
+	}
+
+	if ( $with_posts ) {
+		$tally = array( 'created' => 0, 'existed' => 0, 'failed' => 0, 'skipped' => 0 );
+
+		for ( $page = 1; $page <= 5; $page++ ) {
+			$posts = ild_remote_json(
+				$base . '/wp-json/wp/v2/posts?per_page=100&page=' . $page . '&_embed=wp:featuredmedia'
+			);
+
+			if ( ! $posts ) {
+				break;
+			}
+
+			foreach ( $posts as $remote ) {
+				$slug = sanitize_title( $remote['slug'] ?? '' );
+				if ( '' === $slug ) {
+					$tally['skipped']++;
+					continue;
+				}
+
+				$existing = get_posts( array( 'post_type' => 'post', 'name' => $slug, 'post_status' => 'any', 'numberposts' => 1 ) );
+				if ( $existing ) {
+					$tally['existed']++;
+					continue;
+				}
+
+				$post_id = wp_insert_post(
+					array(
+						'post_type'    => 'post',
+						'post_status'  => 'publish',
+						'post_title'   => ild_text( $remote['title']['rendered'] ?? $slug ),
+						'post_name'    => $slug,
+						'post_content' => ild_article_or_raw( (string) ( $remote['content']['rendered'] ?? '' ) ),
+						'post_excerpt' => ild_text( wp_strip_all_tags( $remote['excerpt']['rendered'] ?? '' ) ),
+						'post_date'    => (string) ( $remote['date'] ?? '' ),
+					),
+					true
+				);
+
+				if ( is_wp_error( $post_id ) ) {
+					$tally['failed']++;
+					continue;
+				}
+
+				update_post_meta( $post_id, '_ild_imported_from', esc_url_raw( $remote['link'] ?? $base ) );
+
+				$image = ild_remote_featured_image( $remote );
+				if ( $image ) {
+					update_post_meta( $post_id, '_ild_page_image', esc_url_raw( $image ) );
+				}
+
+				$tally['created']++;
+			}
+
+			if ( count( $posts ) < 100 ) {
+				break;
+			}
+		}
+
+		$report['blog posts'] = $tally;
+	}
+
+	return $report;
+}
+
+function ild_migrate_page(): void {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'You do not have permission to import content.' );
+	}
+
+	echo '<div class="wrap"><h1>Import from the live site</h1>';
+
+	if ( isset( $_POST['ild_migrate'] ) && check_admin_referer( 'ild_migrate_source' ) ) {
+		$base    = esc_url_raw( wp_unslash( $_POST['ild_source'] ?? ILD_SOURCE_DEFAULT ) );
+		$parents = array_filter( array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_POST['ild_parents'] ?? ILD_SOURCE_PARENTS ) ) ) ) );
+		$posts   = isset( $_POST['ild_with_posts'] );
+
+		$report = ild_import_from_source( $base, $parents, $posts );
+
+		echo '<div class="notice notice-success"><p><strong>Import finished.</strong></p><ul style="list-style:disc;margin-left:2em">';
+		foreach ( $report as $label => $tally ) {
+			if ( is_array( $tally ) ) {
+				echo '<li><code>' . esc_html( $label ) . '</code>: ' . (int) $tally['created'] . ' created';
+				if ( $tally['existed'] ) {
+					echo ', ' . (int) $tally['existed'] . ' already there';
+				}
+				if ( $tally['failed'] ) {
+					echo ', <strong>' . (int) $tally['failed'] . ' failed</strong>';
+				}
+				echo '</li>';
+			} else {
+				echo '<li><code>' . esc_html( $label ) . '</code>: ' . esc_html( $tally ) . '</li>';
+			}
+		}
+		echo '</ul><p>The site is rebuilding — allow two to four minutes.</p></div>';
+
+		ild_trigger_deploy( 'content imported from source site' );
+	}
+
+	echo '<p>Copies the attraction pages and blog posts across from the old site over its public API. <strong>Slugs and section structure are preserved</strong>, so <code>/durban/golden-mile/</code> stays exactly that — the existing links keep working and nothing needs redirecting.</p>';
+	echo '<p>Safe to run more than once: a page that already exists is left alone, so an interrupted run can simply be repeated.</p>';
+	echo '<p><strong>Images are not copied.</strong> Featured images are linked back to the source site, and pictures inside the article text keep pointing there too. That works as long as the old site stays up — move the media over properly before switching it off.</p>';
+
+	echo '<form method="post"><table class="form-table"><tbody>';
+	echo '<tr><th scope="row"><label for="ild_source">Source site</label></th><td>';
+	echo '<input type="url" class="large-text code" id="ild_source" name="ild_source" value="' . esc_attr( ILD_SOURCE_DEFAULT ) . '" /></td></tr>';
+	echo '<tr><th scope="row"><label for="ild_parents">Sections to import</label></th><td>';
+	echo '<input type="text" class="large-text code" id="ild_parents" name="ild_parents" value="' . esc_attr( ILD_SOURCE_PARENTS ) . '" />';
+	echo '<p class="description">Comma-separated page slugs. These four hold the 124 attraction articles; everything else on the old site is theme demo pages and shop scaffolding, which is why they are not listed here.</p></td></tr>';
+	echo '<tr><th scope="row">Blog</th><td><label><input type="checkbox" name="ild_with_posts" value="1" checked /> Also import the blog posts</label></td></tr>';
+	echo '</tbody></table>';
+	wp_nonce_field( 'ild_migrate_source' );
+	submit_button( 'Import content', 'primary', 'ild_migrate' );
+	echo '</form></div>';
 }
 
 function ild_starter_page(): void {
@@ -1193,6 +1525,9 @@ function ild_blog_posts(): array {
 		);
 
 		$image = get_the_post_thumbnail_url( $post, 'full' );
+		if ( ! $image ) {
+			$image = (string) get_post_meta( $post->ID, '_ild_page_image', true );
+		}
 		if ( $image ) {
 			$entry['image'] = $image;
 		}

@@ -216,6 +216,55 @@ No code, no GitHub, no terminal.
 Unpublishing and deleting published entries also trigger a rebuild, so taking a
 listing down is the same two clicks as putting one up.
 
+## Migrating from the old ilovedurban.co.za
+
+**I Love Durban → Import from Live Site** copies the attraction articles and the
+blog across from the old site over its public API.
+
+**Link structure is preserved.** Slugs and section structure come across as they
+are, so `/durban/golden-mile/` stays `/durban/golden-mile/`. Existing links and
+search rankings keep working, and nothing needs redirecting.
+
+The four sections holding the attraction articles:
+
+| Section | Articles |
+|---|---|
+| `/durban/` | 23 |
+| `/south-coast/` | 33 |
+| `/north-coast/` | 34 |
+| `/kzn-and-midlands/` | 34 |
+
+That is 124 articles, plus 20 blog posts. The old site has 183 pages in total,
+but the rest are theme demo pages ("Grid With Sidebar 1", "Masonry Filtering")
+and shop scaffolding ("Cart", "Checkout", "My account", "Lost Password") that a
+directory plugin created for itself. Importing those would produce 100-odd junk
+URLs, which is why the importer takes named sections rather than everything.
+
+### What gets cleaned up on the way in
+
+The old pages are built with Elementor, so each one is around 25KB of widget
+markup — roughly 58 links and 50 list items of which are the theme's sidebar
+navigation rendered inline, plus several advertiser panels. Imported verbatim you
+would get 124 pages of duplicated navigation with the article buried inside.
+
+So the importer takes the prose out of the first text widget and leaves the rest
+behind. In testing across ten pages that turned ~25KB of markup into ~1.9KB of
+clean article — about 1,400 words of prose, correct headings, and the article's
+own photograph rather than an advertiser's. If the markup ever stops matching,
+the page is imported whole rather than empty, so nothing is silently lost.
+
+### Images are linked, not copied
+
+Featured images and pictures inside the articles keep pointing at the old site.
+That works while it stays up — **move the media across properly before switching
+the old site off.**
+
+### Putting the articles in the menu
+
+The imported sections are ordinary pages, so add them under **Things to Do** in
+Appearance → Menus: Things to Do at the top level, a column heading beneath it,
+then the section pages as links under that.
+
 ## Menus
 
 Both menus are managed in the ordinary **Appearance → Menus** screen, with
