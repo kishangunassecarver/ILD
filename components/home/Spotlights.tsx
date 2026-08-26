@@ -104,7 +104,7 @@ export function Spotlights() {
   if (spots.length === 0) return null;
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {spots.map((spot) => (
         <section key={spot.column} aria-label={spot.column} className="min-w-0">
           <div className="mb-3 flex items-center justify-between gap-3">

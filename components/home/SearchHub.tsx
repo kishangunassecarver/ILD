@@ -30,13 +30,15 @@ export function SearchHub() {
           submit(query);
         }}
         role="search"
-        className="flex flex-wrap gap-3"
+        // One row, always: the input shrinks rather than the button wrapping
+        // out of the pill onto its own line, which read as broken on phones.
+        className="flex gap-2.5 sm:gap-3"
       >
         <label htmlFor="site-search" className="sr-only">
           {SITE.searchPlaceholder}
         </label>
 
-        <div className="relative min-w-0 flex-1 basis-64">
+        <div className="relative min-w-0 flex-1">
           <Search
             className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-mist"
             strokeWidth={2}
@@ -52,23 +54,40 @@ export function SearchHub() {
           />
         </div>
 
-        <button type="submit" className="btn-primary h-14 rounded-2xl px-7 text-[0.9375rem]">
-          Search
+        <button
+          type="submit"
+          className="btn-primary h-14 shrink-0 rounded-2xl px-5 text-[0.9375rem] sm:px-7"
+        >
+          {/* An icon on phones, the word from sm up — the label is the
+              placeholder's job on a narrow screen. */}
+          <Search className="h-5 w-5 sm:hidden" strokeWidth={2.25} aria-hidden />
+          <span className="sr-only sm:not-sr-only">Search</span>
         </button>
 
         {/* The AI door. Same destination as search today; the label sets the
             expectation the app experience delivers on. */}
         <Link
           href="/search"
-          className="btn hidden h-14 items-center rounded-2xl border border-aqua-400/50 bg-aqua-400/10 px-5 text-[0.9375rem] font-semibold text-aqua-200 transition hover:border-aqua-300 hover:text-aqua-100 sm:inline-flex"
+          className="btn hidden h-14 shrink-0 items-center rounded-2xl border border-aqua-400/50 bg-aqua-400/10 px-5 text-[0.9375rem] font-semibold text-aqua-200 transition hover:border-aqua-300 hover:text-aqua-100 lg:inline-flex"
         >
           <Sparkles className="h-[1.1rem] w-[1.1rem]" aria-hidden />
           Ask I Love Durban
         </Link>
       </form>
 
-      {/* The six shortcuts: a scrollable row on phones, a grid from sm up. */}
-      <ul className="mt-4 flex gap-3 overflow-x-auto no-scrollbar sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
+      {/* The AI prompt keeps a place on smaller screens as a quiet row under
+          the search bar rather than crowding the input row. */}
+      <Link
+        href="/search"
+        className="mt-2.5 inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-aqua-300 transition hover:text-aqua-200 lg:hidden"
+      >
+        <Sparkles className="h-4 w-4" aria-hidden />
+        Ask I Love Durban — &ldquo;What can I do with kids this weekend?&rdquo;
+      </Link>
+
+      {/* The six shortcuts: a scrollable row on phones, three across on
+          tablets, and always one row of six on desktop. */}
+      <ul className="mt-4 flex gap-3 overflow-x-auto no-scrollbar sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-6">
         {QUICK_ACTIONS.map((action) => (
           <li key={action.label} className="w-[11.5rem] shrink-0 sm:w-auto">
             <Link

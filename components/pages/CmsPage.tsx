@@ -313,9 +313,15 @@ function PopularListings() {
   if (listings.length === 0) return null;
 
   return (
+    /*
+     * The grid only has a third column from xl. Between lg and xl this aside
+     * was wrapping into the narrow section-nav column on the LEFT — a right
+     * sidebar rendering on the wrong side of the page — so in exactly that
+     * window it is not shown. Below lg it stacks under the article as before.
+     */
     <aside
       aria-labelledby="popular-listings"
-      className="panel overflow-hidden xl:sticky xl:top-[calc(var(--header-h)+1.5rem)]"
+      className="panel overflow-hidden lg:hidden xl:sticky xl:top-[calc(var(--header-h)+1.5rem)] xl:block"
     >
       <h2
         id="popular-listings"

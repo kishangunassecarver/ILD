@@ -17,7 +17,9 @@ import { getHub, spotlightListings } from "@/lib/cms";
  * you whether you are looking at a restaurant or a plumber.
  */
 export function FeaturedBusinesses() {
-  const listings = spotlightListings(8);
+  // Six, not eight: the grid is three across, and a ragged final row of two
+  // reads as a mistake rather than a selection.
+  const listings = spotlightListings(6);
   if (listings.length === 0) return null;
 
   const anyFeatured = listings.some((l) => l.featured);
@@ -42,7 +44,7 @@ export function FeaturedBusinesses() {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {listings.map((listing) => {
           const hub = getHub(listing.hub);
           const href = `/${listing.hub}/${listing.slug}`;
@@ -50,10 +52,14 @@ export function FeaturedBusinesses() {
           return (
             <article
               key={`${listing.hub}-${listing.slug}`}
-              className="panel card-hover group flex flex-col overflow-hidden"
+              className="panel card-hover group flex flex-col overflow-hidden p-2.5"
             >
               <Link href={href} tabIndex={-1} aria-hidden className="block">
-                <Tile seed={listing.slug} image={listing.image} className="h-32">
+                <Tile
+                  seed={listing.slug}
+                  image={listing.image}
+                  className="h-52 rounded-2xl sm:h-56"
+                >
                   {listing.featured && (
                     <span className="absolute left-2.5 top-2.5 rounded-pill bg-coral-500 px-2.5 py-1 text-[0.625rem] font-bold text-white shadow-rail">
                       Featured
@@ -62,7 +68,7 @@ export function FeaturedBusinesses() {
                 </Tile>
               </Link>
 
-              <div className="flex flex-1 flex-col gap-2 p-4">
+              <div className="flex flex-1 flex-col gap-2 p-2.5 pt-3.5">
                 {/* One line, always. The hub label is the part that must survive,
                     so the category truncates rather than wrapping and making
                     card heights ragged across a row. */}
@@ -75,7 +81,7 @@ export function FeaturedBusinesses() {
                 </p>
 
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold leading-snug text-snow">
+                  <h3 className="text-base font-bold leading-snug text-snow">
                     <Link href={href} className="transition hover:text-aqua-300">
                       {listing.name}
                     </Link>
@@ -95,7 +101,9 @@ export function FeaturedBusinesses() {
                 )}
 
                 {listing.blurb && (
-                  <p className="line-clamp-2 text-xs leading-relaxed text-muted">{listing.blurb}</p>
+                  <p className="line-clamp-2 text-[0.8125rem] leading-relaxed text-muted">
+                    {listing.blurb}
+                  </p>
                 )}
 
                 <Rating
