@@ -89,7 +89,13 @@ export default function HomePage() {
                     </span>
                   </div>
                 </Tile>
-                <p className="line-clamp-2 p-3.5 text-xs leading-relaxed text-muted">{hub.intro}</p>
+                {/* Padding lives on the wrapper, never on the clamped element:
+                    line-clamp uses display:-webkit-box, and a padded box lets
+                    the line after the clamp bleed into the padding and get
+                    sliced in half instead of being hidden. */}
+                <div className="p-3.5">
+                  <p className="line-clamp-2 text-xs leading-relaxed text-muted">{hub.intro}</p>
+                </div>
               </Link>
             ))}
           </div>

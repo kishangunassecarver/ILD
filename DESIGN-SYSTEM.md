@@ -104,6 +104,11 @@ bottom scrim so overlaid white text stays legible on any artwork.
 a custom `.clamp-2` clips text mid-line instead of ellipsising it. Use Tailwind's
 built-in `line-clamp-*`.
 
+**Never put padding on a clamped element.** `line-clamp-*` works via
+`display: -webkit-box`, and on a padded box the line after the clamp bleeds into
+the padding and is sliced in half rather than hidden. Put the padding on a
+wrapper and the clamp on the text itself.
+
 **`backdrop-filter` creates a containing block for `position: fixed`
 descendants.** The header uses `backdrop-blur`, so the mobile drawer is rendered
 as a *sibling* of the header, not a child — inside it, `fixed inset-0` would

@@ -63,10 +63,15 @@ export function FeaturedBusinesses() {
               </Link>
 
               <div className="flex flex-1 flex-col gap-2 p-4">
-                <p className="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.12em] text-brand-500">
-                  <Store className="h-3 w-3" aria-hidden />
-                  {hub?.label ?? "Durban"}
-                  {listing.category && <span className="text-muted">· {listing.category}</span>}
+                {/* One line, always. The hub label is the part that must survive,
+                    so the category truncates rather than wrapping and making
+                    card heights ragged across a row. */}
+                <p className="flex items-center gap-1.5 overflow-hidden text-[0.625rem] font-bold uppercase tracking-[0.12em] text-brand-500">
+                  <Store className="h-3 w-3 shrink-0" aria-hidden />
+                  <span className="shrink-0">{hub?.label ?? "Durban"}</span>
+                  {listing.category && (
+                    <span className="truncate text-muted">· {listing.category}</span>
+                  )}
                 </p>
 
                 <div className="flex items-start justify-between gap-2">
