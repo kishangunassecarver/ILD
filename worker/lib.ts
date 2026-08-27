@@ -318,16 +318,27 @@ export async function withinRateLimit(
  * Best-effort: a rebuild that does not fire only delays the change until the
  * next publish, so nothing here is allowed to fail the caller.
  */
-export async function triggerDeploy(env: Env, reason: string): Promise<void> {
-  if (!env.DEPLOY_HOOK_URL) return;
+export async function triggerDeploy(env: Env, reason: string): Promise<string> {
+  if (!env.DEPLOY_HOOK_URL) return "no-hook-configured";
 
-  if (!(await withinRateLimit(env, "deploy:hook", 1, 60))) return;
+  if (!(await withinRateLimit(env, "deploy:hook", 1, 60))) return "throttled";
 
   try {
-    await fetch(env.DEPLOY_HOOK_URL, { method: "POST", body: "" });
+    const response = await fetch(env.DEPLOY_HOOK_URL, { method: "POST", body: "" });
+
+    if (!response.ok) {
+      // A rejected hook (bad URL, deleted hook) must be loud — a silent
+      // non-2xx here once left cancelled Premium perks on the live site.
+      const body = (await response.text()).slice(0, 200);
+      console.error(`[deploy] hook rejected (${reason}): ${response.status} ${body}`);
+      return `rejected:${response.status}`;
+    }
+
     console.log(`[deploy] rebuild triggered: ${reason}`);
+    return "ok";
   } catch (error) {
-    console.error(`[deploy] hook failed (${reason}):`, error);
+    console.error(`[deploy] hook unreachable (${reason}):`, error);
+    return "unreachable";
   }
 }
 

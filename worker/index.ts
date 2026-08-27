@@ -37,6 +37,7 @@ import {
 import {
   adminDecide,
   adminListingRemoved,
+  adminDeploy,
   adminPremium,
   adminRemoved,
   adminSubmissions,
@@ -157,6 +158,9 @@ export default {
           return await adminSubmissions(request, env);
         case "GET /api/admin/premium":
           return await adminPremium(request, env);
+
+        case "POST /api/admin/deploy":
+          return await adminDeploy(request, env);
         case "POST /api/admin/listing-removed":
           return await adminListingRemoved(request, env);
         case "GET /api/admin/removed":

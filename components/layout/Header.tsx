@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Heart, Menu, Search, X } from "lucide-react";
+import { ChevronDown, Heart, Menu, Search, User, X } from "lucide-react";
 import { AccountMenu } from "@/components/account/AccountMenu";
 import { useMember } from "@/components/account/MemberProvider";
 import { Logo } from "@/components/ui/Logo";
@@ -398,22 +398,29 @@ function MobileDrawer({
   );
 }
 
-/** "Join for free" until you have joined, then a way back to your saves. */
+/** Sign in until you have an account, then your dashboard and saves. */
 function DrawerAccountLink({ onClose }: { onClose: () => void }) {
   const { member, loading } = useMember();
 
   if (loading || !member) {
     return (
       <Link href="/join" onClick={onClose} className="btn-ghost w-full">
-        Join for free
+        <User className="mr-1.5 h-4 w-4" aria-hidden />
+        Sign in / Join for free
       </Link>
     );
   }
 
   return (
-    <Link href="/saved" onClick={onClose} className="btn-ghost w-full">
-      <Heart className="mr-1.5 h-4 w-4" aria-hidden />
-      Your saved places
-    </Link>
+    <>
+      <Link href="/my-business" onClick={onClose} className="btn-ghost w-full">
+        <User className="mr-1.5 h-4 w-4" aria-hidden />
+        My account
+      </Link>
+      <Link href="/saved" onClick={onClose} className="btn-ghost w-full">
+        <Heart className="mr-1.5 h-4 w-4" aria-hidden />
+        Your saved places
+      </Link>
+    </>
   );
 }

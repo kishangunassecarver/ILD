@@ -1245,6 +1245,10 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
       .bind(subscription.slug)
       .run();
 
+    // A cancellation that started on PayFast's side reaches us only here —
+    // the perks must still come off the site.
+    await triggerDeploy(env, `premium cancelled (ITN) for ${subscription.slug}`);
+
     if ((cancelMeta?.changes ?? 0) > 0) {
       const email = await memberEmailById(env, subscription.member_id);
       if (email) {
@@ -1549,6 +1553,17 @@ export async function adminListingRemoved(request: Request, env: Env): Promise<R
  * from any listing that is not on this list, so a lapsed subscription takes
  * its perks off the public site at the next rebuild.
  */
+/**
+ * POST /api/admin/deploy — fire the build hook on demand and report what
+ * Cloudflare actually said. The lifecycle callers ignore the outcome (they
+ * are best-effort); this exists so a human can test the hook end to end.
+ */
+export async function adminDeploy(request: Request, env: Env): Promise<Response> {
+  if (!isAdmin(request, env)) return json({ error: "Not authorised" }, { status: 401 });
+
+  return json({ result: await triggerDeploy(env, "manual admin trigger") });
+}
+
 export async function adminPremium(request: Request, env: Env): Promise<Response> {
   if (!isAdmin(request, env)) return json({ error: "Not authorised" }, { status: 401 });
 

@@ -43,7 +43,7 @@ export function AccountMenu() {
         href="/join"
         aria-label="Join or sign in"
         title="Join or sign in"
-        className="hidden h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5 md:grid"
+        className="grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5"
       >
         <User className="h-[1.15rem] w-[1.15rem]" aria-hidden />
       </Link>
@@ -53,7 +53,7 @@ export function AccountMenu() {
   const initial = (member.name || member.email).trim().charAt(0).toUpperCase();
 
   return (
-    <div ref={wrap} className="relative hidden md:block">
+    <div ref={wrap} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

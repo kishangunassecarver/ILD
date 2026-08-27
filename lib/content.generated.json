@@ -183,7 +183,7 @@
       ],
       "image": "https://ild.kishan-bde.workers.dev/api/media/listings/943b21312c1910fa2a91e43dba8f660f79da786c4db06ff5d8cf52f6149e8781.webp",
       "ownerManaged": true,
-      "featured": true
+      "featured": false
     },
     {
       "slug": "tigers-milk-umhlanga",
@@ -200,7 +200,7 @@
       "website": "https://www.tigersmilk.co.za/",
       "image": "https://ild.kishan-bde.workers.dev/api/media/listings/2a4203e4ea4dac7ce640a98201188ff1e3334c59967102ef07fad4fa3d542349.jpg",
       "ownerManaged": true,
-      "featured": true
+      "featured": false
     },
     {
       "slug": "the-cargo-hold",
