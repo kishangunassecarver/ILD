@@ -19,6 +19,7 @@ import {
   now,
   randomToken,
   readJson,
+  triggerDeploy,
   unauthorised,
   withinRateLimit,
   type Env,
@@ -80,6 +81,8 @@ const EDITABLE: Record<string, FieldRule> = {
   // Premium only, and every entry must be a URL our own uploader issued —
   // both enforced in submitEdit, on top of the shape rules here.
   gallery: { kind: "list", max: 10, each: 300, label: "Gallery photos" },
+  // The featured photo. Own-uploader URLs only, enforced in submitEdit.
+  imageUrl: { kind: "line", max: 300, label: "Featured photo" },
 };
 
 /**
@@ -565,6 +568,11 @@ export async function submitEdit(request: Request, env: Env): Promise<Response> 
 
   if (Object.keys(fields).length === 0) return badRequest("No changes were submitted.");
 
+  // The featured photo must come from our own uploader (or be cleared).
+  if ("imageUrl" in fields && fields.imageUrl !== null && !isOwnMediaUrl(fields.imageUrl)) {
+    return badRequest("Upload the photo through the dashboard first.");
+  }
+
   // The gallery is a Premium feature, and only our own uploads belong in it.
   if ("gallery" in fields && fields.gallery !== null) {
     const entries = fields.gallery as string[];
@@ -811,6 +819,104 @@ function isAdmin(request: Request, env: Env): boolean {
   return supplied.length > 0 && secretsMatch(supplied, env.ADMIN_TOKEN);
 }
 
+/**
+ * POST /api/business/delete — an owner removing their own listing.
+ *
+ * Only listings that came in through "Add a Listing" can be deleted here;
+ * curated directory content is not an owner's to remove. Deleting a Premium
+ * listing cancels its subscription at PayFast first — nobody keeps paying for
+ * a listing they removed.
+ *
+ * The WordPress post stays (the plugin stops publishing the slug and the
+ * admin can trash the post whenever); the site drops it at the next rebuild.
+ */
+export async function ownerDeleteListing(request: Request, env: Env): Promise<Response> {
+  const member = await currentMember(request, env);
+  if (!member) return unauthorised();
+
+  const body = await readJson<{ slug: unknown }>(request);
+  const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+  if (!SLUG.test(slug)) return badRequest("That is not a valid listing.");
+
+  const submission = await env.DB.prepare(
+    `SELECT id FROM listing_submissions
+      WHERE member_id = ?1 AND slug = ?2 AND status IN ('pending','approved')`
+  )
+    .bind(member.id, slug)
+    .first<{ id: string }>();
+
+  if (!submission) {
+    return json({ error: "Only listings you added yourself can be removed here." }, { status: 403 });
+  }
+
+  // Money first.
+  const { results } = await env.DB.prepare(
+    "SELECT id, pf_token, status FROM subscriptions WHERE slug = ?1 AND status IN ('active','initiated')"
+  )
+    .bind(slug)
+    .all<{ id: string; pf_token: string | null; status: string }>();
+
+  for (const subscription of results ?? []) {
+    if (subscription.status === "active" && subscription.pf_token) {
+      const done = await cancelSubscription(env, subscription.pf_token);
+      if (!done) {
+        return json(
+          {
+            error:
+              "PayFast did not accept the subscription cancellation. Try again in a minute — the listing was not removed.",
+          },
+          { status: 502 }
+        );
+      }
+    }
+
+    await env.DB.prepare("UPDATE subscriptions SET status = ?1, updated_at = ?2 WHERE id = ?3")
+      .bind(subscription.status === "active" ? "cancelled" : "failed", now(), subscription.id)
+      .run();
+  }
+
+  const note = "Removed by you.";
+
+  await env.DB.prepare(
+    `UPDATE listing_submissions SET status = 'deleted', decided_at = ?1, decided_note = ?2
+      WHERE id = ?3`
+  )
+    .bind(now(), note, submission.id)
+    .run();
+
+  await env.DB.prepare(
+    `UPDATE listing_claims SET status = 'rejected', decided_at = ?1, decided_note = ?2
+      WHERE slug = ?3 AND member_id = ?4 AND status != 'rejected'`
+  )
+    .bind(now(), note, slug, member.id)
+    .run();
+
+  await env.DB.prepare(
+    `UPDATE listing_edits SET status = 'superseded', decided_at = ?1
+      WHERE slug = ?2 AND status = 'pending'`
+  )
+    .bind(now(), slug)
+    .run();
+
+  await triggerDeploy(env, `owner removed ${slug}`);
+
+  return json({ ok: true });
+}
+
+/**
+ * GET /api/admin/removed — slugs whose owners deleted them. The WordPress
+ * plugin consults this at build time and stops publishing those listings.
+ */
+export async function adminRemoved(request: Request, env: Env): Promise<Response> {
+  if (!isAdmin(request, env)) return json({ error: "Not authorised" }, { status: 401 });
+
+  const { results } = await env.DB.prepare(
+    "SELECT DISTINCT slug FROM listing_submissions WHERE status = 'deleted'"
+  ).all<{ slug: string }>();
+
+  return json({ slugs: (results ?? []).map((row) => row.slug) });
+}
+
 /* -------------------------------------------------------------------------
  * Premium subscriptions (PayFast)
  * ---------------------------------------------------------------------- */
@@ -987,6 +1093,9 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
     )
       .bind(subscription.slug)
       .run();
+
+    // Premium perks (the gallery) reach the public site on the next build.
+    await triggerDeploy(env, `premium activated for ${subscription.slug}`);
   } else if (status === "CANCELLED") {
     await env.DB.prepare(
       "UPDATE subscriptions SET status = 'cancelled', updated_at = ?1 WHERE id = ?2"
@@ -1039,6 +1148,9 @@ export async function billingCancel(request: Request, env: Env): Promise<Respons
   await env.DB.prepare("UPDATE listing_submissions SET plan = 'free' WHERE slug = ?1")
     .bind(slug)
     .run();
+
+  // The gallery comes off the public listing on the next build.
+  await triggerDeploy(env, `premium cancelled for ${slug}`);
 
   return json({ ok: true });
 }
@@ -1136,6 +1248,71 @@ export async function billingInvoice(request: Request, env: Env, url: URL): Prom
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store" },
   });
+}
+
+/**
+ * POST /api/admin/listing-removed — WordPress deleted (or trashed) a listing.
+ *
+ * The listing post was the source of truth, so everything hanging off it is
+ * wound down: active subscriptions are cancelled at PayFast and locally,
+ * pending checkouts are failed, and the owner's submission, claim and pending
+ * edits are closed with a note saying why.
+ */
+export async function adminListingRemoved(request: Request, env: Env): Promise<Response> {
+  if (!isAdmin(request, env)) return json({ error: "Not authorised" }, { status: 401 });
+
+  const body = await readJson<{ slug: unknown }>(request);
+  const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+  if (!SLUG.test(slug)) return badRequest("That is not a valid listing slug.");
+
+  const note = "This listing was removed from the site.";
+
+  // Cancel the money first. Best-effort at PayFast; unconditional locally —
+  // we must never keep charging for a listing that no longer exists.
+  const { results } = await env.DB.prepare(
+    "SELECT id, pf_token, status FROM subscriptions WHERE slug = ?1 AND status IN ('active','initiated')"
+  )
+    .bind(slug)
+    .all<{ id: string; pf_token: string | null; status: string }>();
+
+  let cancelled = 0;
+  for (const subscription of results ?? []) {
+    if (subscription.status === "active" && subscription.pf_token) {
+      const done = await cancelSubscription(env, subscription.pf_token);
+      if (!done) {
+        console.error(`[billing] PayFast refused the cancel for ${subscription.id} (${slug})`);
+      }
+    }
+
+    await env.DB.prepare("UPDATE subscriptions SET status = ?1, updated_at = ?2 WHERE id = ?3")
+      .bind(subscription.status === "active" ? "cancelled" : "failed", now(), subscription.id)
+      .run();
+
+    cancelled += 1;
+  }
+
+  await env.DB.prepare(
+    `UPDATE listing_submissions SET status = 'rejected', decided_at = ?1, decided_note = ?2
+      WHERE slug = ?3 AND status != 'rejected'`
+  )
+    .bind(now(), note, slug)
+    .run();
+
+  await env.DB.prepare(
+    `UPDATE listing_claims SET status = 'rejected', decided_at = ?1, decided_note = ?2
+      WHERE slug = ?3 AND status != 'rejected'`
+  )
+    .bind(now(), note, slug)
+    .run();
+
+  await env.DB.prepare(
+    `UPDATE listing_edits SET status = 'superseded', decided_at = ?1
+      WHERE slug = ?2 AND status = 'pending'`
+  )
+    .bind(now(), slug)
+    .run();
+
+  return json({ ok: true, subscriptionsClosed: cancelled });
 }
 
 /**

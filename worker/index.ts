@@ -36,8 +36,11 @@ import {
 } from "./lib";
 import {
   adminDecide,
+  adminListingRemoved,
   adminPremium,
+  adminRemoved,
   adminSubmissions,
+  ownerDeleteListing,
   billingCancel,
   billingCheckout,
   billingInvoice,
@@ -138,6 +141,8 @@ export default {
           return await myBusinesses(request, env);
         case "POST /api/business/edit":
           return await submitEdit(request, env);
+        case "POST /api/business/delete":
+          return await ownerDeleteListing(request, env);
         case "POST /api/billing/checkout":
           return await billingCheckout(request, env, url);
         case "POST /api/billing/notify":
@@ -152,6 +157,10 @@ export default {
           return await adminSubmissions(request, env);
         case "GET /api/admin/premium":
           return await adminPremium(request, env);
+        case "POST /api/admin/listing-removed":
+          return await adminListingRemoved(request, env);
+        case "GET /api/admin/removed":
+          return await adminRemoved(request, env);
         case "POST /api/admin/decide":
           return await adminDecide(request, env);
         default:

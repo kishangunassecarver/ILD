@@ -11,6 +11,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import { useMember } from "@/components/account/MemberProvider";
@@ -19,6 +20,7 @@ import {
   cancelPremium,
   claimListing,
   createListing,
+  deleteListing,
   fetchMyBusinesses,
   startPremiumCheckout,
   submitListingEdit,
@@ -124,7 +126,8 @@ export function BusinessDashboard() {
   }
 
   const claims = data?.claims ?? [];
-  const submissions = data?.submissions ?? [];
+  // Deleted-by-owner listings are gone as far as the dashboard is concerned.
+  const submissions = (data?.submissions ?? []).filter((s) => s.status !== "deleted");
   const edits = data?.edits ?? [];
   const subscriptions = data?.subscriptions ?? [];
   const price = data?.premiumPrice ?? 199;
@@ -493,6 +496,53 @@ function PremiumControls({
   );
 }
 
+/** Owner-side removal, with an honest confirmation. */
+function RemoveListingButton({
+  slug,
+  name,
+  premium,
+  onRemoved,
+}: {
+  slug: string;
+  name: string;
+  premium: boolean;
+  onRemoved: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  async function onRemove() {
+    const warning = premium
+      ? `Remove "${name}" from I Love Durban?\n\nYour R99/month Premium subscription will be cancelled first — you will not be billed again. This cannot be undone.`
+      : `Remove "${name}" from I Love Durban?\n\nIt will come off the site and out of your dashboard. This cannot be undone.`;
+
+    if (!window.confirm(warning)) return;
+
+    setBusy(true);
+    const result = await deleteListing(slug);
+    setBusy(false);
+
+    if (!result.ok) {
+      window.alert(result.error ?? "Could not remove the listing. Please try again.");
+      return;
+    }
+
+    onRemoved();
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => void onRemove()}
+      disabled={busy}
+      aria-label={`Remove ${name}`}
+      title="Remove this listing"
+      className="grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-brand-500/15 hover:text-brand-400"
+    >
+      <Trash2 className="h-4 w-4" aria-hidden />
+    </button>
+  );
+}
+
 /* -------------------------------------------------------------------------
  * Rows
  * ---------------------------------------------------------------------- */
@@ -553,6 +603,13 @@ function SubmissionRow({
             Edit
           </button>
         )}
+
+        <RemoveListingButton
+          slug={submission.slug}
+          name={name}
+          premium={subscription?.status === "active"}
+          onRemoved={onChanged}
+        />
       </div>
 
       {submission.status === "pending" && (
@@ -1198,17 +1255,49 @@ function ListingEditor({
   const [draft, setDraft] = useState(original);
   const [originalGallery] = useState<string[]>(() => listing?.gallery ?? []);
   const [gallery, setGallery] = useState<string[]>(originalGallery);
+  const [originalPhoto] = useState<string | null>(
+    () => listing?.image ?? submission?.image_url ?? null
+  );
+  const [photo, setPhoto] = useState<string | null>(originalPhoto);
   const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
   const galleryInput = useRef<HTMLInputElement>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
 
   const galleryChanged = gallery.join("\n") !== originalGallery.join("\n");
-  const changedCount = Object.keys(draftToFields(draft, original)).length + (galleryChanged ? 1 : 0);
+  const photoChanged = photo !== originalPhoto;
+  const changedCount =
+    Object.keys(draftToFields(draft, original)).length +
+    (galleryChanged ? 1 : 0) +
+    (photoChanged ? 1 : 0);
 
   function set(key: string) {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setDraft((d) => ({ ...d, [key]: event.target.value }));
+  }
+
+  async function onReplacePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Keep the photo under 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    const result = await uploadListingImage(file);
+    setUploading(false);
+
+    if (!result.ok || !result.url) {
+      setError(result.error ?? "The upload did not go through.");
+      return;
+    }
+
+    setPhoto(result.url);
   }
 
   async function onAddGalleryPhoto(event: React.ChangeEvent<HTMLInputElement>) {
@@ -1243,6 +1332,7 @@ function ListingEditor({
 
     const fields = draftToFields(draft, original);
     if (galleryChanged) fields.gallery = gallery;
+    if (photoChanged) fields.imageUrl = photo;
 
     if (Object.keys(fields).length === 0) {
       setError("Nothing has changed yet.");
@@ -1398,6 +1488,57 @@ function ListingEditor({
         <Field label="Button label" id="edit-cta" hint='The card action, e.g. "Book a Table".'>
           <input id="edit-cta" value={draft.cta} onChange={set("cta")} className="field" />
         </Field>
+      </div>
+
+      {/* The featured photo — one on every plan. */}
+      <div className="border-t border-line pt-5">
+        <p className="mb-1.5 text-xs font-semibold text-snow">
+          Featured photo{" "}
+          <span className="font-normal text-muted">(shown on your card and page)</span>
+        </p>
+
+        <input
+          ref={photoInput}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={onReplacePhoto}
+          className="sr-only"
+          id="edit-photo-file"
+        />
+
+        {photo ? (
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
+            <img src={photo} alt="Featured photo" className="h-20 w-32 rounded-lg object-cover" />
+            <div className="space-y-1.5">
+              <button
+                type="button"
+                onClick={() => photoInput.current?.click()}
+                disabled={uploading}
+                className="block text-xs font-semibold text-aqua-300 underline"
+              >
+                {uploading ? "Uploading…" : "Replace photo"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPhoto(null)}
+                className="block text-xs font-semibold text-muted underline"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => photoInput.current?.click()}
+            disabled={uploading}
+            className="flex h-20 w-full items-center justify-center gap-2.5 rounded-lg border border-dashed border-snow/25 text-sm font-semibold text-mist transition hover:border-aqua-400/70 hover:text-aqua-200"
+          >
+            <ImagePlus className="h-5 w-5" aria-hidden />
+            {uploading ? "Uploading…" : "Upload a photo (JPEG, PNG or WebP, up to 5 MB)"}
+          </button>
+        )}
       </div>
 
       {/* The Premium gallery. */}

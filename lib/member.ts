@@ -167,7 +167,7 @@ export interface ListingSubmission {
   fields: Record<string, unknown>;
   image_url: string | null;
   plan: "free" | "premium";
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "deleted";
   created_at: number;
   decided_at: number | null;
   decided_note: string | null;
@@ -244,6 +244,11 @@ export async function createListing(input: {
   const result = await post("/api/business/create", input);
 
   return { ...result, slug: result.data?.slug as string | undefined };
+}
+
+/** Remove an owner-added listing; a Premium subscription is cancelled first. */
+export async function deleteListing(slug: string): Promise<{ ok: boolean; error?: string }> {
+  return post("/api/business/delete", { slug });
 }
 
 /* -------------------------------------------------------------------------

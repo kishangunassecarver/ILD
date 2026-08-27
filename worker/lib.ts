@@ -27,6 +27,12 @@ export interface Env {
    * submission queue. Unset means the admin endpoints are closed.
    */
   ADMIN_TOKEN?: string;
+  /**
+   * The Cloudflare deploy hook. When set, the Worker triggers a site rebuild
+   * after changes that must reach the public site without waiting for the
+   * next WordPress publish (a Premium activation, an owner deleting a listing).
+   */
+  DEPLOY_HOOK_URL?: string;
   /** Where to send "an owner has submitted an edit" notifications. */
   REVIEW_EMAIL?: string;
   /** Where "list your business" enquiries go. Falls back to REVIEW_EMAIL. */
@@ -304,6 +310,25 @@ export async function withinRateLimit(
     .run();
 
   return true;
+}
+
+/**
+ * Trigger a site rebuild, at most once a minute.
+ *
+ * Best-effort: a rebuild that does not fire only delays the change until the
+ * next publish, so nothing here is allowed to fail the caller.
+ */
+export async function triggerDeploy(env: Env, reason: string): Promise<void> {
+  if (!env.DEPLOY_HOOK_URL) return;
+
+  if (!(await withinRateLimit(env, "deploy:hook", 1, 60))) return;
+
+  try {
+    await fetch(env.DEPLOY_HOOK_URL, { method: "POST", body: "" });
+    console.log(`[deploy] rebuild triggered: ${reason}`);
+  } catch (error) {
+    console.error(`[deploy] hook failed (${reason}):`, error);
+  }
 }
 
 /**

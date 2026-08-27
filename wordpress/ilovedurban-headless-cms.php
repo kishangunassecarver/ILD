@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.8.0
+ * Version:      3.9.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -2474,6 +2474,60 @@ function ild_settings_payload(): array {
 }
 
 /**
+ * Tell the Worker a listing is gone from WordPress, so it can close the
+ * owner's dashboard entries and auto-cancel any PayFast subscription.
+ * Best-effort — a missed sync only means the owner asks about it.
+ */
+function ild_notify_listing_removed( string $slug ): void {
+	// Trashing appends "__trashed" to the post slug; report the real one.
+	$slug = preg_replace( '/__trashed(-\d+)?$/', '', $slug );
+	if ( ! $slug ) {
+		return;
+	}
+
+	$res = ild_worker_request( 'POST', '/api/admin/listing-removed', array( 'slug' => $slug ) );
+	if ( is_wp_error( $res ) ) {
+		error_log( '[ilovedurban] could not sync a listing removal: ' . $res->get_error_message() );
+	}
+}
+
+add_action( 'wp_trash_post', 'ild_on_listing_trashed' );
+function ild_on_listing_trashed( $post_id ): void {
+	$post = get_post( $post_id );
+	if ( $post && 'ild_listing' === $post->post_type ) {
+		ild_notify_listing_removed( (string) $post->post_name );
+	}
+}
+
+add_action( 'before_delete_post', 'ild_on_listing_hard_deleted', 10, 2 );
+function ild_on_listing_hard_deleted( $post_id, $post ): void {
+	if ( $post instanceof WP_Post && 'ild_listing' === $post->post_type ) {
+		ild_notify_listing_removed( (string) $post->post_name );
+	}
+}
+
+/**
+ * Slugs whose owners deleted them from the dashboard, from the Worker.
+ * Same caching and failure posture as the premium list below.
+ */
+function ild_removed_slugs(): ?array {
+	$cached = get_transient( 'ild_removed_slugs' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
+	$data = ild_worker_request( 'GET', '/api/admin/removed' );
+	if ( is_wp_error( $data ) || ! isset( $data['slugs'] ) || ! is_array( $data['slugs'] ) ) {
+		return null;
+	}
+
+	$slugs = array_map( 'strval', $data['slugs'] );
+	set_transient( 'ild_removed_slugs', $slugs, 5 * MINUTE_IN_SECONDS );
+
+	return $slugs;
+}
+
+/**
  * Slugs with an active Premium subscription, from the Worker.
  *
  * Cached for five minutes so a build does not hammer the API, and null when
@@ -2502,11 +2556,19 @@ function ild_rest_content(): WP_REST_Response {
 	$payload = ild_settings_payload();
 
 	$premium = ild_premium_slugs();
+	$removed = ild_removed_slugs();
 
 	foreach ( ild_schema() as $type => $config ) {
 		$entries = array();
 		foreach ( ild_posts( $type ) as $post ) {
 			$entry = ild_entry( $post, $config );
+			$slug  = (string) ( $entry['slug'] ?? '' );
+
+			// The owner deleted it from their dashboard: stop publishing it.
+			// The post itself stays in WordPress for the admin to tidy up.
+			if ( 'ild_listing' === $type && null !== $removed && in_array( $slug, $removed, true ) ) {
+				continue;
+			}
 
 			/*
 			 * The gallery is a Premium feature. A cancelled subscription takes
@@ -2514,7 +2576,7 @@ function ild_rest_content(): WP_REST_Response {
 			 * the listing post, so re-subscribing brings them straight back.
 			 */
 			if ( 'ild_listing' === $type && null !== $premium && ! empty( $entry['gallery'] )
-				&& ! in_array( (string) ( $entry['slug'] ?? '' ), $premium, true ) ) {
+				&& ! in_array( $slug, $premium, true ) ) {
 				unset( $entry['gallery'] );
 			}
 
