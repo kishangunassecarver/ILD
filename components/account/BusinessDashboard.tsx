@@ -516,7 +516,7 @@ function RemoveListingButton({
 
   async function onRemove() {
     const warning = premium
-      ? `Remove "${name}" from I Love Durban?\n\nYour R99/month Premium subscription will be cancelled first — you will not be billed again. This cannot be undone.`
+      ? `Remove "${name}" from I Love Durban?\n\nYour monthly Premium subscription will be cancelled first — you will not be billed again. This cannot be undone.`
       : `Remove "${name}" from I Love Durban?\n\nIt will come off the site and out of your dashboard. This cannot be undone.`;
 
     if (!window.confirm(warning)) return;

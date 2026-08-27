@@ -3,11 +3,12 @@ import Link from "next/link";
 import { Check, Crown, Eye, MessageSquare, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { STATS } from "@/lib/cms";
+import { PREMIUM_PRICE_RANDS } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "List your business",
   description:
-    "Get your Durban business in front of the people already searching for it. Free listings that never expire, and a Premium upgrade for R99 a month.",
+    "Get your Durban business in front of the people already searching for it. Free listings that never expire, and a monthly Premium upgrade.",
 };
 
 const BENEFITS = [
@@ -52,7 +53,7 @@ const PLANS = [
   },
   {
     name: "Premium",
-    price: "R99",
+    price: `R${PREMIUM_PRICE_RANDS}`,
     period: "per month, cancel anytime",
     summary: "Stand out, with more to show.",
     includes: [
