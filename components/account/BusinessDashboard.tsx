@@ -721,6 +721,13 @@ function AddListingForm({
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const panel = useRef<HTMLFormElement>(null);
+
+  // The form mounts below any existing listings, off-screen on a phone — the
+  // tap on "Add a Listing" must visibly land somewhere.
+  useEffect(() => {
+    panel.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   async function onPickImage(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -831,7 +838,7 @@ function AddListingForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
+    <form ref={panel} onSubmit={onSubmit} className="panel scroll-mt-24 space-y-5 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-snow">Add your listing</h2>
@@ -1067,6 +1074,11 @@ function ClaimForm({
   );
   const [state, setState] = useState<"idle" | "sending" | "error">("idle");
   const [error, setError] = useState("");
+  const panel = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    panel.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -1105,7 +1117,7 @@ function ClaimForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
+    <form ref={panel} onSubmit={onSubmit} className="panel scroll-mt-24 space-y-5 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-snow">Claim your listing</h2>
@@ -1350,6 +1362,11 @@ function ListingEditor({
   const [error, setError] = useState("");
   const galleryInput = useRef<HTMLInputElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
+  const panel = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    panel.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const galleryChanged = gallery.join("\n") !== originalGallery.join("\n");
   const photoChanged = photo !== originalPhoto;
@@ -1457,7 +1474,7 @@ function ListingEditor({
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
+    <form ref={panel} onSubmit={onSubmit} className="panel scroll-mt-24 space-y-5 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-snow">
