@@ -4,11 +4,11 @@
  *
  * Runs automatically before `next build` (see the "prebuild" script).
  *
- * Configure with WORDPRESS_URL, e.g.
- *   WORDPRESS_URL=https://cms.ilovedurban.co.za
+ * The CMS lives at DEFAULT_CMS below; WORDPRESS_URL overrides it (set it to
+ * "off" to deliberately build with only the defaults from lib/data.ts).
  *
- * This never fails the build. If WordPress is unset, unreachable, slow or
- * returns junk, it writes {} and the site ships its default content.
+ * This never fails the build. If WordPress is unreachable, slow or returns
+ * junk, it writes {} and the site ships its default content.
  */
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,12 @@ const OUT = path.join(
 );
 const ENDPOINT = "/wp-json/ilovedurban/v1/content";
 const TIMEOUT_MS = 20_000;
+
+/**
+ * The project's CMS. A build that quietly forgot WORDPRESS_URL used to ship
+ * the demo seed content to production, so the real CMS is now the default.
+ */
+const DEFAULT_CMS = "https://cms.howsit.ai";
 
 /** Keys lib/cms.ts understands. Anything else WordPress sends is ignored. */
 const ALLOWED = new Set([
@@ -55,10 +61,10 @@ function describe(content) {
 }
 
 async function main() {
-  const base = process.env.WORDPRESS_URL?.trim().replace(/\/+$/, "");
+  const base = (process.env.WORDPRESS_URL?.trim() || DEFAULT_CMS).replace(/\/+$/, "");
 
-  if (!base) {
-    await write({}, "WORDPRESS_URL not set — building with default content from lib/data.ts");
+  if (base === "off") {
+    await write({}, "WORDPRESS_URL=off — building with default content from lib/data.ts");
     return;
   }
 
