@@ -124,9 +124,15 @@ export function md5(input: string): string {
   return [...out].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** PayFast wants PHP-style urlencoding: spaces as +, uppercase hex. */
+/**
+ * PayFast signatures assume PHP's urlencode exactly: space becomes +, and
+ * everything outside [A-Za-z0-9-_.] is %XX with uppercase hex — including the
+ * characters JavaScript's encodeURIComponent leaves bare.
+ */
 function pfEncode(value: string): string {
-  return encodeURIComponent(value).replace(/%20/g, "+").replace(/'/g, "%27");
+  return encodeURIComponent(value)
+    .replace(/%20/g, "+")
+    .replace(/[!'()*~]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 }
 
 /**
@@ -227,14 +233,22 @@ export function parseItn(body: string): Itn {
   return { params, raw: body };
 }
 
-/** Signature check: the posted fields, in posted order, minus the signature. */
+/**
+ * Signature check: the posted fields, in posted order, minus the signature.
+ *
+ * Unlike the checkout form, the ITN signature covers EMPTY fields too —
+ * PayFast's own sample builds the string from every posted variable. Skipping
+ * blanks (the checkout rule) made every real notification fail verification.
+ */
 export function itnSignatureValid(itn: Itn, passphrase: string): boolean {
-  const fields: [string, string][] = [];
+  const parts: string[] = [];
   for (const [key, value] of itn.params) {
-    if (key !== "signature") fields.push([key, value]);
+    if (key !== "signature") parts.push(`${key}=${pfEncode(value)}`);
   }
 
-  return pfSignature(fields, passphrase) === (itn.params.get("signature") ?? "");
+  if (passphrase) parts.push(`passphrase=${pfEncode(passphrase.trim())}`);
+
+  return md5(parts.join("&")) === (itn.params.get("signature") ?? "");
 }
 
 /**
