@@ -66,14 +66,15 @@ export function md5(input: string): string {
   const K = new Uint32Array(64);
   for (let i = 0; i < 64; i += 1) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32);
 
+  // Pad to a multiple of 64 bytes, with the 8-byte bit length at the very end.
   const length = bytes.length;
-  const withPadding = ((length + 8) >> 6) * 64 + 64;
-  const buffer = new Uint8Array(withPadding + 8);
+  const total = (((length + 8) >> 6) + 1) * 64;
+  const buffer = new Uint8Array(total);
   buffer.set(bytes);
   buffer[length] = 0x80;
   const bitLength = length * 8;
-  new DataView(buffer.buffer).setUint32(withPadding, bitLength >>> 0, true);
-  new DataView(buffer.buffer).setUint32(withPadding + 4, Math.floor(bitLength / 2 ** 32), true);
+  new DataView(buffer.buffer).setUint32(total - 8, bitLength >>> 0, true);
+  new DataView(buffer.buffer).setUint32(total - 4, Math.floor(bitLength / 2 ** 32), true);
 
   let [a0, b0, c0, d0] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
   const view = new DataView(buffer.buffer);
