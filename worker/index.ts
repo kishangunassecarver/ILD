@@ -37,10 +37,16 @@ import {
 import {
   adminDecide,
   adminSubmissions,
+  billingCancel,
+  billingCheckout,
+  billingNotify,
   claimListing,
+  createListing,
   myBusinesses,
+  serveMedia,
   submitEdit,
   submitEnquiry,
+  uploadListingImage,
 } from "./business";
 import { emailHtml, emailText, type AuthEmail } from "./email";
 
@@ -86,7 +92,14 @@ export default {
 
     const secure = url.protocol === "https:";
 
+    // Uploaded listing photos, served straight back out.
+    if (request.method === "GET" && url.pathname.startsWith("/api/media/")) {
+      return serveMedia(request, env, url);
+    }
+
     // Every mutation is a POST, and every POST must come from this origin.
+    // (PayFast's webhook arrives server-to-server with no Origin header, which
+    // sameOrigin treats as first-party — the ITN proves itself another way.)
     if (request.method === "POST" && !sameOrigin(request)) {
       return json({ error: "Cross-site request refused" }, { status: 403 });
     }
@@ -115,10 +128,20 @@ export default {
           return await toggleSave(request, env);
         case "POST /api/business/claim":
           return await claimListing(request, env);
+        case "POST /api/business/create":
+          return await createListing(request, env);
+        case "POST /api/business/upload":
+          return await uploadListingImage(request, env);
         case "GET /api/business/mine":
           return await myBusinesses(request, env);
         case "POST /api/business/edit":
           return await submitEdit(request, env);
+        case "POST /api/billing/checkout":
+          return await billingCheckout(request, env, url);
+        case "POST /api/billing/notify":
+          return await billingNotify(request, env);
+        case "POST /api/billing/cancel":
+          return await billingCancel(request, env);
         case "POST /api/enquiries":
           return await submitEnquiry(request, env);
         case "GET /api/admin/submissions":

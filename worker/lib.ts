@@ -10,6 +10,12 @@ export interface Env {
   DB: D1Database;
   /** The static site, served through the Worker (see serveAsset). */
   ASSETS: Fetcher;
+  /** Listing photos, keyed "listings/<id>.<ext>", content type in metadata. */
+  MEDIA: KVNamespace;
+  /** PayFast live credentials. Unset means the sandbox test merchant. */
+  PAYFAST_MERCHANT_ID?: string;
+  PAYFAST_MERCHANT_KEY?: string;
+  PAYFAST_PASSPHRASE?: string;
   /** Resend API key. Without it, sign-in links are logged instead of emailed. */
   RESEND_API_KEY?: string;
   /** Verified sender, e.g. "I Love Durban <hello@ilovedurban.co.za>". */

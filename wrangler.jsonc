@@ -17,6 +17,15 @@
     // on raw .txt navigation payloads after a deploy (see worker/index.ts).
     "run_worker_first": true
   },
+  // Listing photos uploaded from the owner dashboard, served back through
+  // GET /api/media/*. KV rather than R2 only because R2 is not enabled on
+  // this account — the storage calls are isolated in worker/business.ts.
+  "kv_namespaces": [
+    {
+      "binding": "MEDIA",
+      "id": "a85c62e8f3d0485bb0a1b9441a2aa126"
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",

@@ -159,14 +159,119 @@ export interface EditSubmission {
   decided_note: string | null;
 }
 
+/** A brand-new listing submitted from the dashboard. */
+export interface ListingSubmission {
+  id: string;
+  slug: string;
+  hub: string;
+  fields: Record<string, unknown>;
+  image_url: string | null;
+  plan: "free" | "premium";
+  status: "pending" | "approved" | "rejected";
+  created_at: number;
+  decided_at: number | null;
+  decided_note: string | null;
+}
+
+export interface Subscription {
+  id: string;
+  slug: string;
+  status: "initiated" | "active" | "cancelled" | "failed";
+  amount_cents: number;
+  last_paid_at: number | null;
+  created_at: number;
+}
+
 export interface MyBusinesses {
   claims: Claim[];
+  submissions: ListingSubmission[];
   edits: EditSubmission[];
+  subscriptions: Subscription[];
+  premiumPrice: number;
   editable: Record<string, { label: string; kind: string }>;
 }
 
 export async function fetchMyBusinesses(): Promise<MyBusinesses | null> {
   return call<MyBusinesses>("/api/business/mine");
+}
+
+/* -------------------------------------------------------------------------
+ * Adding a listing
+ * ---------------------------------------------------------------------- */
+
+/** Upload the listing photo; returns the /api/media/… URL to submit with. */
+export async function uploadListingImage(
+  file: File
+): Promise<{ ok: boolean; url?: string; error?: string }> {
+  try {
+    const response = await fetch("/api/business/upload", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+
+    const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: typeof data.error === "string" ? data.error : "The upload did not go through.",
+      };
+    }
+
+    return { ok: true, url: data.url as string };
+  } catch {
+    return { ok: false, error: "Could not reach the server. Check your connection and try again." };
+  }
+}
+
+export async function createListing(input: {
+  hub: string;
+  fields: Record<string, unknown>;
+  image?: string | null;
+}): Promise<{ ok: boolean; error?: string; slug?: string }> {
+  const result = await post("/api/business/create", input);
+
+  return { ...result, slug: result.data?.slug as string | undefined };
+}
+
+/* -------------------------------------------------------------------------
+ * Premium billing
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Start the PayFast checkout: ask the Worker for the signed form, then build
+ * and submit it so the browser lands on PayFast's payment page.
+ */
+export async function startPremiumCheckout(slug: string): Promise<{ ok: boolean; error?: string }> {
+  const result = await post("/api/billing/checkout", { slug });
+
+  if (!result.ok || !result.data) return result;
+
+  const action = result.data.action as string;
+  const fields = result.data.fields as Record<string, string>;
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = action;
+
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+
+  return { ok: true };
+}
+
+export async function cancelPremium(slug: string): Promise<{ ok: boolean; error?: string }> {
+  return post("/api/billing/cancel", { slug });
 }
 
 /**

@@ -1,41 +1,79 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Building2, Clock, Pencil, Search, X } from "lucide-react";
+import {
+  BadgeCheck,
+  Building2,
+  Clock,
+  Crown,
+  ImagePlus,
+  Pencil,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { useMember } from "@/components/account/MemberProvider";
 import { LISTINGS } from "@/lib/cms";
 import {
+  cancelPremium,
   claimListing,
+  createListing,
   fetchMyBusinesses,
+  startPremiumCheckout,
   submitListingEdit,
+  uploadListingImage,
   type Claim,
+  type ListingSubmission,
   type MyBusinesses,
+  type Subscription,
 } from "@/lib/member";
 import type { Listing } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+const HUB_OPTIONS = [
+  { value: "eat-drink", label: "Eat & Drink" },
+  { value: "stay", label: "Stay" },
+  { value: "things-to-do", label: "Things to Do" },
+  { value: "shop", label: "Shop" },
+  { value: "services", label: "Services" },
+];
+
 /**
- * The business owner's dashboard: claim your listing, then keep it up to date.
+ * The business owner's dashboard.
  *
- * Everything submitted here lands in a review queue — the page is explicit
- * about that, because "why isn't my change live yet?" is the support email this
- * paragraph exists to prevent.
+ * Add a listing, watch its review status, edit it once it is live, and manage
+ * the Premium subscription. Everything submitted here lands in a review queue
+ * in WordPress — nothing an owner types or uploads reaches the site without a
+ * person approving it.
  */
 export function BusinessDashboard() {
   const { member, loading } = useMember();
   const [data, setData] = useState<MyBusinesses | null>(null);
   const [fetched, setFetched] = useState(false);
   const [editing, setEditing] = useState<Claim | null>(null);
+  const [adding, setAdding] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [prefillSlug, setPrefillSlug] = useState<string | null>(null);
+  const [banner, setBanner] = useState<string | null>(null);
 
-  // A listing page can deep-link here with ?claim=<slug> to start a claim.
   useEffect(() => {
-    const slug = new URLSearchParams(window.location.search).get("claim");
+    const params = new URLSearchParams(window.location.search);
+
+    // A listing page can deep-link here with ?claim=<slug> to start a claim.
+    const slug = params.get("claim");
     if (slug) {
       setPrefillSlug(slug);
       setClaiming(true);
+    }
+
+    // PayFast sends people back here after checkout.
+    if (params.get("upgraded")) {
+      setBanner(
+        "Thank you! Your payment is being confirmed by PayFast — Premium switches on automatically, usually within a minute. Refresh this page to see it."
+      );
+    } else if (params.get("checkout") === "cancelled") {
+      setBanner("Checkout was cancelled — nothing has been charged.");
     }
   }, []);
 
@@ -69,10 +107,10 @@ export function BusinessDashboard() {
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
           <Building2 className="h-5 w-5 text-aqua-300" aria-hidden />
         </span>
-        <h2 className="mt-4 text-base font-bold text-snow">Sign in to manage your listing</h2>
+        <h2 className="mt-4 text-base font-bold text-snow">Sign in to manage your listings</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
-          Managing a business starts with a free account — sign in, claim your listing, and once we
-          approve the claim you can edit it here.
+          It starts with a free account — sign in, add your business, and once we approve it your
+          listing is live on I Love Durban.
         </p>
         <Link href="/join" className="btn-primary mt-5">
           Join or sign in
@@ -82,18 +120,72 @@ export function BusinessDashboard() {
   }
 
   const claims = data?.claims ?? [];
+  const submissions = data?.submissions ?? [];
   const edits = data?.edits ?? [];
+  const subscriptions = data?.subscriptions ?? [];
+  const price = data?.premiumPrice ?? 199;
+
+  // A submission and its post-approval claim describe the same listing; the
+  // submission row is the richer one, so claims it covers are not repeated.
+  const submissionSlugs = new Set(submissions.map((s) => s.slug));
+  const standaloneClaims = claims.filter((c) => !submissionSlugs.has(c.slug));
+
+  const claimFor = (slug: string) =>
+    claims.find((c) => c.slug === slug && c.status === "approved") ?? null;
+  const subscriptionFor = (slug: string) =>
+    subscriptions.find((s) => s.slug === slug && s.status !== "cancelled") ?? null;
+
+  const hasAnything = submissions.length > 0 || standaloneClaims.length > 0;
 
   return (
     <div className="space-y-8">
-      {claims.length > 0 && (
+      {banner && (
+        <p className="panel-raised flex items-start gap-2.5 p-4 text-sm leading-relaxed text-snow">
+          <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-300" aria-hidden />
+          {banner}
+        </p>
+      )}
+
+      {hasAnything && (
         <section aria-labelledby="your-listings">
-          <h2 id="your-listings" className="section-title mb-4">
-            Your listings
-          </h2>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <h2 id="your-listings" className="section-title">
+              Your listings
+            </h2>
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="btn-primary ml-auto px-4 py-2 text-[0.8125rem]"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add a Listing
+            </button>
+          </div>
+
           <div className="space-y-3">
-            {claims.map((claim) => (
-              <ClaimRow key={claim.id} claim={claim} onEdit={() => setEditing(claim)} />
+            {submissions.map((submission) => (
+              <SubmissionRow
+                key={submission.id}
+                submission={submission}
+                subscription={subscriptionFor(submission.slug)}
+                price={price}
+                onEdit={() => {
+                  const claim = claimFor(submission.slug);
+                  if (claim) setEditing(claim);
+                }}
+                canEdit={Boolean(claimFor(submission.slug))}
+                onChanged={() => void refresh()}
+              />
+            ))}
+            {standaloneClaims.map((claim) => (
+              <ClaimRow
+                key={claim.id}
+                claim={claim}
+                subscription={subscriptionFor(claim.slug)}
+                price={price}
+                onEdit={() => setEditing(claim)}
+                onChanged={() => void refresh()}
+              />
             ))}
           </div>
         </section>
@@ -102,6 +194,7 @@ export function BusinessDashboard() {
       {editing && (
         <ListingEditor
           claim={editing}
+          submission={submissions.find((s) => s.slug === editing.slug) ?? null}
           onClose={() => setEditing(null)}
           onSubmitted={() => {
             setEditing(null);
@@ -110,7 +203,48 @@ export function BusinessDashboard() {
         />
       )}
 
-      {claiming ? (
+      {adding && (
+        <AddListingForm
+          onClose={() => setAdding(false)}
+          onSubmitted={() => {
+            setAdding(false);
+            void refresh();
+          }}
+        />
+      )}
+
+      {!adding && !hasAnything && (
+        <div className="panel p-8 text-center sm:p-12">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
+            <Building2 className="h-5 w-5 text-aqua-300" aria-hidden />
+          </span>
+          <h2 className="mt-4 text-base font-bold text-snow">Put your business on I Love Durban</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+            Add your listing with a photo, a description and your contact details — free, and it
+            never expires. We review every listing before it goes live.
+          </p>
+          <button type="button" onClick={() => setAdding(true)} className="btn-primary mt-5">
+            <Plus className="h-4 w-4" aria-hidden />
+            Add a Listing
+          </button>
+        </div>
+      )}
+
+      {!adding && !claiming && (
+        <p className="text-center text-[0.8125rem] text-muted">
+          Is your business already on the site?{" "}
+          <button
+            type="button"
+            onClick={() => setClaiming(true)}
+            className="font-semibold text-aqua-300 underline"
+          >
+            Claim the existing listing
+          </button>{" "}
+          instead of adding a duplicate.
+        </p>
+      )}
+
+      {claiming && (
         <ClaimForm
           prefillSlug={prefillSlug}
           alreadyClaimed={new Set(claims.map((c) => c.slug))}
@@ -121,23 +255,6 @@ export function BusinessDashboard() {
             void refresh();
           }}
         />
-      ) : (
-        <div className="panel p-6 sm:p-8">
-          <h2 className="text-sm font-bold text-snow">
-            {claims.length > 0 ? "Manage another business?" : "Is your business listed here?"}
-          </h2>
-          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted">
-            Claim the listing and, once we have checked the claim, you can update its details, hours
-            and description yourself. Not listed at all yet?{" "}
-            <Link href="/list-your-business" className="font-semibold text-aqua-300 underline">
-              Get listed first
-            </Link>
-            .
-          </p>
-          <button type="button" onClick={() => setClaiming(true)} className="btn-primary mt-4">
-            Claim a listing
-          </button>
-        </div>
       )}
 
       {edits.length > 0 && (
@@ -179,12 +296,12 @@ function StatusChip({ status, className }: { status: string; className?: string 
     pending: "bg-amber-400/15 text-amber-300",
     approved: "bg-emerald-400/15 text-emerald-300",
     applied: "bg-emerald-400/15 text-emerald-300",
-    rejected: "bg-red-50 text-red-700",
+    rejected: "bg-brand-500/15 text-brand-400",
     superseded: "bg-paper text-muted",
   };
   const labels: Record<string, string> = {
     pending: "Awaiting review",
-    approved: "Approved",
+    approved: "Live",
     applied: "Live",
     rejected: "Declined",
     superseded: "Replaced by a newer change",
@@ -203,7 +320,194 @@ function StatusChip({ status, className }: { status: string; className?: string 
   );
 }
 
-function ClaimRow({ claim, onEdit }: { claim: Claim; onEdit: () => void }) {
+/* -------------------------------------------------------------------------
+ * Premium
+ * ---------------------------------------------------------------------- */
+
+function PremiumControls({
+  slug,
+  live,
+  subscription,
+  price,
+  onChanged,
+}: {
+  slug: string;
+  /** Premium is offered once the listing is live. */
+  live: boolean;
+  subscription: Subscription | null;
+  price: number;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  if (subscription?.status === "active") {
+    return (
+      <div className="flex w-full flex-wrap items-center gap-2.5 border-t border-line pt-3">
+        <span className="inline-flex items-center gap-1.5 rounded-pill bg-gold/15 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-gold">
+          <Crown className="h-3 w-3" aria-hidden />
+          Premium active
+        </span>
+        <span className="text-xs text-muted">R{price}/month via PayFast</span>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError("");
+            const result = await cancelPremium(slug);
+            if (!result.ok) setError(result.error ?? "Could not cancel. Try again.");
+            setBusy(false);
+            onChanged();
+          }}
+          className="ml-auto text-xs font-semibold text-muted underline transition hover:text-snow"
+        >
+          {busy ? "Cancelling…" : "Cancel subscription"}
+        </button>
+        {error && <p className="w-full text-xs text-brand-400">{error}</p>}
+      </div>
+    );
+  }
+
+  if (subscription?.status === "initiated") {
+    return (
+      <p className="flex w-full items-start gap-1.5 border-t border-line pt-3 text-xs leading-relaxed text-muted">
+        <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+        Waiting for PayFast to confirm your Premium payment. This is automatic — refresh in a
+        minute.
+      </p>
+    );
+  }
+
+  if (!live) return null;
+
+  return (
+    <div className="flex w-full flex-wrap items-center gap-2.5 border-t border-line pt-3">
+      <p className="text-xs leading-relaxed text-muted">
+        <span className="font-semibold text-snow">Go Premium — R{price}/month.</span> Priority
+        placement and more, billed monthly via PayFast. Cancel anytime.
+      </p>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          setError("");
+          const result = await startPremiumCheckout(slug);
+          // On success the browser is leaving for PayFast; nothing more to do.
+          if (!result.ok) {
+            setError(result.error ?? "Could not start the checkout. Try again.");
+            setBusy(false);
+          }
+        }}
+        className="btn ml-auto shrink-0 bg-gold px-4 py-2 text-xs font-bold text-ink hover:bg-gold-600"
+      >
+        <Crown className="h-3.5 w-3.5" aria-hidden />
+        {busy ? "Opening PayFast…" : "Upgrade to Premium"}
+      </button>
+      {error && <p className="w-full text-xs text-brand-400">{error}</p>}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Rows
+ * ---------------------------------------------------------------------- */
+
+function SubmissionRow({
+  submission,
+  subscription,
+  price,
+  canEdit,
+  onEdit,
+  onChanged,
+}: {
+  submission: ListingSubmission;
+  subscription: Subscription | null;
+  price: number;
+  canEdit: boolean;
+  onEdit: () => void;
+  onChanged: () => void;
+}) {
+  const name = String(submission.fields.name ?? submission.slug);
+  const area = String(submission.fields.area ?? "");
+
+  return (
+    <div className="panel flex flex-wrap items-center gap-x-4 gap-y-3 p-5">
+      {submission.image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element -- static export
+        <img
+          src={submission.image_url}
+          alt=""
+          className="h-14 w-14 shrink-0 rounded-xl object-cover"
+        />
+      ) : (
+        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-white/5 text-muted">
+          <Building2 className="h-5 w-5" aria-hidden />
+        </span>
+      )}
+
+      <div className="min-w-0">
+        <p className="text-sm font-bold text-snow">{name}</p>
+        <p className="text-xs text-muted">
+          {area && `${area} · `}
+          {HUB_OPTIONS.find((h) => h.value === submission.hub)?.label ?? submission.hub}
+        </p>
+      </div>
+
+      <div className="ml-auto flex items-center gap-2.5">
+        {submission.plan === "premium" && (
+          <span className="inline-flex items-center gap-1 rounded-pill bg-gold/15 px-2 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-gold">
+            <Crown className="h-3 w-3" aria-hidden />
+            Premium
+          </span>
+        )}
+        <StatusChip status={submission.status} />
+
+        {submission.status === "approved" && canEdit && (
+          <button type="button" onClick={onEdit} className="btn-primary px-3 py-2 text-xs">
+            <Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+            Edit
+          </button>
+        )}
+      </div>
+
+      {submission.status === "pending" && (
+        <p className="flex w-full items-start gap-1.5 text-xs leading-relaxed text-muted">
+          <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          We review every new listing by hand — usually within two working days. It appears on the
+          site the moment it is approved, and free listings never expire.
+        </p>
+      )}
+
+      {submission.status === "rejected" && submission.decided_note && (
+        <p className="w-full text-xs italic text-muted">“{submission.decided_note}”</p>
+      )}
+
+      <PremiumControls
+        slug={submission.slug}
+        live={submission.status === "approved"}
+        subscription={subscription}
+        price={price}
+        onChanged={onChanged}
+      />
+    </div>
+  );
+}
+
+function ClaimRow({
+  claim,
+  subscription,
+  price,
+  onEdit,
+  onChanged,
+}: {
+  claim: Claim;
+  subscription: Subscription | null;
+  price: number;
+  onEdit: () => void;
+  onChanged: () => void;
+}) {
   const listing = LISTINGS.find((l) => l.slug === claim.slug);
 
   return (
@@ -216,7 +520,7 @@ function ClaimRow({ claim, onEdit }: { claim: Claim; onEdit: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-2.5">
-        <StatusChip status={claim.status} />
+        <StatusChip status={claim.status === "approved" ? "applied" : claim.status} />
 
         {claim.status === "approved" && (
           <button type="button" onClick={onEdit} className="btn-primary px-3 py-2 text-xs">
@@ -237,12 +541,287 @@ function ClaimRow({ claim, onEdit }: { claim: Claim; onEdit: () => void }) {
       {claim.status === "rejected" && claim.decided_note && (
         <p className="w-full text-xs italic text-muted">“{claim.decided_note}”</p>
       )}
+
+      <PremiumControls
+        slug={claim.slug}
+        live={claim.status === "approved"}
+        subscription={subscription}
+        price={price}
+        onChanged={onChanged}
+      />
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------
- * Claiming
+ * Adding a listing
+ * ---------------------------------------------------------------------- */
+
+function AddListingForm({
+  onClose,
+  onSubmitted,
+}: {
+  onClose: () => void;
+  onSubmitted: () => void;
+}) {
+  const [image, setImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [error, setError] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  async function onPickImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Keep the photo under 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    const result = await uploadListingImage(file);
+    setUploading(false);
+
+    if (!result.ok || !result.url) {
+      setError(result.error ?? "The upload did not go through.");
+      return;
+    }
+
+    setImage(result.url);
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    const text = (key: string) => String(form.get(key) ?? "").trim();
+    const lines = (key: string) =>
+      text(key)
+        .split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    const paragraphs = (key: string) =>
+      text(key)
+        .split(/\n\s*\n/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+    setState("sending");
+    setError("");
+
+    const result = await createListing({
+      hub: text("hub"),
+      image,
+      fields: {
+        name: text("name"),
+        category: text("category"),
+        area: text("area"),
+        blurb: text("blurb"),
+        body: paragraphs("body"),
+        address: text("address") || null,
+        phone: text("phone") || null,
+        website: text("website") || null,
+        hours: lines("hours"),
+      },
+    });
+
+    if (!result.ok) {
+      setError(result.error ?? "That did not go through. Please try again.");
+      setState("error");
+      return;
+    }
+
+    setState("sent");
+  }
+
+  if (state === "sent") {
+    return (
+      <div className="panel p-8 text-center">
+        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
+          <BadgeCheck className="h-5 w-5 text-aqua-300" aria-hidden />
+        </span>
+        <h2 className="mt-3 text-base font-bold text-snow">Listing submitted</h2>
+        <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
+          We review every new listing before it goes live — usually within two working days. You
+          can watch its status on this page, and we will not charge you anything: free listings
+          stay free, forever.
+        </p>
+        <button type="button" onClick={onSubmitted} className="btn-primary mt-5">
+          Done
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-bold text-snow">Add your listing</h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
+            Free, with one photo, and it never expires. A person reviews every listing before it
+            appears on the site.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
+        >
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
+
+      {/* The photo — one on the free plan. */}
+      <div>
+        <p className="mb-1.5 text-xs font-semibold text-snow">
+          Featured photo <span className="font-normal text-muted">(1 photo on the free plan)</span>
+        </p>
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={onPickImage}
+          className="sr-only"
+          id="add-image"
+        />
+
+        {image ? (
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
+            <img src={image} alt="Your listing photo" className="h-24 w-36 rounded-xl object-cover" />
+            <div className="space-y-1.5">
+              <button
+                type="button"
+                onClick={() => fileInput.current?.click()}
+                className="block text-xs font-semibold text-aqua-300 underline"
+              >
+                Replace photo
+              </button>
+              <button
+                type="button"
+                onClick={() => setImage(null)}
+                className="block text-xs font-semibold text-muted underline"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            disabled={uploading}
+            className="flex h-24 w-full items-center justify-center gap-2.5 rounded-xl border border-dashed border-snow/25 text-sm font-semibold text-mist transition hover:border-aqua-400/70 hover:text-aqua-200"
+          >
+            <ImagePlus className="h-5 w-5" aria-hidden />
+            {uploading ? "Uploading…" : "Upload a photo (JPEG, PNG or WebP, up to 5 MB)"}
+          </button>
+        )}
+        <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-muted">
+          Landscape photos work best. Only upload a photo you own or have permission to use.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Business name" id="add-name" required>
+          <input id="add-name" name="name" required maxLength={120} className="field" />
+        </Field>
+
+        <Field label="Section" id="add-hub" required>
+          <select id="add-hub" name="hub" required defaultValue="" className="field">
+            <option value="" disabled>
+              Where does it belong?
+            </option>
+            {HUB_OPTIONS.map((hub) => (
+              <option key={hub.value} value={hub.value}>
+                {hub.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Category" id="add-category" required hint='e.g. "Restaurants", "Security"'>
+          <input id="add-category" name="category" required maxLength={60} className="field" />
+        </Field>
+
+        <Field label="Area" id="add-area" required hint='Suburb or town, e.g. "Umhlanga"'>
+          <input id="add-area" name="area" required maxLength={60} className="field" />
+        </Field>
+
+        <Field
+          label="One-line summary"
+          id="add-blurb"
+          required
+          wide
+          hint="Shown on your card across the site. Under 200 characters."
+        >
+          <input id="add-blurb" name="blurb" required maxLength={200} className="field" />
+        </Field>
+
+        <Field label="Description" id="add-body" wide hint="Blank line between paragraphs.">
+          <textarea id="add-body" name="body" rows={5} className="field resize-y" />
+        </Field>
+
+        <Field label="Address" id="add-address" wide>
+          <input
+            id="add-address"
+            name="address"
+            maxLength={200}
+            autoComplete="street-address"
+            className="field"
+          />
+        </Field>
+
+        <Field label="Phone" id="add-phone">
+          <input id="add-phone" name="phone" type="tel" maxLength={40} className="field" />
+        </Field>
+
+        <Field label="Website" id="add-website">
+          <input
+            id="add-website"
+            name="website"
+            type="url"
+            placeholder="https://…"
+            maxLength={300}
+            className="field"
+          />
+        </Field>
+
+        <Field label="Opening hours" id="add-hours" wide hint="One line per entry.">
+          <textarea
+            id="add-hours"
+            name="hours"
+            rows={3}
+            placeholder={"Mon – Fri · 09:00 – 17:00\nSat · 09:00 – 13:00"}
+            className="field resize-y"
+          />
+        </Field>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="submit" disabled={state === "sending" || uploading} className="btn-primary">
+          {state === "sending" ? "Submitting…" : "Submit for review"}
+        </button>
+        <button type="button" onClick={onClose} className="btn-ghost">
+          Cancel
+        </button>
+        {error && (
+          <p role="alert" className="text-xs font-medium text-brand-400">
+            {error}
+          </p>
+        )}
+      </div>
+    </form>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Claiming (secondary path, for listings already on the site)
  * ---------------------------------------------------------------------- */
 
 function ClaimForm({
@@ -338,7 +917,7 @@ function ClaimForm({
       ) : (
         <div>
           <label htmlFor="claim-search" className="mb-1.5 block text-xs font-semibold text-snow">
-            Find your business <span className="text-aqua-300">*</span>
+            Find your business <span className="text-brand-400">*</span>
           </label>
           <div className="relative">
             <Search
@@ -376,21 +955,14 @@ function ClaimForm({
 
           {query.trim().length >= 2 && matches.length === 0 && (
             <p className="mt-2 text-xs text-muted">
-              No listing by that name.{" "}
-              <Link href="/list-your-business" className="font-semibold text-aqua-300 underline">
-                Get listed
-              </Link>{" "}
-              and it will appear here once it is live.
+              No listing by that name — close this and use <strong>Add a Listing</strong> instead.
             </p>
           )}
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="claim-role" className="mb-1.5 block text-xs font-semibold text-snow">
-            Your role <span className="text-aqua-300">*</span>
-          </label>
+        <Field label="Your role" id="claim-role" required>
           <input
             id="claim-role"
             name="role"
@@ -398,11 +970,8 @@ function ClaimForm({
             placeholder="Owner, manager, marketing…"
             className="field"
           />
-        </div>
-        <div>
-          <label htmlFor="claim-phone" className="mb-1.5 block text-xs font-semibold text-snow">
-            Phone <span className="text-aqua-300">*</span>
-          </label>
+        </Field>
+        <Field label="Phone" id="claim-phone" required>
           <input
             id="claim-phone"
             name="contactPhone"
@@ -412,32 +981,18 @@ function ClaimForm({
             placeholder="We may call to verify the claim"
             className="field"
           />
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="claim-name" className="mb-1.5 block text-xs font-semibold text-snow">
-            Your full name <span className="text-aqua-300">*</span>
-          </label>
-          <input
-            id="claim-name"
-            name="contactName"
-            required
-            autoComplete="name"
-            className="field"
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="claim-note" className="mb-1.5 block text-xs font-semibold text-snow">
-            Anything that helps us verify it{" "}
-            <span className="font-normal text-muted">(optional)</span>
-          </label>
-          <textarea
-            id="claim-note"
-            name="note"
-            rows={3}
-            placeholder="An email address on the business domain, a company registration, a link that names you…"
-            className="field resize-y"
-          />
-        </div>
+        </Field>
+        <Field label="Your full name" id="claim-name" required wide>
+          <input id="claim-name" name="contactName" required autoComplete="name" className="field" />
+        </Field>
+        <Field
+          label="Anything that helps us verify it"
+          id="claim-note"
+          wide
+          hint="An email address on the business domain, a company registration, a link that names you…"
+        >
+          <textarea id="claim-note" name="note" rows={3} className="field resize-y" />
+        </Field>
       </div>
 
       <div>
@@ -449,7 +1004,7 @@ function ClaimForm({
           {state === "sending" ? "Sending…" : "Submit claim"}
         </button>
         {state === "error" && (
-          <p role="alert" className="mt-2.5 text-xs font-medium text-aqua-300">
+          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-400">
             {error}
           </p>
         )}
@@ -465,22 +1020,48 @@ function ClaimForm({
 /**
  * The editor works on a flat map of strings so every field can be one
  * controlled input; list fields are one-entry-per-line and split on submit.
+ *
+ * Values come from the published listing when it is in the site bundle, and
+ * otherwise from the owner's own submission — a freshly approved listing is
+ * editable before the next site rebuild ships it.
  */
-function toDraft(listing: Listing | undefined): Record<string, string> {
+function toDraft(
+  listing: Listing | undefined,
+  submission: ListingSubmission | null
+): Record<string, string> {
+  const f = (submission?.fields ?? {}) as Record<string, unknown>;
+  const fromSubmission = {
+    name: String(f.name ?? ""),
+    blurb: String(f.blurb ?? ""),
+    body: Array.isArray(f.body) ? (f.body as string[]).join("\n\n") : "",
+    category: String(f.category ?? ""),
+    area: String(f.area ?? ""),
+    price: String(f.price ?? ""),
+    cta: String(f.cta ?? ""),
+    address: String(f.address ?? ""),
+    phone: String(f.phone ?? ""),
+    website: String(f.website ?? ""),
+    hours: Array.isArray(f.hours) ? (f.hours as string[]).join("\n") : "",
+    amenities: Array.isArray(f.amenities) ? (f.amenities as string[]).join("\n") : "",
+    tags: Array.isArray(f.tags) ? (f.tags as string[]).join(", ") : "",
+  };
+
+  if (!listing) return fromSubmission;
+
   return {
-    name: listing?.name ?? "",
-    blurb: listing?.blurb ?? "",
-    body: (listing?.body ?? []).join("\n\n"),
-    category: listing?.category ?? "",
-    area: listing?.area ?? "",
-    price: listing?.price ?? "",
-    cta: listing?.cta ?? "",
-    address: listing?.address ?? "",
-    phone: listing?.phone ?? "",
-    website: listing?.website ?? "",
-    hours: (listing?.hours ?? []).join("\n"),
-    amenities: (listing?.amenities ?? []).join("\n"),
-    tags: (listing?.tags ?? []).join(", "),
+    name: listing.name ?? fromSubmission.name,
+    blurb: listing.blurb ?? fromSubmission.blurb,
+    body: (listing.body ?? []).join("\n\n") || fromSubmission.body,
+    category: listing.category ?? fromSubmission.category,
+    area: listing.area ?? fromSubmission.area,
+    price: listing.price ?? fromSubmission.price,
+    cta: listing.cta ?? fromSubmission.cta,
+    address: listing.address ?? fromSubmission.address,
+    phone: listing.phone ?? fromSubmission.phone,
+    website: listing.website ?? fromSubmission.website,
+    hours: (listing.hours ?? []).join("\n") || fromSubmission.hours,
+    amenities: (listing.amenities ?? []).join("\n") || fromSubmission.amenities,
+    tags: (listing.tags ?? []).join(", ") || fromSubmission.tags,
   };
 }
 
@@ -517,15 +1098,17 @@ function draftToFields(
 
 function ListingEditor({
   claim,
+  submission,
   onClose,
   onSubmitted,
 }: {
   claim: Claim;
+  submission: ListingSubmission | null;
   onClose: () => void;
   onSubmitted: () => void;
 }) {
   const listing = LISTINGS.find((l) => l.slug === claim.slug);
-  const [original] = useState(() => toDraft(listing));
+  const [original] = useState(() => toDraft(listing, submission));
   const [draft, setDraft] = useState(original);
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
@@ -581,7 +1164,9 @@ function ListingEditor({
     <form onSubmit={onSubmit} className="panel space-y-5 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-bold text-snow">Edit {listing?.name ?? claim.slug}</h2>
+          <h2 className="text-base font-bold text-snow">
+            Edit {listing?.name ?? original.name ?? claim.slug}
+          </h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
             Change what you need and submit. Changes are reviewed before they appear on the site.
           </p>
@@ -707,7 +1292,7 @@ function ListingEditor({
           Cancel
         </button>
         {state === "error" && (
-          <p role="alert" className="text-xs font-medium text-aqua-300">
+          <p role="alert" className="text-xs font-medium text-brand-400">
             {error}
           </p>
         )}
@@ -721,18 +1306,20 @@ function Field({
   id,
   hint,
   wide,
+  required,
   children,
 }: {
   label: string;
   id: string;
   hint?: string;
   wide?: boolean;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
       <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-snow">
-        {label}
+        {label} {required && <span className="text-brand-400">*</span>}
       </label>
       {children}
       {hint && <p className="mt-1 text-[0.6875rem] text-muted">{hint}</p>}

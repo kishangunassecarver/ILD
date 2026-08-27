@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.5.0
+ * Version:      3.6.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -2746,6 +2746,72 @@ function ild_apply_owner_edit( array $edit ) {
 	return 'Applied ' . implode( ', ', $applied ) . ' to "' . $post->post_title . '".';
 }
 
+/**
+ * Create and publish a listing from an owner's "Add a Listing" submission.
+ *
+ * Publishing here is the approval: the deploy hook fires on the status
+ * transition, the site rebuilds, and the listing is live. The Worker side
+ * marks the submission approved and hands the owner an approved claim so
+ * ordinary edits work from then on.
+ */
+function ild_create_owner_listing( array $submission ) {
+	$slug   = sanitize_title( (string) ( $submission['slug'] ?? '' ) );
+	$hub    = sanitize_key( (string) ( $submission['hub'] ?? '' ) );
+	$fields = is_array( $submission['fields'] ?? null ) ? $submission['fields'] : array();
+	$name   = sanitize_text_field( (string) ( $fields['name'] ?? '' ) );
+
+	$hubs = ild_schema()['ild_listing']['fields']['hub']['options'];
+
+	if ( ! $slug || ! $name || ! in_array( $hub, $hubs, true ) ) {
+		return new WP_Error( 'ild_invalid', 'The submission is missing its name, slug or hub.' );
+	}
+
+	if ( ild_find_listing( $slug ) ) {
+		return new WP_Error(
+			'ild_exists',
+			'A listing with the slug "' . esc_html( $slug ) . '" already exists. Reject this submission, or rename one of them.'
+		);
+	}
+
+	$post_id = wp_insert_post(
+		array(
+			'post_type'   => 'ild_listing',
+			'post_status' => 'publish',
+			'post_title'  => $name,
+			'post_name'   => $slug,
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		return $post_id;
+	}
+
+	update_post_meta( $post_id, '_ild_hub', $hub );
+
+	$schema = ild_schema()['ild_listing']['fields'];
+
+	foreach ( ild_owner_editable() as $key ) {
+		if ( 'name' === $key || ! isset( $fields[ $key ] ) ) {
+			continue;
+		}
+
+		$type = $schema[ $key ]['type'] ?? 'text';
+		update_post_meta( $post_id, '_ild_' . $key, ild_owner_serialise( $fields[ $key ], $type ) );
+	}
+
+	// The photo the owner uploaded, served from the site's own /api/media/.
+	$image = (string) ( $submission['image_url'] ?? '' );
+	if ( $image ) {
+		if ( str_starts_with( $image, '/' ) ) {
+			$image = rtrim( get_option( ILD_WORKER_URL_OPT, '' ), '/' ) . $image;
+		}
+		update_post_meta( $post_id, '_ild_imageUrl', esc_url_raw( $image ) );
+	}
+
+	return 'Created and published "' . $name . '" in ' . $hub . '.';
+}
+
 /** Current value of one listing field, in its stored text form, for the diff. */
 function ild_owner_current( ?WP_Post $post, string $key ): string {
 	if ( ! $post ) {
@@ -2798,11 +2864,29 @@ function ild_owners_page(): void {
 				}
 				ild_trigger_deploy( 'owner edit applied' );
 			}
+		} elseif ( 'listing' === $type && 'approve' === $decision ) {
+			// Create the listing post first; only mark it approved once that worked.
+			$result = is_array( $payload )
+				? ild_create_owner_listing( $payload )
+				: new WP_Error( 'ild_payload', 'The submission payload could not be read. Refresh and try again.' );
+
+			if ( is_wp_error( $result ) ) {
+				$notices[] = array( 'error', $result->get_error_message() );
+			} else {
+				$decided = ild_worker_decide( 'listing', $id, 'approve', $note );
+				if ( is_wp_error( $decided ) ) {
+					$notices[] = array( 'warning', $result . ' But the queue could not be updated: ' . $decided->get_error_message() );
+				} else {
+					$notices[] = array( 'success', $result . ' The owner can edit it from their dashboard, and the site is rebuilding.' );
+				}
+				ild_trigger_deploy( 'owner listing approved' );
+			}
 		} else {
 			$map = array(
 				'claim:approve'  => array( 'claim', 'approve' ),
 				'claim:reject'   => array( 'claim', 'reject' ),
 				'edit:reject'    => array( 'edit', 'reject' ),
+				'listing:reject' => array( 'listing', 'reject' ),
 				'enquiry:handle' => array( 'enquiry', 'handled' ),
 			);
 
@@ -2862,9 +2946,69 @@ function ild_owners_page(): void {
 		return;
 	}
 
-	$claims    = $queue['claims'] ?? array();
-	$edits     = $queue['edits'] ?? array();
-	$enquiries = $queue['enquiries'] ?? array();
+	$claims      = $queue['claims'] ?? array();
+	$edits       = $queue['edits'] ?? array();
+	$enquiries   = $queue['enquiries'] ?? array();
+	$new_listings = $queue['listings'] ?? array();
+
+	/* ---- New listings ---- */
+
+	printf( '<h2>New listings awaiting review (%d)</h2>', count( $new_listings ) );
+
+	if ( ! $new_listings ) {
+		echo '<p>None. Listings owners add from their dashboard appear here, and go live the moment they are approved.</p>';
+	}
+
+	$listing_schema = ild_schema()['ild_listing']['fields'];
+
+	foreach ( $new_listings as $submission ) {
+		$fields = is_array( $submission['fields'] ?? null ) ? $submission['fields'] : array();
+		$image  = (string) ( $submission['image_url'] ?? '' );
+		if ( $image && str_starts_with( $image, '/' ) ) {
+			$image = rtrim( $base, '/' ) . $image;
+		}
+
+		echo '<div style="border:1px solid #c3c4c7;border-radius:4px;padding:16px;margin-bottom:12px;background:#fff;max-width:900px">';
+		printf(
+			'<p style="margin:0 0 4px"><strong>%s</strong> &middot; <code>%s/%s</code>%s</p>',
+			esc_html( (string) ( $fields['name'] ?? $submission['slug'] ) ),
+			esc_html( (string) $submission['hub'] ),
+			esc_html( (string) $submission['slug'] ),
+			'premium' === ( $submission['plan'] ?? 'free' ) ? ' <span style="color:#996800;font-weight:600">&#9733; Premium</span>' : ''
+		);
+		printf(
+			'<p style="margin:0 0 8px">Submitted by <strong>%s</strong> (%s)</p>',
+			esc_html( (string) ( $submission['member_name'] ?: $submission['member_email'] ) ),
+			esc_html( (string) $submission['member_email'] )
+		);
+
+		if ( $image ) {
+			printf(
+				'<p style="margin:0 0 8px"><img src="%s" alt="" style="max-width:280px;max-height:180px;border-radius:6px;object-fit:cover"></p>',
+				esc_url( $image )
+			);
+		}
+
+		echo '<table class="widefat striped" style="margin:8px 0"><tbody>';
+		foreach ( $fields as $key => $value ) {
+			if ( 'name' === $key ) {
+				continue;
+			}
+			$type = $listing_schema[ $key ]['type'] ?? 'text';
+			printf(
+				'<tr><td style="width:18%%"><strong>%s</strong></td><td><pre style="white-space:pre-wrap;margin:0;font-size:12px">%s</pre></td></tr>',
+				esc_html( (string) $key ),
+				esc_html( ild_owner_serialise( $value, $type ) ?: '—' )
+			);
+		}
+		echo '</tbody></table>';
+
+		echo '<p style="margin:8px 0 0;color:#50575e;font-size:12px">Approving creates and publishes this listing, and gives the submitter edit access to it.</p>';
+
+		ild_owner_decide_form( 'listing', (string) $submission['id'], 'approve', 'Approve &amp; publish', false, $submission );
+		ild_owner_decide_form( 'listing', (string) $submission['id'], 'reject', 'Reject', true );
+		echo '</div>';
+	}
 
 	/* ---- Claims ---- */
 
