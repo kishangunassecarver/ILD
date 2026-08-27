@@ -46,13 +46,42 @@ import { emailHtml, emailText, type AuthEmail } from "./email";
 
 const SAVE_KINDS = new Set(["listing", "event", "deal", "page"]);
 
+/**
+ * Everything that is not /api/* is a static asset — but with one guard.
+ *
+ * Next.js's client router navigates by fetching a page's `.txt` flight
+ * payload. When a browser is still running the previous deployment, that
+ * payload no longer parses and Next falls back to a hard navigation — to the
+ * `.txt` URL itself, which puts a screenful of raw serialised markup in front
+ * of the visitor.
+ *
+ * A real person and the router are distinguishable by the Accept header: a
+ * document navigation asks for text/html, the router asks for the flight
+ * format. So a browser-level request for a payload URL is redirected to the
+ * page it belongs to, and the router's own fetches pass straight through.
+ */
+async function serveAsset(request: Request, env: Env, url: URL): Promise<Response> {
+  if (
+    url.pathname !== "/robots.txt" &&
+    url.pathname.endsWith(".txt") &&
+    (request.headers.get("Accept") ?? "").includes("text/html")
+  ) {
+    const clean = url.pathname.endsWith("/index.txt")
+      ? url.pathname.slice(0, -"index.txt".length)
+      : `${url.pathname.slice(0, -".txt".length)}/`;
+
+    return Response.redirect(`${url.origin}${clean || "/"}`, 302);
+  }
+
+  return env.ASSETS.fetch(request);
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (!url.pathname.startsWith("/api/")) {
-      // Only reachable if asset matching missed; hand it back to the assets.
-      return new Response("Not found", { status: 404 });
+      return serveAsset(request, env, url);
     }
 
     const secure = url.protocol === "https:";

@@ -12,9 +12,10 @@
     "directory": "./out",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    // Without this, /api/* would be answered by the 404 page before the Worker
-    // ever ran, since no asset matches those paths.
-    "run_worker_first": ["/api/*"]
+    // The Worker fronts every request: /api/* is the member API, and page
+    // traffic passes through serveAsset, which guards against browsers landing
+    // on raw .txt navigation payloads after a deploy (see worker/index.ts).
+    "run_worker_first": true
   },
   "d1_databases": [
     {

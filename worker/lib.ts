@@ -8,6 +8,8 @@
 
 export interface Env {
   DB: D1Database;
+  /** The static site, served through the Worker (see serveAsset). */
+  ASSETS: Fetcher;
   /** Resend API key. Without it, sign-in links are logged instead of emailed. */
   RESEND_API_KEY?: string;
   /** Verified sender, e.g. "I Love Durban <hello@ilovedurban.co.za>". */
