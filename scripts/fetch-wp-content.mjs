@@ -71,6 +71,11 @@ async function main() {
   let url;
   try {
     url = new URL(base + ENDPOINT);
+    // A build must see the world as it is NOW: `fresh` makes the plugin skip
+    // its premium/removed caches (so a rebuild triggered by a payment can
+    // never be served the list from before it), and the unique value defeats
+    // any page cache in front of WordPress.
+    url.searchParams.set("fresh", Date.now().toString());
   } catch {
     await write({}, `WORDPRESS_URL is not a valid URL (${base}) — using default content`);
     return;

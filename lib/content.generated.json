@@ -186,6 +186,23 @@
       "featured": true
     },
     {
+      "slug": "tigers-milk-umhlanga",
+      "name": "Tigers Milk Umhlanga",
+      "hub": "eat-drink",
+      "category": "Food",
+      "area": "Umhlanga",
+      "blurb": "as you enjoy its spectacular views from the outdoor terrace. This beautiful Tiger’s Milk setting adds to the already stunning Umhlanga coastline with delicious dishes and delectable drinks, for a coas",
+      "body": [
+        "Tiger's Milk Umhlanga is a vibrant, trendy gastropub located at Ocean’s Mall along the beautiful Umhlanga Rocks coastline. Known for its rock-and-roll aesthetic, energetic vibe, and panoramic ocean views from the outdoor terrace, it serves as a highly popular local hotspot for casual dining, drinks, and nightlife."
+      ],
+      "address": "Shop 007, Ocean’s Mall, Lagoon Drive Umhlanga Rocks, Durban, 4320",
+      "phone": "031 943 3040",
+      "website": "https://www.tigersmilk.co.za/",
+      "image": "https://ild.kishan-bde.workers.dev/api/media/listings/2a4203e4ea4dac7ce640a98201188ff1e3334c59967102ef07fad4fa3d542349.jpg",
+      "ownerManaged": true,
+      "featured": true
+    },
+    {
       "slug": "the-cargo-hold",
       "name": "The Cargo Hold",
       "hub": "eat-drink",

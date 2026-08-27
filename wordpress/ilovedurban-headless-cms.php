@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.10.1
+ * Version:      3.10.2
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -2510,8 +2510,17 @@ function ild_on_listing_hard_deleted( $post_id, $post ): void {
  * Slugs whose owners deleted them from the dashboard, from the Worker.
  * Same caching and failure posture as the premium list below.
  */
+/**
+ * The site's build script asks for ?fresh=… so a rebuild triggered by a
+ * payment or cancellation can never be served the list from before it —
+ * the caches exist for casual traffic, not for builds.
+ */
+function ild_wants_fresh(): bool {
+	return ! empty( $_GET['fresh'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+}
+
 function ild_removed_slugs(): ?array {
-	$cached = get_transient( 'ild_removed_slugs' );
+	$cached = ild_wants_fresh() ? false : get_transient( 'ild_removed_slugs' );
 	if ( is_array( $cached ) ) {
 		return $cached;
 	}
@@ -2536,7 +2545,7 @@ function ild_removed_slugs(): ?array {
  * galleries off the site.
  */
 function ild_premium_slugs(): ?array {
-	$cached = get_transient( 'ild_premium_slugs' );
+	$cached = ild_wants_fresh() ? false : get_transient( 'ild_premium_slugs' );
 	if ( is_array( $cached ) ) {
 		return $cached;
 	}
