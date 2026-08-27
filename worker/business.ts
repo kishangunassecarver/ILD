@@ -1251,6 +1251,38 @@ export async function billingInvoice(request: Request, env: Env, url: URL): Prom
 }
 
 /**
+ * Wind down every open subscription on a slug: cancel active ones at PayFast
+ * (best-effort), then close them locally. Used whenever a listing stops
+ * existing — deleted in WordPress, removed by its owner, or rejected after
+ * the owner already paid.
+ */
+async function closeSubscriptionsForSlug(env: Env, slug: string): Promise<number> {
+  const { results } = await env.DB.prepare(
+    "SELECT id, pf_token, status FROM subscriptions WHERE slug = ?1 AND status IN ('active','initiated')"
+  )
+    .bind(slug)
+    .all<{ id: string; pf_token: string | null; status: string }>();
+
+  let closed = 0;
+  for (const subscription of results ?? []) {
+    if (subscription.status === "active" && subscription.pf_token) {
+      const done = await cancelSubscription(env, subscription.pf_token);
+      if (!done) {
+        console.error(`[billing] PayFast refused the cancel for ${subscription.id} (${slug})`);
+      }
+    }
+
+    await env.DB.prepare("UPDATE subscriptions SET status = ?1, updated_at = ?2 WHERE id = ?3")
+      .bind(subscription.status === "active" ? "cancelled" : "failed", now(), subscription.id)
+      .run();
+
+    closed += 1;
+  }
+
+  return closed;
+}
+
+/**
  * POST /api/admin/listing-removed — WordPress deleted (or trashed) a listing.
  *
  * The listing post was the source of truth, so everything hanging off it is
@@ -1267,29 +1299,9 @@ export async function adminListingRemoved(request: Request, env: Env): Promise<R
 
   const note = "This listing was removed from the site.";
 
-  // Cancel the money first. Best-effort at PayFast; unconditional locally —
-  // we must never keep charging for a listing that no longer exists.
-  const { results } = await env.DB.prepare(
-    "SELECT id, pf_token, status FROM subscriptions WHERE slug = ?1 AND status IN ('active','initiated')"
-  )
-    .bind(slug)
-    .all<{ id: string; pf_token: string | null; status: string }>();
-
-  let cancelled = 0;
-  for (const subscription of results ?? []) {
-    if (subscription.status === "active" && subscription.pf_token) {
-      const done = await cancelSubscription(env, subscription.pf_token);
-      if (!done) {
-        console.error(`[billing] PayFast refused the cancel for ${subscription.id} (${slug})`);
-      }
-    }
-
-    await env.DB.prepare("UPDATE subscriptions SET status = ?1, updated_at = ?2 WHERE id = ?3")
-      .bind(subscription.status === "active" ? "cancelled" : "failed", now(), subscription.id)
-      .run();
-
-    cancelled += 1;
-  }
+  // Cancel the money first — we must never keep charging for a listing that
+  // no longer exists.
+  const cancelled = await closeSubscriptionsForSlug(env, slug);
 
   await env.DB.prepare(
     `UPDATE listing_submissions SET status = 'rejected', decided_at = ?1, decided_note = ?2
@@ -1438,6 +1450,12 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
       .first<{ member_id: string; slug: string; hub: string; fields: string }>();
 
     if (!submission) return json({ ok: false });
+
+    if (decision === "reject") {
+      // The owner may have paid for Premium from day one; a rejected listing
+      // must never keep billing them.
+      await closeSubscriptionsForSlug(env, submission.slug);
+    }
 
     if (decision === "approve") {
       /*

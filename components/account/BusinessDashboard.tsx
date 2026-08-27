@@ -55,6 +55,7 @@ export function BusinessDashboard() {
   const [fetched, setFetched] = useState(false);
   const [editing, setEditing] = useState<Claim | null>(null);
   const [adding, setAdding] = useState(false);
+  const [addPlan, setAddPlan] = useState<"free" | "premium">("free");
   const [claiming, setClaiming] = useState(false);
   const [prefillSlug, setPrefillSlug] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
@@ -71,6 +72,7 @@ export function BusinessDashboard() {
     }
     if (params.get("add")) {
       setAdding(true);
+      if (params.get("plan") === "premium") setAddPlan("premium");
     }
 
     // PayFast sends people back here after checkout.
@@ -222,6 +224,8 @@ export function BusinessDashboard() {
 
       {adding && (
         <AddListingForm
+          initialPlan={addPlan}
+          price={price}
           onClose={() => setAdding(false)}
           onSubmitted={() => {
             setAdding(false);
@@ -698,15 +702,23 @@ function ClaimRow({
  * ---------------------------------------------------------------------- */
 
 function AddListingForm({
+  initialPlan = "free",
+  price,
   onClose,
   onSubmitted,
 }: {
+  initialPlan?: "free" | "premium";
+  price: number;
   onClose: () => void;
   onSubmitted: () => void;
 }) {
+  const [plan, setPlan] = useState<"free" | "premium">(initialPlan);
   const [image, setImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "redirecting" | "sent" | "error">(
+    "idle"
+  );
+  const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -773,6 +785,19 @@ function AddListingForm({
       return;
     }
 
+    // Premium from day one: hand the browser to PayFast now. The listing is
+    // saved either way — if checkout stalls, it simply stays on the free plan
+    // and the upgrade button is on its card.
+    if (plan === "premium" && result.slug) {
+      setState("redirecting");
+      const checkout = await startPremiumCheckout(result.slug);
+      if (checkout.ok) return; // The browser is leaving for PayFast.
+
+      setNotice(
+        "Your listing was saved, but the payment page could not be opened. It is on the free plan for now — use “Upgrade to Premium” on its card to try again."
+      );
+    }
+
     setState("sent");
   }
 
@@ -784,13 +809,23 @@ function AddListingForm({
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">Listing submitted</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
-          We review every new listing before it goes live — usually within two working days. You
-          can watch its status on this page, and we will not charge you anything: free listings
-          stay free, forever.
+          {notice ||
+            "We review every new listing before it goes live — usually within two working days. You can watch its status on this page, and we will not charge you anything: free listings stay free, forever."}
         </p>
         <button type="button" onClick={onSubmitted} className="btn-primary mt-5">
           Done
         </button>
+      </div>
+    );
+  }
+
+  if (state === "redirecting") {
+    return (
+      <div className="panel p-8 text-center" aria-busy>
+        <h2 className="text-base font-bold text-snow">Taking you to PayFast…</h2>
+        <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
+          Your listing is saved. Complete the R{price}/month payment and you will land back here.
+        </p>
       </div>
     );
   }
@@ -815,10 +850,57 @@ function AddListingForm({
         </button>
       </div>
 
+      {/* The plan, chosen up front. */}
+      <div>
+        <p className="mb-2 text-xs font-semibold text-snow">Choose your plan</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setPlan("free")}
+            aria-pressed={plan === "free"}
+            className={cn(
+              "rounded-xl border p-4 text-left transition",
+              plan === "free"
+                ? "border-aqua-400 bg-aqua-400/10"
+                : "border-line hover:border-snow/40"
+            )}
+          >
+            <p className="text-sm font-bold text-snow">Free</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted">
+              R0, forever. One photo, full details, edit anytime.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPlan("premium")}
+            aria-pressed={plan === "premium"}
+            className={cn(
+              "rounded-xl border p-4 text-left transition",
+              plan === "premium" ? "border-gold bg-gold/10" : "border-line hover:border-snow/40"
+            )}
+          >
+            <p className="flex items-center gap-1.5 text-sm font-bold text-snow">
+              <Crown className="h-3.5 w-3.5 text-gold" aria-hidden />
+              Premium — R{price}/month
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted">
+              Photo gallery (up to 10), priority placement. Pay via PayFast after submitting;
+              cancel anytime.
+            </p>
+          </button>
+        </div>
+      </div>
+
       {/* The photo — one on the free plan. */}
       <div>
         <p className="mb-1.5 text-xs font-semibold text-snow">
-          Featured photo <span className="font-normal text-muted">(1 photo on the free plan)</span>
+          Featured photo{" "}
+          <span className="font-normal text-muted">
+            {plan === "premium"
+              ? "(your gallery unlocks after payment — add it from Edit)"
+              : "(1 photo on the free plan)"}
+          </span>
         </p>
 
         <input
@@ -945,7 +1027,11 @@ function AddListingForm({
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={state === "sending" || uploading} className="btn-primary">
-          {state === "sending" ? "Submitting…" : "Submit for review"}
+          {state === "sending"
+            ? "Submitting…"
+            : plan === "premium"
+              ? `Submit & pay R${price}/month`
+              : "Submit for review"}
         </button>
         <button type="button" onClick={onClose} className="btn-ghost">
           Cancel

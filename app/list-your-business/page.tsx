@@ -62,8 +62,8 @@ const PLANS = [
       "Premium badge on your listing",
       "Billed monthly via PayFast, invoices in your dashboard",
     ],
-    cta: "Go Premium",
-    href: "/my-business/",
+    cta: "Add a Premium listing",
+    href: "/my-business/?add=1&plan=premium",
     featured: true,
   },
 ];
