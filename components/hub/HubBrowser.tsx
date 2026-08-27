@@ -55,6 +55,10 @@ export function HubBrowser({
     );
 
     return filtered.sort((a, b) => {
+      // Featured listings (Premium subscribers and editorial picks) hold the
+      // top of the list in every sort order — placement is what Premium buys.
+      if (Boolean(a.featured) !== Boolean(b.featured)) return a.featured ? -1 : 1;
+
       switch (sort) {
         case "rating":
           return b.rating - a.rating || a.name.localeCompare(b.name);
@@ -63,7 +67,6 @@ export function HubBrowser({
         case "name":
           return a.name.localeCompare(b.name);
         default:
-          if (Boolean(a.featured) !== Boolean(b.featured)) return a.featured ? -1 : 1;
           return b.rating - a.rating || a.name.localeCompare(b.name);
       }
     });

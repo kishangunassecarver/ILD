@@ -53,7 +53,7 @@ import {
   submitEnquiry,
   uploadListingImage,
 } from "./business";
-import { emailHtml, emailText, type AuthEmail } from "./email";
+import { deliverEmail, type AuthEmail } from "./email";
 
 const SAVE_KINDS = new Set(["listing", "event", "deal", "page"]);
 
@@ -236,32 +236,7 @@ async function requestSignIn(request: Request, env: Env, url: URL): Promise<Resp
 }
 
 async function sendAuthEmail(env: Env, email: string, mail: AuthEmail): Promise<void> {
-  if (!env.RESEND_API_KEY || !env.MAIL_FROM) {
-    // Local development, or production with the key not yet set. Logging the
-    // link keeps the flow testable rather than silently broken.
-    console.log(`[auth] ${mail.subject} for ${email}: ${mail.link}`);
-    return;
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: env.MAIL_FROM,
-      to: email,
-      subject: mail.subject,
-      text: emailText(mail),
-      html: emailHtml(mail),
-    }),
-  });
-
-  if (!response.ok) {
-    console.error("[auth] Resend rejected the send:", response.status, await response.text());
-    throw new Error("Could not send the email");
-  }
+  await deliverEmail(env, email, mail);
 }
 
 async function sendSignInEmail(env: Env, email: string, link: string): Promise<void> {

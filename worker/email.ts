@@ -10,6 +10,8 @@
  * for text-only clients and better spam scoring.
  */
 
+import type { Env } from "./lib";
+
 /** Brand colours, mirroring tailwind.config.ts. */
 const NAVY = "#01122C"; // headings — the page blue
 const HEADER = "#021734"; // the masthead, same tone as the site header
@@ -49,6 +51,40 @@ export function emailText(mail: AuthEmail): string {
     "",
     "I Love Durban — The Heartbeat of Our City",
   ].join("\n");
+}
+
+/**
+ * Send one branded mail through Resend. Throws when Resend rejects the send,
+ * so callers decide whether a failed mail should fail their flow — auth links
+ * must surface the failure, lifecycle mails are best-effort.
+ */
+export async function deliverEmail(env: Env, to: string, mail: AuthEmail): Promise<void> {
+  if (!env.RESEND_API_KEY || !env.MAIL_FROM) {
+    // Local development, or production with the key not yet set. Logging the
+    // link keeps the flow testable rather than silently broken.
+    console.log(`[mail] ${mail.subject} for ${to}: ${mail.link}`);
+    return;
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: env.MAIL_FROM,
+      to,
+      subject: mail.subject,
+      text: emailText(mail),
+      html: emailHtml(mail),
+    }),
+  });
+
+  if (!response.ok) {
+    console.error("[mail] Resend rejected the send:", response.status, await response.text());
+    throw new Error("Could not send the email");
+  }
 }
 
 const FONT = "-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";

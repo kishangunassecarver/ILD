@@ -34,6 +34,7 @@ import {
   payfastConfig,
   PREMIUM_PRICE_RANDS,
 } from "./payfast";
+import { deliverEmail, type AuthEmail } from "./email";
 
 /** Slug shape shared with the saves endpoint: lowercase, no traversal. */
 const SLUG = /^[a-z0-9][a-z0-9\-]{0,120}$/;
@@ -409,6 +410,23 @@ export async function createListing(request: Request, env: Env): Promise<Respons
 
       await notifyNewListing(env, member, slug, String(fields.name));
 
+      const dashboard = `${siteBase(env, request)}/my-business/`;
+      await sendMemberEmail(env, member.email, {
+        subject: `We've received your listing: ${String(fields.name)}`,
+        heading: "Your listing is in review",
+        paragraphs: [
+          `Thanks for adding "${String(fields.name)}" to I Love Durban.`,
+          "A person on our team reviews every listing before it goes live — you will get another email the moment it is approved.",
+          "• Your free listing never expires",
+          "• Edit your details, hours and photo any time from your dashboard",
+          "• Go Premium whenever you like for a photo gallery and top placement with the Featured badge",
+        ],
+        cta: { label: "Open my dashboard", href: dashboard },
+        footnote:
+          "You are getting this because a listing was submitted from your I Love Durban account.",
+        link: dashboard,
+      });
+
       return json({ ok: true, id, slug, status: "pending" });
     } catch (error) {
       // UNIQUE violation on the slug: try the next suffix. Anything else is real.
@@ -452,6 +470,46 @@ async function notifyNewListing(
   } catch (error) {
     console.error("[business] could not notify about the new listing:", error);
   }
+}
+
+/* -------------------------------------------------------------------------
+ * Customer lifecycle mail
+ *
+ * Every mail here is best-effort by design: the action that earned the email
+ * has already succeeded, and a mail provider having a bad moment must never
+ * undo a submission, a payment or a cancellation.
+ * ---------------------------------------------------------------------- */
+
+function siteBase(env: Env, request: Request): string {
+  return (env.SITE_URL ?? new URL(request.url).origin).replace(/\/+$/, "");
+}
+
+async function sendMemberEmail(env: Env, to: string, mail: AuthEmail): Promise<void> {
+  try {
+    await deliverEmail(env, to, mail);
+  } catch (error) {
+    console.error(`[mail] could not send "${mail.subject}" to ${to}:`, error);
+  }
+}
+
+async function memberEmailById(env: Env, memberId: string): Promise<string | null> {
+  const row = await env.DB.prepare("SELECT email FROM members WHERE id = ?1")
+    .bind(memberId)
+    .first<{ email: string }>();
+
+  return row?.email ?? null;
+}
+
+/** The listing's display name, straight from what the owner submitted. */
+async function listingNameFor(env: Env, slug: string): Promise<string> {
+  const row = await env.DB.prepare(
+    "SELECT fields FROM listing_submissions WHERE slug = ?1 ORDER BY created_at DESC LIMIT 1"
+  )
+    .bind(slug)
+    .first<{ fields: string }>();
+
+  const parsed = row ? (safeParse(row.fields) as Record<string, unknown> | null) : null;
+  return parsed && typeof parsed.name === "string" && parsed.name ? parsed.name : slug;
 }
 
 /* -------------------------------------------------------------------------
@@ -856,6 +914,8 @@ export async function ownerDeleteListing(request: Request, env: Env): Promise<Re
     .bind(slug)
     .all<{ id: string; pf_token: string | null; status: string }>();
 
+  let premiumCancelled = false;
+
   for (const subscription of results ?? []) {
     if (subscription.status === "active" && subscription.pf_token) {
       const done = await cancelSubscription(env, subscription.pf_token);
@@ -869,6 +929,8 @@ export async function ownerDeleteListing(request: Request, env: Env): Promise<Re
         );
       }
     }
+
+    if (subscription.status === "active") premiumCancelled = true;
 
     await env.DB.prepare("UPDATE subscriptions SET status = ?1, updated_at = ?2 WHERE id = ?3")
       .bind(subscription.status === "active" ? "cancelled" : "failed", now(), subscription.id)
@@ -899,6 +961,28 @@ export async function ownerDeleteListing(request: Request, env: Env): Promise<Re
     .run();
 
   await triggerDeploy(env, `owner removed ${slug}`);
+
+  {
+    const site = siteBase(env, request);
+    const dashboard = `${site}/my-business/`;
+    const name = await listingNameFor(env, slug);
+
+    await sendMemberEmail(env, member.email, {
+      subject: `Listing removed: ${name}`,
+      heading: "Your listing has been removed",
+      paragraphs: [
+        `As requested, "${name}" has been removed from I Love Durban. It comes off the public site within a few minutes.`,
+        ...(premiumCancelled
+          ? [
+              "Its Premium subscription has been cancelled — you will not be billed again, and your past invoices stay available on your dashboard.",
+            ]
+          : []),
+        "You are always welcome back — you can add a new listing any time.",
+      ],
+      cta: { label: "Open my dashboard", href: dashboard },
+      link: dashboard,
+    });
+  }
 
   return json({ ok: true });
 }
@@ -1050,10 +1134,16 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
   }
 
   const subscription = await env.DB.prepare(
-    "SELECT id, member_id, slug, amount_cents FROM subscriptions WHERE id = ?1"
+    "SELECT id, member_id, slug, amount_cents, status FROM subscriptions WHERE id = ?1"
   )
     .bind(paymentId)
-    .first<{ id: string; member_id: string; slug: string; amount_cents: number }>();
+    .first<{
+      id: string;
+      member_id: string;
+      slug: string;
+      amount_cents: number;
+      status: string;
+    }>();
 
   if (!subscription) {
     console.error("[billing] ITN for an unknown subscription:", paymentId);
@@ -1096,9 +1186,55 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
 
     // Premium perks (the gallery) reach the public site on the next build.
     await triggerDeploy(env, `premium activated for ${subscription.slug}`);
+
+    // Tell the customer. First payment gets the full welcome-to-Premium mail
+    // with the subscription details; every monthly charge after that gets a
+    // simple receipt.
+    const email = await memberEmailById(env, subscription.member_id);
+    if (email) {
+      const site = siteBase(env, request);
+      const dashboard = `${site}/my-business/`;
+      const name = await listingNameFor(env, subscription.slug);
+      const amount = `R${(grossCents / 100).toFixed(2)}`;
+      const firstActivation = subscription.status !== "active";
+
+      await sendMemberEmail(
+        env,
+        email,
+        firstActivation
+          ? {
+              subject: `Premium is active: ${name}`,
+              heading: "Welcome to Premium!",
+              paragraphs: [
+                `Your payment of ${amount} was received and "${name}" is now a Premium listing.`,
+                "Here is what your subscription includes:",
+                "• Priority placement — your listing sits at the top with the Featured badge",
+                "• A photo gallery of up to 10 photos, editable from your dashboard",
+                `• Billed ${amount} per month via PayFast — cancel any time from your dashboard`,
+                "Your invoice is ready under Subscriptions & invoices on your dashboard, and every monthly payment adds a new one.",
+              ],
+              cta: { label: "Open my dashboard", href: dashboard },
+              footnote: "Premium perks appear on the public site within a few minutes.",
+              link: dashboard,
+            }
+          : {
+              subject: `Payment received: ${name}`,
+              heading: "Thanks — payment received",
+              paragraphs: [
+                `Your monthly Premium payment of ${amount} for "${name}" went through.`,
+                "The invoice is on your dashboard under Subscriptions & invoices.",
+              ],
+              cta: { label: "View my invoices", href: dashboard },
+              link: dashboard,
+            }
+      );
+    }
   } else if (status === "CANCELLED") {
-    await env.DB.prepare(
-      "UPDATE subscriptions SET status = 'cancelled', updated_at = ?1 WHERE id = ?2"
+    // Guarded update: when the cancellation started on our dashboard the row
+    // is already cancelled and the customer already has their mail — the ITN
+    // echo must not send a second one.
+    const { meta: cancelMeta } = await env.DB.prepare(
+      "UPDATE subscriptions SET status = 'cancelled', updated_at = ?1 WHERE id = ?2 AND status != 'cancelled'"
     )
       .bind(now(), subscription.id)
       .run();
@@ -1108,6 +1244,28 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
     )
       .bind(subscription.slug)
       .run();
+
+    if ((cancelMeta?.changes ?? 0) > 0) {
+      const email = await memberEmailById(env, subscription.member_id);
+      if (email) {
+        const site = siteBase(env, request);
+        const dashboard = `${site}/my-business/`;
+        const name = await listingNameFor(env, subscription.slug);
+
+        await sendMemberEmail(env, email, {
+          subject: `Premium cancelled: ${name}`,
+          heading: "Your Premium subscription is cancelled",
+          paragraphs: [
+            `PayFast has confirmed the cancellation of the Premium subscription for "${name}".`,
+            "Your listing stays live on the free plan — it never expires. The photo gallery and priority placement come off shortly.",
+            "You will not be billed again, and your past invoices stay available on your dashboard.",
+            "Changed your mind? You can go Premium again any time.",
+          ],
+          cta: { label: "Open my dashboard", href: dashboard },
+          link: dashboard,
+        });
+      }
+    }
   }
 
   return ok();
@@ -1151,6 +1309,25 @@ export async function billingCancel(request: Request, env: Env): Promise<Respons
 
   // The gallery comes off the public listing on the next build.
   await triggerDeploy(env, `premium cancelled for ${slug}`);
+
+  {
+    const site = siteBase(env, request);
+    const dashboard = `${site}/my-business/`;
+    const name = await listingNameFor(env, slug);
+
+    await sendMemberEmail(env, member.email, {
+      subject: `Premium cancelled: ${name}`,
+      heading: "Your Premium subscription is cancelled",
+      paragraphs: [
+        `As requested, the Premium subscription for "${name}" has been cancelled.`,
+        "Your listing stays live on the free plan — it never expires. The photo gallery and priority placement come off shortly.",
+        "You will not be billed again, and your past invoices stay available on your dashboard.",
+        "Changed your mind? You can go Premium again any time.",
+      ],
+      cta: { label: "Open my dashboard", href: dashboard },
+      link: dashboard,
+    });
+  }
 
   return json({ ok: true });
 }
@@ -1263,6 +1440,9 @@ async function closeSubscriptionsForSlug(env: Env, slug: string): Promise<number
     .bind(slug)
     .all<{ id: string; pf_token: string | null; status: string }>();
 
+  // Only cancelled *active* subscriptions count — a failed 'initiated'
+  // checkout never billed anyone, so callers must not tell the customer
+  // their billing stopped.
   let closed = 0;
   for (const subscription of results ?? []) {
     if (subscription.status === "active" && subscription.pf_token) {
@@ -1276,7 +1456,7 @@ async function closeSubscriptionsForSlug(env: Env, slug: string): Promise<number
       .bind(subscription.status === "active" ? "cancelled" : "failed", now(), subscription.id)
       .run();
 
-    closed += 1;
+    if (subscription.status === "active") closed += 1;
   }
 
   return closed;
@@ -1298,6 +1478,15 @@ export async function adminListingRemoved(request: Request, env: Env): Promise<R
   if (!SLUG.test(slug)) return badRequest("That is not a valid listing slug.");
 
   const note = "This listing was removed from the site.";
+
+  // The submitter, looked up before the rows below get closed off.
+  const owner = await env.DB.prepare(
+    `SELECT member_id, fields FROM listing_submissions
+      WHERE slug = ?1 AND status != 'rejected'
+      ORDER BY created_at DESC LIMIT 1`
+  )
+    .bind(slug)
+    .first<{ member_id: string; fields: string }>();
 
   // Cancel the money first — we must never keep charging for a listing that
   // no longer exists.
@@ -1323,6 +1512,32 @@ export async function adminListingRemoved(request: Request, env: Env): Promise<R
   )
     .bind(now(), slug)
     .run();
+
+  if (owner) {
+    const ownerEmail = await memberEmailById(env, owner.member_id);
+    if (ownerEmail) {
+      const parsed = safeParse(owner.fields) as Record<string, unknown> | null;
+      const name =
+        parsed && typeof parsed.name === "string" && parsed.name ? parsed.name : slug;
+      const dashboard = `${siteBase(env, request)}/my-business/`;
+
+      await sendMemberEmail(env, ownerEmail, {
+        subject: `Listing removed: ${name}`,
+        heading: "Your listing has been removed",
+        paragraphs: [
+          `"${name}" has been removed from I Love Durban by our team.`,
+          ...(cancelled > 0
+            ? [
+                "Its Premium subscription has been cancelled — you will not be billed again, and your past invoices stay available on your dashboard.",
+              ]
+            : []),
+          "If you think this was a mistake, reply to this email or reach us through the contact page — we are happy to take a look.",
+        ],
+        cta: { label: "Open my dashboard", href: dashboard },
+        link: dashboard,
+      });
+    }
+  }
 
   return json({ ok: true, subscriptionsClosed: cancelled });
 }
@@ -1451,10 +1666,15 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
 
     if (!submission) return json({ ok: false });
 
+    const parsed = safeParse(submission.fields) as Record<string, unknown>;
+    const businessName =
+      typeof parsed.name === "string" && parsed.name ? parsed.name : submission.slug;
+    let subscriptionsClosed = 0;
+
     if (decision === "reject") {
       // The owner may have paid for Premium from day one; a rejected listing
       // must never keep billing them.
-      await closeSubscriptionsForSlug(env, submission.slug);
+      subscriptionsClosed = await closeSubscriptionsForSlug(env, submission.slug);
     }
 
     if (decision === "approve") {
@@ -1462,8 +1682,6 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
        * Approval also hands the submitter the keys: an approved claim row, so
        * the ordinary edit flow works on the listing from now on.
        */
-      const parsed = safeParse(submission.fields) as Record<string, unknown>;
-
       await env.DB.prepare(
         `INSERT INTO listing_claims
            (id, member_id, slug, hub, business_name, status, created_at, decided_at)
@@ -1480,6 +1698,49 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
           now()
         )
         .run();
+    }
+
+    const ownerEmail = await memberEmailById(env, submission.member_id);
+    if (ownerEmail) {
+      const site = siteBase(env, request);
+      const listingUrl = `${site}/${submission.hub}/${submission.slug}/`;
+      const dashboard = `${site}/my-business/`;
+
+      await sendMemberEmail(
+        env,
+        ownerEmail,
+        decision === "approve"
+          ? {
+              subject: `Your listing is live: ${businessName}`,
+              heading: `"${businessName}" is live on I Love Durban!`,
+              paragraphs: [
+                "Your listing has been approved and published. It can take a few minutes to appear while the site republishes.",
+                "From your dashboard you can:",
+                "• Update your details, hours and featured photo any time",
+                "• Go Premium for a photo gallery and top placement with the Featured badge",
+                "Welcome aboard — support local!",
+              ],
+              cta: { label: "See my listing", href: listingUrl },
+              footnote: `Manage it any time at ${dashboard}`,
+              link: listingUrl,
+            }
+          : {
+              subject: `About your listing: ${businessName}`,
+              heading: "Your listing was not approved",
+              paragraphs: [
+                `"${businessName}" did not make it onto I Love Durban this time.`,
+                ...(note ? [`Note from the review team: ${note}`] : []),
+                ...(subscriptionsClosed > 0
+                  ? [
+                      "The Premium subscription for this listing has been cancelled — you will not be billed again.",
+                    ]
+                  : []),
+                "You are welcome to update the details and submit it again from your dashboard.",
+              ],
+              cta: { label: "Open my dashboard", href: dashboard },
+              link: dashboard,
+            }
+      );
     }
 
     return json({ ok: true });
