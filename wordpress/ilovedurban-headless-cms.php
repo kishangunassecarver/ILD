@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.7.0
+ * Version:      3.8.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -2473,13 +2473,52 @@ function ild_settings_payload(): array {
 	return $payload;
 }
 
+/**
+ * Slugs with an active Premium subscription, from the Worker.
+ *
+ * Cached for five minutes so a build does not hammer the API, and null when
+ * the Worker cannot be reached — the caller treats null as "leave premium
+ * content alone", because a billing hiccup must not strip paying customers'
+ * galleries off the site.
+ */
+function ild_premium_slugs(): ?array {
+	$cached = get_transient( 'ild_premium_slugs' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
+	$data = ild_worker_request( 'GET', '/api/admin/premium' );
+	if ( is_wp_error( $data ) || ! isset( $data['slugs'] ) || ! is_array( $data['slugs'] ) ) {
+		return null;
+	}
+
+	$slugs = array_map( 'strval', $data['slugs'] );
+	set_transient( 'ild_premium_slugs', $slugs, 5 * MINUTE_IN_SECONDS );
+
+	return $slugs;
+}
+
 function ild_rest_content(): WP_REST_Response {
 	$payload = ild_settings_payload();
+
+	$premium = ild_premium_slugs();
 
 	foreach ( ild_schema() as $type => $config ) {
 		$entries = array();
 		foreach ( ild_posts( $type ) as $post ) {
-			$entries[] = ild_entry( $post, $config );
+			$entry = ild_entry( $post, $config );
+
+			/*
+			 * The gallery is a Premium feature. A cancelled subscription takes
+			 * it off the public site at the next rebuild — the photos stay on
+			 * the listing post, so re-subscribing brings them straight back.
+			 */
+			if ( 'ild_listing' === $type && null !== $premium && ! empty( $entry['gallery'] )
+				&& ! in_array( (string) ( $entry['slug'] ?? '' ), $premium, true ) ) {
+				unset( $entry['gallery'] );
+			}
+
+			$entries[] = $entry;
 		}
 		if ( $entries ) {
 			$payload[ $config['key'] ] = $entries;

@@ -36,6 +36,7 @@ import {
 } from "./lib";
 import {
   adminDecide,
+  adminPremium,
   adminSubmissions,
   billingCancel,
   billingCheckout,
@@ -149,6 +150,8 @@ export default {
           return await submitEnquiry(request, env);
         case "GET /api/admin/submissions":
           return await adminSubmissions(request, env);
+        case "GET /api/admin/premium":
+          return await adminPremium(request, env);
         case "POST /api/admin/decide":
           return await adminDecide(request, env);
         default:

@@ -136,8 +136,17 @@ export function BusinessDashboard() {
 
   const claimFor = (slug: string) =>
     claims.find((c) => c.slug === slug && c.status === "approved") ?? null;
-  const subscriptionFor = (slug: string) =>
-    subscriptions.find((s) => s.slug === slug && s.status !== "cancelled") ?? null;
+
+  // An active subscription always wins; a newer abandoned checkout must not
+  // hide it, and failed attempts are never worth showing.
+  const subscriptionFor = (slug: string) => {
+    const mine = subscriptions.filter((s) => s.slug === slug);
+    return (
+      mine.find((s) => s.status === "active") ??
+      mine.find((s) => s.status === "initiated") ??
+      null
+    );
+  };
 
   const hasAnything = submissions.length > 0 || standaloneClaims.length > 0;
 
@@ -290,10 +299,7 @@ export function BusinessDashboard() {
                       year: "numeric",
                     })}
                   </span>
-                  <StatusChip
-                    status={sub.status === "active" ? "applied" : sub.status}
-                    className="ml-auto"
-                  />
+                  <StatusChip status={sub.status} className="ml-auto" />
                 </div>
               ))}
 
@@ -364,16 +370,22 @@ function nameFor(slug: string): string {
 function StatusChip({ status, className }: { status: string; className?: string }) {
   const styles: Record<string, string> = {
     pending: "bg-amber-400/15 text-amber-300",
+    initiated: "bg-amber-400/15 text-amber-300",
     approved: "bg-emerald-400/15 text-emerald-300",
     applied: "bg-emerald-400/15 text-emerald-300",
+    active: "bg-emerald-400/15 text-emerald-300",
     rejected: "bg-brand-500/15 text-brand-400",
+    cancelled: "bg-paper text-muted",
     superseded: "bg-paper text-muted",
   };
   const labels: Record<string, string> = {
     pending: "Awaiting review",
+    initiated: "Payment pending",
     approved: "Live",
     applied: "Live",
+    active: "Active",
     rejected: "Declined",
+    cancelled: "Cancelled",
     superseded: "Replaced by a newer change",
   };
 

@@ -1138,6 +1138,23 @@ export async function billingInvoice(request: Request, env: Env, url: URL): Prom
   });
 }
 
+/**
+ * GET /api/admin/premium — the slugs with an active Premium subscription.
+ *
+ * WordPress asks at build time and strips premium-only content (the gallery)
+ * from any listing that is not on this list, so a lapsed subscription takes
+ * its perks off the public site at the next rebuild.
+ */
+export async function adminPremium(request: Request, env: Env): Promise<Response> {
+  if (!isAdmin(request, env)) return json({ error: "Not authorised" }, { status: 401 });
+
+  const { results } = await env.DB.prepare(
+    "SELECT DISTINCT slug FROM subscriptions WHERE status = 'active'"
+  ).all<{ slug: string }>();
+
+  return json({ slugs: (results ?? []).map((row) => row.slug) });
+}
+
 export async function adminSubmissions(request: Request, env: Env): Promise<Response> {
   if (!isAdmin(request, env)) return json({ error: "Not authorised" }, { status: 401 });
 
