@@ -60,11 +60,15 @@ export function BusinessDashboard() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    // A listing page can deep-link here with ?claim=<slug> to start a claim.
+    // A listing page can deep-link here with ?claim=<slug> to start a claim,
+    // and the pricing page with ?add=1 to open the add-a-listing form.
     const slug = params.get("claim");
     if (slug) {
       setPrefillSlug(slug);
       setClaiming(true);
+    }
+    if (params.get("add")) {
+      setAdding(true);
     }
 
     // PayFast sends people back here after checkout.
@@ -195,6 +199,7 @@ export function BusinessDashboard() {
         <ListingEditor
           claim={editing}
           submission={submissions.find((s) => s.slug === editing.slug) ?? null}
+          premium={subscriptionFor(editing.slug)?.status === "active"}
           onClose={() => setEditing(null)}
           onSubmitted={() => {
             setEditing(null);
@@ -255,6 +260,71 @@ export function BusinessDashboard() {
             void refresh();
           }}
         />
+      )}
+
+      {(subscriptions.some((s) => s.status !== "failed") || (data?.invoices.length ?? 0) > 0) && (
+        <section aria-labelledby="your-billing">
+          <h2 id="your-billing" className="section-title mb-4">
+            Subscriptions & invoices
+          </h2>
+
+          <div className="panel divide-y divide-line">
+            {subscriptions
+              .filter((s) => s.status !== "failed")
+              .map((sub) => (
+                <div
+                  key={sub.id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5"
+                >
+                  <Crown className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+                  <span className="text-sm font-semibold text-snow">
+                    Premium — {submissions.find((s) => s.slug === sub.slug)?.fields.name
+                      ? String(submissions.find((s) => s.slug === sub.slug)?.fields.name)
+                      : nameFor(sub.slug)}
+                  </span>
+                  <span className="text-xs text-muted">
+                    R{(sub.amount_cents / 100).toFixed(0)}/month · started{" "}
+                    {new Date(sub.created_at * 1000).toLocaleDateString("en-ZA", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <StatusChip
+                    status={sub.status === "active" ? "applied" : sub.status}
+                    className="ml-auto"
+                  />
+                </div>
+              ))}
+
+            {(data?.invoices ?? []).map((invoice) => (
+              <div
+                key={invoice.pf_payment_id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3"
+              >
+                <span className="text-[0.8125rem] text-mist">
+                  {new Date(invoice.created_at * 1000).toLocaleDateString("en-ZA", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+                <span className="text-[0.8125rem] text-muted">{invoice.slug}</span>
+                <span className="text-[0.8125rem] font-semibold text-snow">
+                  R{(invoice.amount_cents / 100).toFixed(2)}
+                </span>
+                <a
+                  href={`/api/billing/invoice?id=${encodeURIComponent(invoice.pf_payment_id)}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="ml-auto text-xs font-semibold text-aqua-300 underline transition hover:text-aqua-200"
+                >
+                  View invoice
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {edits.length > 0 && (
@@ -384,8 +454,9 @@ function PremiumControls({
   return (
     <div className="flex w-full flex-wrap items-center gap-2.5 border-t border-line pt-3">
       <p className="text-xs leading-relaxed text-muted">
-        <span className="font-semibold text-snow">Go Premium — R{price}/month.</span> Priority
-        placement and more, billed monthly via PayFast. Cancel anytime.
+        <span className="font-semibold text-snow">Go Premium — R{price}/month.</span> A photo
+        gallery (up to 10 photos), priority placement and more, billed monthly via PayFast. Cancel
+        anytime.
       </p>
       <button
         type="button"
@@ -847,7 +918,8 @@ function ClaimForm({
     if (q.length < 2) return [];
 
     return LISTINGS.filter(
-      (l) => !alreadyClaimed.has(l.slug) && l.name.toLowerCase().includes(q)
+      // Owner-managed listings already have their owner; they are not on offer.
+      (l) => !l.ownerManaged && !alreadyClaimed.has(l.slug) && l.name.toLowerCase().includes(q)
     ).slice(0, 6);
   }, [query, alreadyClaimed]);
 
@@ -1099,31 +1171,67 @@ function draftToFields(
 function ListingEditor({
   claim,
   submission,
+  premium,
   onClose,
   onSubmitted,
 }: {
   claim: Claim;
   submission: ListingSubmission | null;
+  premium: boolean;
   onClose: () => void;
   onSubmitted: () => void;
 }) {
   const listing = LISTINGS.find((l) => l.slug === claim.slug);
   const [original] = useState(() => toDraft(listing, submission));
   const [draft, setDraft] = useState(original);
+  const [originalGallery] = useState<string[]>(() => listing?.gallery ?? []);
+  const [gallery, setGallery] = useState<string[]>(originalGallery);
+  const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
+  const galleryInput = useRef<HTMLInputElement>(null);
 
-  const changedCount = Object.keys(draftToFields(draft, original)).length;
+  const galleryChanged = gallery.join("\n") !== originalGallery.join("\n");
+  const changedCount = Object.keys(draftToFields(draft, original)).length + (galleryChanged ? 1 : 0);
 
   function set(key: string) {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setDraft((d) => ({ ...d, [key]: event.target.value }));
   }
 
+  async function onAddGalleryPhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (gallery.length >= 10) {
+      setError("The gallery holds up to 10 photos.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Keep each photo under 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    const result = await uploadListingImage(file);
+    setUploading(false);
+
+    if (!result.ok || !result.url) {
+      setError(result.error ?? "The upload did not go through.");
+      return;
+    }
+
+    setGallery((g) => [...g, result.url as string]);
+  }
+
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
 
     const fields = draftToFields(draft, original);
+    if (galleryChanged) fields.gallery = gallery;
+
     if (Object.keys(fields).length === 0) {
       setError("Nothing has changed yet.");
       setState("error");
@@ -1278,6 +1386,70 @@ function ListingEditor({
         <Field label="Button label" id="edit-cta" hint='The card action, e.g. "Book a Table".'>
           <input id="edit-cta" value={draft.cta} onChange={set("cta")} className="field" />
         </Field>
+      </div>
+
+      {/* The Premium gallery. */}
+      <div className="border-t border-line pt-5">
+        <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-snow">
+          <Crown className="h-3.5 w-3.5 text-gold" aria-hidden />
+          Photo gallery
+          <span className="font-normal text-muted">
+            {premium ? `(${gallery.length}/10 photos — Premium)` : "(Premium feature)"}
+          </span>
+        </p>
+
+        {premium ? (
+          <>
+            <input
+              ref={galleryInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={onAddGalleryPhoto}
+              className="sr-only"
+              id="edit-gallery-file"
+            />
+
+            <div className="flex flex-wrap gap-3">
+              {gallery.map((photo) => (
+                <div key={photo} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
+                  <img src={photo} alt="" className="h-20 w-28 rounded-lg object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setGallery((g) => g.filter((p) => p !== photo))}
+                    aria-label="Remove photo"
+                    className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-night-700 text-snow shadow-rail transition hover:bg-brand-500"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                </div>
+              ))}
+
+              {gallery.length < 10 && (
+                <button
+                  type="button"
+                  onClick={() => galleryInput.current?.click()}
+                  disabled={uploading}
+                  className="grid h-20 w-28 place-items-center rounded-lg border border-dashed border-snow/25 text-muted transition hover:border-aqua-400/70 hover:text-aqua-200"
+                >
+                  {uploading ? (
+                    <span className="text-[0.625rem] font-semibold">Uploading…</span>
+                  ) : (
+                    <ImagePlus className="h-5 w-5" aria-hidden />
+                  )}
+                </button>
+              )}
+            </div>
+            <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-muted">
+              Gallery changes are reviewed like every other edit before they appear on the site.
+            </p>
+          </>
+        ) : (
+          <p className="rounded-lg bg-paper p-3.5 text-xs leading-relaxed text-muted">
+            Premium listings can show a gallery of up to 10 photos. Upgrade from your listing card
+            on this page to unlock it.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

@@ -77,6 +77,9 @@ const EDITABLE: Record<string, FieldRule> = {
   hours: { kind: "list", max: 14, each: 80, label: "Opening hours" },
   amenities: { kind: "list", max: 20, each: 60, label: "Amenities" },
   tags: { kind: "list", max: 12, each: 40, label: "Tags" },
+  // Premium only, and every entry must be a URL our own uploader issued —
+  // both enforced in submitEdit, on top of the shape rules here.
+  gallery: { kind: "list", max: 10, each: 300, label: "Gallery photos" },
 };
 
 /**
@@ -199,6 +202,26 @@ export async function claimListing(request: Request, env: Env): Promise<Response
 
     return trimmed || null;
   };
+
+  /*
+   * A listing that already has an owner is not claimable. That covers listings
+   * someone added through "Add a Listing" and had verified, and listings whose
+   * claim was approved for somebody else — either way, ownership disputes are
+   * a support conversation, not a form.
+   */
+  const owned = await env.DB.prepare(
+    `SELECT 1 AS x FROM listing_claims WHERE slug = ?1 AND status = 'approved' AND member_id != ?2
+     UNION
+     SELECT 1 AS x FROM listing_submissions WHERE slug = ?1 AND status != 'rejected' AND member_id != ?2`
+  )
+    .bind(slug, member.id)
+    .first();
+
+  if (owned) {
+    return badRequest(
+      "That listing is already managed by its owner. If you believe that is wrong, contact us and we will look into it."
+    );
+  }
 
   const existing = await env.DB.prepare(
     "SELECT id, status FROM listing_claims WHERE member_id = ?1 AND slug = ?2"
@@ -464,8 +487,20 @@ export async function myBusinesses(request: Request, env: Env): Promise<Response
     .bind(member.id)
     .all<Record<string, unknown>>();
 
+  // Billing history, newest first — each row has an invoice behind it.
+  const invoices = await env.DB.prepare(
+    `SELECT p.pf_payment_id, p.status, p.amount_cents, p.created_at, s.slug
+       FROM payments p
+       JOIN subscriptions s ON s.id = p.subscription_id
+      WHERE s.member_id = ?1
+      ORDER BY p.created_at DESC LIMIT 60`
+  )
+    .bind(member.id)
+    .all<Record<string, unknown>>();
+
   return json({
     claims: claims.results ?? [],
+    invoices: invoices.results ?? [],
     submissions: (submissions.results ?? []).map((row) => ({
       ...row,
       fields: safeParse(row.fields),
@@ -529,6 +564,24 @@ export async function submitEdit(request: Request, env: Env): Promise<Response> 
   }
 
   if (Object.keys(fields).length === 0) return badRequest("No changes were submitted.");
+
+  // The gallery is a Premium feature, and only our own uploads belong in it.
+  if ("gallery" in fields && fields.gallery !== null) {
+    const entries = fields.gallery as string[];
+
+    for (const entry of entries) {
+      if (!isOwnMediaUrl(entry)) {
+        return badRequest("Gallery photos must be uploaded through the dashboard.");
+      }
+    }
+
+    if (entries.length > 0 && !(await isPremium(env, slug))) {
+      return json(
+        { error: "The photo gallery is a Premium feature. Upgrade the listing first." },
+        { status: 403 }
+      );
+    }
+  }
 
   if (!(await withinRateLimit(env, `edit:${member.id}`, 30, 86400))) {
     return json({ error: "You have submitted a lot of changes today. Try again tomorrow." }, { status: 429 });
@@ -762,6 +815,17 @@ function isAdmin(request: Request, env: Env): boolean {
  * Premium subscriptions (PayFast)
  * ---------------------------------------------------------------------- */
 
+/** Premium = an active subscription on the slug. */
+async function isPremium(env: Env, slug: string): Promise<boolean> {
+  const row = await env.DB.prepare(
+    "SELECT 1 AS x FROM subscriptions WHERE slug = ?1 AND status = 'active'"
+  )
+    .bind(slug)
+    .first();
+
+  return Boolean(row);
+}
+
 /** The member owns this slug if a claim or a submission of theirs says so. */
 async function ownsListing(env: Env, memberId: string, slug: string): Promise<boolean> {
   const claim = await env.DB.prepare(
@@ -805,6 +869,14 @@ export async function billingCheckout(request: Request, env: Env, url: URL): Pro
     return json({ error: "Too many checkout attempts. Try again later." }, { status: 429 });
   }
 
+  // Abandoned checkouts must not haunt the dashboard as "waiting for PayFast".
+  await env.DB.prepare(
+    `UPDATE subscriptions SET status = 'failed', updated_at = ?1
+      WHERE member_id = ?2 AND slug = ?3 AND status = 'initiated'`
+  )
+    .bind(now(), member.id, slug)
+    .run();
+
   const id = randomToken();
   await env.DB.prepare(
     `INSERT INTO subscriptions (id, member_id, slug, status, amount_cents, created_at)
@@ -847,7 +919,16 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
 
   const ok = () => new Response("OK", { status: 200 });
 
-  if (!itnSignatureValid(itn, config.passphrase)) {
+  /*
+   * Live mode is strict: the signature must verify with our passphrase. The
+   * shared sandbox merchant signs with or without one depending on account
+   * settings, so in sandbox either form is accepted — the validation postback
+   * to PayFast below still has to pass either way.
+   */
+  const signatureOk =
+    itnSignatureValid(itn, config.passphrase) || (!config.live && itnSignatureValid(itn, ""));
+
+  if (!signatureOk) {
     console.error("[billing] ITN signature mismatch for", paymentId);
     return ok(); // Never give a prober a different answer.
   }
@@ -960,6 +1041,101 @@ export async function billingCancel(request: Request, env: Env): Promise<Respons
     .run();
 
   return json({ ok: true });
+}
+
+/**
+ * GET /api/billing/invoice?id=… — a printable, branded invoice for one payment.
+ * Only the member the subscription belongs to can open it.
+ */
+export async function billingInvoice(request: Request, env: Env, url: URL): Promise<Response> {
+  const member = await currentMember(request, env);
+  if (!member) return new Response("Sign in to view invoices.", { status: 401 });
+
+  const id = url.searchParams.get("id") ?? "";
+  if (!/^[\w\-:.]{4,120}$/.test(id)) return new Response("Not found", { status: 404 });
+
+  const payment = await env.DB.prepare(
+    `SELECT p.pf_payment_id, p.status, p.amount_cents, p.created_at, s.slug, s.member_id
+       FROM payments p
+       JOIN subscriptions s ON s.id = p.subscription_id
+      WHERE p.pf_payment_id = ?1`
+  )
+    .bind(id)
+    .first<{
+      pf_payment_id: string;
+      status: string;
+      amount_cents: number;
+      created_at: number;
+      slug: string;
+      member_id: string;
+    }>();
+
+  if (!payment || payment.member_id !== member.id) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const esc = (value: string) =>
+    value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const date = new Date(payment.created_at * 1000).toLocaleDateString("en-ZA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const amount = `R ${(payment.amount_cents / 100).toFixed(2)}`;
+  const font = "-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Invoice ${esc(payment.pf_payment_id)}</title></head>
+<body style="margin:0;background:#EEF2F7;font-family:${font};">
+  <div style="max-width:640px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;">
+    <div style="background:#021734;padding:24px 36px;">
+      <div style="font-weight:800;font-size:22px;color:#fff;">I <span style="color:#F6514D;">&#10084;&#65039;</span> DURBAN</div>
+      <div style="font-size:9px;letter-spacing:2.5px;color:#8CA3B8;padding-top:4px;">THE HEARTBEAT OF OUR CITY</div>
+    </div>
+    <div style="padding:32px 36px;color:#334A5E;font-size:14px;line-height:1.6;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:20px;font-weight:800;color:#01122C;">Tax Invoice / Receipt</div>
+          <div style="color:#8CA3B8;font-size:12px;">No. ${esc(payment.pf_payment_id)}</div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#8CA3B8;">
+          ${esc(date)}<br>Status: <strong style="color:${payment.status === "COMPLETE" ? "#1a7f4f" : "#B92F2C"};">${esc(payment.status === "COMPLETE" ? "PAID" : payment.status)}</strong>
+        </div>
+      </div>
+      <div style="margin-top:20px;font-size:12px;color:#8CA3B8;">Billed to</div>
+      <div>${esc(member.name ?? "")}${member.name ? " — " : ""}${esc(member.email)}</div>
+      <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:14px;">
+        <tr style="text-align:left;color:#8CA3B8;font-size:11px;text-transform:uppercase;letter-spacing:1px;">
+          <th style="padding:8px 0;border-bottom:1px solid #E4EAF1;">Description</th>
+          <th style="padding:8px 0;border-bottom:1px solid #E4EAF1;text-align:right;">Amount</th>
+        </tr>
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #E4EAF1;">
+            Premium Listing — <strong>${esc(payment.slug)}</strong><br>
+            <span style="font-size:12px;color:#8CA3B8;">Monthly subscription, billed via PayFast</span>
+          </td>
+          <td style="padding:12px 0;border-bottom:1px solid #E4EAF1;text-align:right;vertical-align:top;">${amount}</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 0;font-weight:800;color:#01122C;">Total</td>
+          <td style="padding:12px 0;text-align:right;font-weight:800;color:#01122C;">${amount}</td>
+        </tr>
+      </table>
+      <p style="font-size:11px;color:#8CA3B8;margin-top:24px;">
+        This document confirms payment received via PayFast. Print or save it for your records
+        (your browser's Print &rarr; Save as PDF).
+      </p>
+    </div>
+    <div style="background:#F6F9FC;padding:16px 36px;font-size:11px;color:#8CA3B8;text-align:center;">
+      I Love Durban &middot; ilovedurban.co.za
+    </div>
+  </div>
+</body></html>`;
+
+  return new Response(html, {
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store" },
+  });
 }
 
 export async function adminSubmissions(request: Request, env: Env): Promise<Response> {

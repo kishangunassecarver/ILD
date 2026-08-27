@@ -182,11 +182,21 @@ export interface Subscription {
   created_at: number;
 }
 
+/** One paid billing event; the invoice endpoint renders it. */
+export interface Invoice {
+  pf_payment_id: string;
+  status: string;
+  amount_cents: number;
+  created_at: number;
+  slug: string;
+}
+
 export interface MyBusinesses {
   claims: Claim[];
   submissions: ListingSubmission[];
   edits: EditSubmission[];
   subscriptions: Subscription[];
+  invoices: Invoice[];
   premiumPrice: number;
   editable: Record<string, { label: string; kind: string }>;
 }

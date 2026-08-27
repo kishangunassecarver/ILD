@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.6.0
+ * Version:      3.7.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -85,6 +85,7 @@ function ild_schema(): array {
 				'googleUrl'     => array( 'type' => 'text', 'label' => 'Google Maps link for this business (the "See reviews on Google" button)' ),
 				'imageUrl'    => array( 'type' => 'text', 'label' => 'Image URL — an alternative to setting a Featured Image, for photos hosted elsewhere. The Featured Image wins if both are set.' ),
 				'imageCredit' => array( 'type' => 'text', 'label' => 'Photo credit — required for anything not shot by us or supplied by the business. e.g. "Photo: J. Doe / CC BY-SA 4.0"' ),
+				'gallery'   => array( 'type' => 'lines', 'label' => 'Gallery — one image URL per line. A Premium feature; owners manage it from their dashboard.' ),
 				'hours'     => array( 'type' => 'lines', 'label' => 'Opening hours — one line per row' ),
 				'amenities' => array( 'type' => 'lines', 'label' => 'Good to know — one per line' ),
 			),
@@ -2400,6 +2401,11 @@ function ild_entry( WP_Post $post, array $config ): array {
 	}
 	unset( $entry['imageUrl'] );
 
+	// Listings created through the owner dashboard are not claimable.
+	if ( '1' === get_post_meta( $post->ID, '_ild_ownerManaged', true ) ) {
+		$entry['ownerManaged'] = true;
+	}
+
 	return $entry;
 }
 
@@ -2603,7 +2609,7 @@ const ILD_WORKER_TOKEN_OPT = 'ild_worker_token';
  * misbehaving queue still cannot flip `featured` or rewrite a Google rating.
  */
 function ild_owner_editable(): array {
-	return array( 'name', 'blurb', 'body', 'category', 'area', 'price', 'cta', 'address', 'phone', 'website', 'hours', 'amenities', 'tags' );
+	return array( 'name', 'blurb', 'body', 'category', 'area', 'price', 'cta', 'address', 'phone', 'website', 'hours', 'amenities', 'tags', 'gallery' );
 }
 
 /** Call the Worker's admin API. Returns decoded JSON or a WP_Error. */
@@ -2788,6 +2794,10 @@ function ild_create_owner_listing( array $submission ) {
 	}
 
 	update_post_meta( $post_id, '_ild_hub', $hub );
+
+	// Owner-managed: the site hides "claim this listing" on it, and the Worker
+	// refuses claims for it outright.
+	update_post_meta( $post_id, '_ild_ownerManaged', '1' );
 
 	$schema = ild_schema()['ild_listing']['fields'];
 

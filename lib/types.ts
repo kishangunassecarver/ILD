@@ -88,6 +88,10 @@ export interface Listing {
   amenities?: string[];
   /** Absolute image URL from the CMS media library. Falls back to generated art. */
   image?: string;
+  /** Premium gallery photos, managed by the owner from their dashboard. */
+  gallery?: string[];
+  /** Created through the owner dashboard — never offered for claiming. */
+  ownerManaged?: boolean;
   /**
    * Photo credit, e.g. "Photo: Jane Doe / CC BY-SA 4.0" or the attribution
    * string Google Places returns.

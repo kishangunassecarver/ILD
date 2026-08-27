@@ -20,7 +20,7 @@ const SANDBOX = {
   host: "sandbox.payfast.co.za",
 };
 
-export const PREMIUM_PRICE_RANDS = 199;
+export const PREMIUM_PRICE_RANDS = 99;
 
 export interface PayfastConfig {
   merchantId: string;

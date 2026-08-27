@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import { Check, Eye, MessageSquare, TrendingUp } from "lucide-react";
-import { EnquiryForm } from "@/components/forms/EnquiryForm";
+import Link from "next/link";
+import { Check, Crown, Eye, MessageSquare, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { BUSINESS_PLANS, HUBS, STATS } from "@/lib/cms";
-import { cn } from "@/lib/utils";
+import { STATS } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "List your business",
   description:
-    "Get your Durban business in front of the people already searching for it. Free listings, featured placement and full partner campaigns.",
+    "Get your Durban business in front of the people already searching for it. Free listings that never expire, and a Premium upgrade for R99 a month.",
 };
 
 const BENEFITS = [
@@ -20,12 +19,52 @@ const BENEFITS = [
   {
     icon: MessageSquare,
     title: "Be chosen",
-    body: "Photos, hours, offers and reviews on one page, so the decision happens before the call.",
+    body: "Photos, hours and your full story on one page, so the decision happens before the call.",
   },
   {
     icon: TrendingUp,
-    title: "Be measured",
-    body: "A monthly report on views, clicks to call, direction requests and deal redemptions.",
+    title: "Stay in control",
+    body: "Update your details, hours and photos yourself from your own dashboard, any time.",
+  },
+];
+
+/**
+ * The plans are product configuration, deliberately hardcoded rather than
+ * CMS-driven: the Premium price on this page and the price PayFast charges
+ * come from the same codebase, so they cannot drift apart.
+ */
+const PLANS = [
+  {
+    name: "Free Listing",
+    price: "R0",
+    period: "forever — it never expires",
+    summary: "Everything a business needs to be found.",
+    includes: [
+      "Your business in the right section and area",
+      "One featured photo",
+      "Description, contact details and hours",
+      "Edit it yourself from your dashboard",
+      "Reviewed and published by a person",
+    ],
+    cta: "Add your free listing",
+    href: "/my-business/?add=1",
+    featured: false,
+  },
+  {
+    name: "Premium",
+    price: "R99",
+    period: "per month, cancel anytime",
+    summary: "Stand out, with more to show.",
+    includes: [
+      "Everything in the Free Listing",
+      "A photo gallery — up to 10 photos",
+      "Priority placement where people are looking",
+      "Premium badge on your listing",
+      "Billed monthly via PayFast, invoices in your dashboard",
+    ],
+    cta: "Go Premium",
+    href: "/my-business/",
+    featured: true,
   },
 ];
 
@@ -34,7 +73,7 @@ export default function ListYourBusinessPage() {
     <div className="shell space-y-10 py-6">
       <PageHeader
         title="Get your business in front of Durban"
-        intro="Four thousand local businesses are already listed. A free listing takes ten minutes; the paid tiers put you where people are already looking."
+        intro="Add your listing in ten minutes — free, forever. Upgrade to Premium when you want to stand out."
         trail={[{ label: "Home", href: "/" }, { label: "List Your Business" }]}
       />
 
@@ -42,7 +81,7 @@ export default function ListYourBusinessPage() {
         {STATS.map((stat) => (
           <div key={stat.label}>
             <p className="text-2xl font-extrabold tracking-tight text-snow">{stat.value}</p>
-            <p className="mt-0.5 text-xs text-muted">{stat.label}</p>
+            <p className="mt-0.5 text-[0.8125rem] text-muted">{stat.label}</p>
           </div>
         ))}
       </section>
@@ -56,31 +95,33 @@ export default function ListYourBusinessPage() {
                 <benefit.icon className="h-4 w-4 text-aqua-300" aria-hidden />
               </span>
               <h3 className="mt-3 text-sm font-bold text-snow">{benefit.title}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-muted">{benefit.body}</p>
+              <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted">{benefit.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section id="advertising" className="scroll-mt-24">
+      <section id="plans" className="scroll-mt-24">
         <h2 className="section-title mb-4">Plans</h2>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {BUSINESS_PLANS.map((plan) => (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {PLANS.map((plan) => (
             <div
               key={plan.name}
-              className={cn(
-                "panel flex flex-col p-6",
-                plan.featured && "border-aqua-500/40 ring-1 ring-aqua-500/40"
-              )}
+              className={
+                plan.featured
+                  ? "panel flex flex-col border-gold/40 p-6 ring-1 ring-gold/40"
+                  : "panel flex flex-col p-6"
+              }
             >
               {plan.featured && (
-                <span className="mb-3 self-start rounded-pill bg-aqua-400/10 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-aqua-300">
-                  Most popular
+                <span className="mb-3 inline-flex items-center gap-1.5 self-start rounded-pill bg-gold/15 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-gold">
+                  <Crown className="h-3 w-3" aria-hidden />
+                  Stand out
                 </span>
               )}
 
               <h3 className="text-base font-bold text-snow">{plan.name}</h3>
-              <p className="mt-1 text-xs leading-relaxed text-muted">{plan.summary}</p>
+              <p className="mt-1 text-[0.8125rem] leading-relaxed text-muted">{plan.summary}</p>
 
               <p className="mt-4 flex items-baseline gap-1.5">
                 <span className="text-3xl font-extrabold tracking-tight text-snow">
@@ -91,7 +132,7 @@ export default function ListYourBusinessPage() {
 
               <ul className="mt-5 flex-1 space-y-2">
                 {plan.includes.map((item) => (
-                  <li key={item} className="flex gap-2 text-xs leading-relaxed text-mist">
+                  <li key={item} className="flex gap-2 text-[0.8125rem] leading-relaxed text-mist">
                     <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
                       <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
                     </span>
@@ -100,69 +141,29 @@ export default function ListYourBusinessPage() {
                 ))}
               </ul>
 
-              <a
-                href="#enquire"
-                className={cn("mt-6 w-full", plan.featured ? "btn-primary" : "btn-ghost")}
+              <Link
+                href={plan.href}
+                className={
+                  plan.featured
+                    ? "btn mt-6 w-full bg-gold font-bold text-ink hover:bg-gold-600"
+                    : "btn-primary mt-6 w-full"
+                }
               >
                 {plan.cta}
-              </a>
+              </Link>
             </div>
           ))}
         </div>
-        <p className="mt-3 text-[0.6875rem] text-muted">
-          Prices exclude VAT. Partner campaigns are quoted per flight — talk to us about what you
-          need.
-        </p>
-      </section>
 
-      <section id="stories" className="panel scroll-mt-24 p-6">
-        <h2 className="section-title">Success stories</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          We publish quarterly write-ups with the businesses who let us share their numbers — what
-          they listed, what changed, and what it cost. Ask your account manager for the current set,
-          or get in touch and we will send it through.
+        <p className="mt-4 max-w-2xl text-[0.8125rem] leading-relaxed text-muted">
+          Both plans are self-service: sign in, add your listing, and upgrade whenever you like
+          from your dashboard. Premium is billed as a monthly PayFast subscription — the upgrade
+          button appears on your listing once it is live. Questions?{" "}
+          <Link href="/contact" className="font-semibold text-aqua-300 underline">
+            Talk to us
+          </Link>
+          .
         </p>
-      </section>
-
-      <section id="enquire" className="scroll-mt-24">
-        <h2 className="section-title mb-1">Get listed</h2>
-        <p className="mb-4 max-w-2xl text-sm text-muted">
-          Tell us about the business and we will come back within one working day.
-        </p>
-
-        <EnquiryForm
-          submitLabel="Send my details"
-          successTitle="Thanks — that's with us."
-          successBody="Our team will be in touch within one working day to get your listing live."
-          footnote="We use these details to set up your listing and nothing else. See our Privacy Policy."
-          fields={[
-            { name: "business", label: "Business name", required: true, half: true },
-            {
-              name: "category",
-              label: "Category",
-              type: "select",
-              required: true,
-              half: true,
-              options: HUBS.map((hub) => hub.label),
-            },
-            { name: "name", label: "Your name", required: true, half: true },
-            { name: "email", label: "Email", type: "email", required: true, half: true },
-            { name: "phone", label: "Phone", type: "tel", half: true },
-            { name: "area", label: "Suburb or area", half: true },
-            {
-              name: "plan",
-              label: "Interested in",
-              type: "select",
-              options: BUSINESS_PLANS.map((plan) => plan.name),
-            },
-            {
-              name: "message",
-              label: "Anything else we should know?",
-              type: "textarea",
-              placeholder: "Opening hours, what makes the place worth a visit, links to photos…",
-            },
-          ]}
-        />
       </section>
     </div>
   );

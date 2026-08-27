@@ -39,6 +39,7 @@ import {
   adminSubmissions,
   billingCancel,
   billingCheckout,
+  billingInvoice,
   billingNotify,
   claimListing,
   createListing,
@@ -142,6 +143,8 @@ export default {
           return await billingNotify(request, env);
         case "POST /api/billing/cancel":
           return await billingCancel(request, env);
+        case "GET /api/billing/invoice":
+          return await billingInvoice(request, env, url);
         case "POST /api/enquiries":
           return await submitEnquiry(request, env);
         case "GET /api/admin/submissions":

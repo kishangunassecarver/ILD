@@ -94,6 +94,32 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
             )}
           </div>
 
+          {listing.gallery && listing.gallery.length > 0 && (
+            <section className="panel p-5" aria-label="Photo gallery">
+              <h2 className="text-sm font-bold text-snow">Gallery</h2>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {listing.gallery.map((photo) => (
+                  <a
+                    key={photo}
+                    href={photo}
+                    target="_blank"
+                    rel="noopener"
+                    className="group block overflow-hidden rounded-xl"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
+                    <img
+                      src={photo}
+                      alt={`${listing.name} — photo`}
+                      loading="lazy"
+                      decoding="async"
+                      className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
           {listing.amenities && listing.amenities.length > 0 && (
             <section className="panel p-5">
               <h2 className="text-sm font-bold text-snow">Good to know</h2>
@@ -206,18 +232,22 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
             </p>
           </section>
 
-          <section className="panel p-5">
-            <h2 className="text-sm font-bold text-snow">Is this your business?</h2>
-            <p className="mt-1.5 text-xs leading-relaxed text-muted">
-              Claim this listing to update your details, hours and description yourself.
-            </p>
-            <Link
-              href={`/my-business/?claim=${listing.slug}`}
-              className="btn-ghost mt-3 w-full py-2 text-xs"
-            >
-              Claim this listing
-            </Link>
-          </section>
+          {/* A listing added and verified through the owner dashboard already
+              has its owner — offering "claim" on it would only invite trouble. */}
+          {!listing.ownerManaged && (
+            <section className="panel p-5">
+              <h2 className="text-sm font-bold text-snow">Is this your business?</h2>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted">
+                Claim this listing to update your details, hours and description yourself.
+              </p>
+              <Link
+                href={`/my-business/?claim=${listing.slug}`}
+                className="btn-ghost mt-3 w-full py-2 text-xs"
+              >
+                Claim this listing
+              </Link>
+            </section>
+          )}
         </aside>
       </div>
     </article>
