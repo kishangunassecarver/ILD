@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Heart, Menu, Search, User, X } from "lucide-react";
+import { CalendarDays, ChevronDown, Heart, Menu, Search, User, X } from "lucide-react";
 import { AccountMenu } from "@/components/account/AccountMenu";
 import { useMember } from "@/components/account/MemberProvider";
 import { Logo } from "@/components/ui/Logo";
@@ -416,6 +416,10 @@ function DrawerAccountLink({ onClose }: { onClose: () => void }) {
       <Link href="/my-business" onClick={onClose} className="btn-ghost w-full">
         <User className="mr-1.5 h-4 w-4" aria-hidden />
         My account
+      </Link>
+      <Link href="/my-events" onClick={onClose} className="btn-ghost w-full">
+        <CalendarDays className="mr-1.5 h-4 w-4" aria-hidden />
+        My events
       </Link>
       <Link href="/saved" onClick={onClose} className="btn-ghost w-full">
         <Heart className="mr-1.5 h-4 w-4" aria-hidden />

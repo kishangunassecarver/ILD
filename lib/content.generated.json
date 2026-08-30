@@ -141,6 +141,22 @@
       "image": "https://cms.howsit.ai/wp-content/uploads/2026/08/Founder_CEO_Circle.webp"
     },
     {
+      "slug": "curry-house",
+      "name": "Curry House",
+      "hub": "eat-drink",
+      "category": "Resturant",
+      "area": "Durban",
+      "blurb": "A fine food curry place",
+      "body": [
+        "A fine food curry place"
+      ],
+      "address": "6 Somerset Drive, Somerset Park",
+      "phone": "0837775075",
+      "image": "https://ild.kishan-bde.workers.dev/api/media/listings/59aefe961498493dedfe7662a720ef1ba0f25685f9493ba16c77e48388147ff7.webp",
+      "ownerManaged": true,
+      "featured": false
+    },
+    {
       "slug": "howsit-ai",
       "name": "Howsit AI",
       "hub": "services",

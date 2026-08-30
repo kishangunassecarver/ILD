@@ -54,6 +54,15 @@ import {
   submitEnquiry,
   uploadListingImage,
 } from "./business";
+import {
+  adminEventRemoved,
+  adminEventTiers,
+  adminRemovedEvents,
+  createEvent,
+  deleteEvent,
+  eventCheckout,
+  myEvents,
+} from "./events";
 import { deliverEmail, type AuthEmail } from "./email";
 
 const SAVE_KINDS = new Set(["listing", "event", "deal", "page"]);
@@ -144,6 +153,14 @@ export default {
           return await submitEdit(request, env);
         case "POST /api/business/delete":
           return await ownerDeleteListing(request, env);
+        case "POST /api/events/create":
+          return await createEvent(request, env);
+        case "GET /api/events/mine":
+          return await myEvents(request, env);
+        case "POST /api/events/delete":
+          return await deleteEvent(request, env);
+        case "POST /api/events/checkout":
+          return await eventCheckout(request, env, url);
         case "POST /api/billing/checkout":
           return await billingCheckout(request, env, url);
         case "POST /api/billing/notify":
@@ -165,6 +182,12 @@ export default {
           return await adminListingRemoved(request, env);
         case "GET /api/admin/removed":
           return await adminRemoved(request, env);
+        case "GET /api/admin/event-tiers":
+          return await adminEventTiers(request, env);
+        case "GET /api/admin/removed-events":
+          return await adminRemovedEvents(request, env);
+        case "POST /api/admin/event-removed":
+          return await adminEventRemoved(request, env);
         case "POST /api/admin/decide":
           return await adminDecide(request, env);
         default:

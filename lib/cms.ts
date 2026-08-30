@@ -248,6 +248,7 @@ export const FOOTER: FooterColumn[] = use(
 const RESERVED_TOP_LEVEL = new Set([
   "about",
   "blog",
+  "claim",
   "contact",
   "deals",
   "discover",
@@ -257,6 +258,7 @@ const RESERVED_TOP_LEVEL = new Set([
   "join",
   "list-your-business",
   "my-business",
+  "my-events",
   "privacy",
   "reset",
   "rewards",
@@ -416,15 +418,24 @@ export function getEvent(slug: string): Event | undefined {
   return EVENTS.find((e) => e.slug === slug);
 }
 
+/** Premium placement outranks Featured outranks free — that is what it buys. */
+const TIER_RANK: Record<string, number> = { premium: 0, featured: 1, free: 2 };
+
+function byTierThenDate(a: Event, b: Event): number {
+  const rank = (e: Event) => TIER_RANK[e.tier ?? "free"] ?? 2;
+  return rank(a) - rank(b) || a.date.localeCompare(b.date) || a.title.localeCompare(b.title);
+}
+
 /**
- * Events, soonest first.
+ * Events: paid tier first, soonest first within a tier.
  *
  * Deliberately date-agnostic: a static export is built once and served for
  * days, so filtering against the build machine's clock would silently drop
- * events that are still ahead of the visitor. Editors unpublish past events.
+ * events that are still ahead of the visitor. The events browser hides ended
+ * events against the visitor's own clock instead.
  */
 export function upcomingEvents(limit?: number): Event[] {
-  const sorted = [...EVENTS];
+  const sorted = [...EVENTS].sort(byTierThenDate);
   return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
 }
 

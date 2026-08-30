@@ -42,6 +42,17 @@ export function EventCard({
               {month}
             </div>
           </div>
+
+          {/* Paid placement badge: Premium gold outranks Featured coral. */}
+          {event.tier === "premium" ? (
+            <span className="absolute bottom-2.5 right-2.5 rounded-pill bg-gold px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-ink shadow-rail">
+              Premium
+            </span>
+          ) : event.tier === "featured" || event.featured ? (
+            <span className="absolute bottom-2.5 right-2.5 rounded-pill bg-brand-500 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-white shadow-rail">
+              Featured
+            </span>
+          ) : null}
         </Tile>
       </Link>
 

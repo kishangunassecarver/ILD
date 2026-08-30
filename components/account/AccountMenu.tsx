@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, Heart, LogOut, User } from "lucide-react";
+import { Building2, CalendarDays, Heart, LogOut, User } from "lucide-react";
 import { useMember } from "@/components/account/MemberProvider";
 
 /**
@@ -93,6 +93,16 @@ export function AccountMenu() {
           >
             <Building2 className="h-4 w-4 text-muted" aria-hidden />
             My business
+          </Link>
+
+          <Link
+            href="/my-events"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-white/5"
+          >
+            <CalendarDays className="h-4 w-4 text-muted" aria-hidden />
+            My events
           </Link>
 
           <button

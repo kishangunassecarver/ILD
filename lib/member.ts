@@ -260,8 +260,15 @@ export async function deleteListing(slug: string): Promise<{ ok: boolean; error?
  * and submit it so the browser lands on PayFast's payment page.
  */
 export async function startPremiumCheckout(slug: string): Promise<{ ok: boolean; error?: string }> {
-  const result = await post("/api/billing/checkout", { slug });
+  return submitCheckoutForm(await post("/api/billing/checkout", { slug }));
+}
 
+/** Auto-submit the signed PayFast form the Worker built. */
+function submitCheckoutForm(result: {
+  ok: boolean;
+  error?: string;
+  data?: Record<string, unknown>;
+}): { ok: boolean; error?: string } {
   if (!result.ok || !result.data) return result;
 
   const action = result.data.action as string;
@@ -283,6 +290,74 @@ export async function startPremiumCheckout(slug: string): Promise<{ ok: boolean;
   form.submit();
 
   return { ok: true };
+}
+
+/* -------------------------------------------------------------------------
+ * Events — the publisher's side
+ * ---------------------------------------------------------------------- */
+
+export type EventTier = "free" | "featured" | "premium";
+
+export interface EventSubmission {
+  id: string;
+  slug: string;
+  fields: {
+    title?: string;
+    date?: string;
+    dateLabel?: string;
+    venue?: string;
+    area?: string;
+    category?: string;
+    blurb?: string;
+    body?: string[];
+    price?: string;
+    ticketUrl?: string;
+  };
+  image_url: string | null;
+  tier: EventTier;
+  status: "pending" | "approved" | "rejected" | "deleted";
+  created_at: number;
+  decided_at: number | null;
+  decided_note: string | null;
+}
+
+export interface EventOrder {
+  id: string;
+  slug: string;
+  tier: "featured" | "premium";
+  amount_cents: number;
+  status: "initiated" | "paid" | "failed";
+  created_at: number;
+}
+
+export interface MyEvents {
+  events: EventSubmission[];
+  orders: EventOrder[];
+  prices: { featured: number; premium: number };
+}
+
+export async function fetchMyEvents(): Promise<MyEvents | null> {
+  const res = await fetch("/api/events/mine", { credentials: "include" });
+  if (!res.ok) return null;
+  return (await res.json()) as MyEvents;
+}
+
+export async function createEvent(input: {
+  fields: Record<string, unknown>;
+  image: string | null;
+}): Promise<{ ok: boolean; error?: string; data?: Record<string, unknown> }> {
+  return post("/api/events/create", input);
+}
+
+export async function deleteEvent(slug: string): Promise<{ ok: boolean; error?: string }> {
+  return post("/api/events/delete", { slug });
+}
+
+export async function startEventCheckout(
+  slug: string,
+  tier: "featured" | "premium"
+): Promise<{ ok: boolean; error?: string }> {
+  return submitCheckoutForm(await post("/api/events/checkout", { slug, tier }));
 }
 
 export async function cancelPremium(slug: string): Promise<{ ok: boolean; error?: string }> {

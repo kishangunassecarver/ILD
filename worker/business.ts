@@ -35,9 +35,10 @@ import {
   PREMIUM_PRICE_RANDS,
 } from "./payfast";
 import { deliverEmail, type AuthEmail } from "./email";
+import { decideEvent, handleEventItn, pendingEventSubmissions } from "./events";
 
 /** Slug shape shared with the saves endpoint: lowercase, no traversal. */
-const SLUG = /^[a-z0-9][a-z0-9\-]{0,120}$/;
+export const SLUG = /^[a-z0-9][a-z0-9\-]{0,120}$/;
 
 /** The hubs a listing can belong to. Mirrors HubSlug in lib/types.ts. */
 const HUBS = new Set(["eat-drink", "stay", "things-to-do", "shop", "services"]);
@@ -93,7 +94,7 @@ const EDITABLE: Record<string, FieldRule> = {
  * spaces back to ordinary ones — people paste all three out of Word and PDFs
  * without realising, and they render as invisible junk or unbreakable lines.
  */
-function clean(value: string): string {
+export function clean(value: string): string {
   return value
     // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f]/g, "")
@@ -403,7 +404,7 @@ export async function serveMedia(request: Request, env: Env, url: URL): Promise<
 }
 
 /** A URL our own upload endpoint issued, and nothing else. */
-function isOwnMediaUrl(value: unknown): value is string {
+export function isOwnMediaUrl(value: unknown): value is string {
   return (
     typeof value === "string" &&
     value.startsWith("/api/media/") &&
@@ -551,11 +552,11 @@ async function notifyNewListing(
  * undo a submission, a payment or a cancellation.
  * ---------------------------------------------------------------------- */
 
-function siteBase(env: Env, request: Request): string {
+export function siteBase(env: Env, request: Request): string {
   return (env.SITE_URL ?? new URL(request.url).origin).replace(/\/+$/, "");
 }
 
-async function sendMemberEmail(env: Env, to: string, mail: AuthEmail): Promise<void> {
+export async function sendMemberEmail(env: Env, to: string, mail: AuthEmail): Promise<void> {
   try {
     await deliverEmail(env, to, mail);
   } catch (error) {
@@ -563,7 +564,7 @@ async function sendMemberEmail(env: Env, to: string, mail: AuthEmail): Promise<v
   }
 }
 
-async function memberEmailById(env: Env, memberId: string): Promise<string | null> {
+export async function memberEmailById(env: Env, memberId: string): Promise<string | null> {
   const row = await env.DB.prepare("SELECT email FROM members WHERE id = ?1")
     .bind(memberId)
     .first<{ email: string }>();
@@ -938,7 +939,7 @@ function secretsMatch(a: string, b: string): boolean {
   return diff === 0;
 }
 
-function isAdmin(request: Request, env: Env): boolean {
+export function isAdmin(request: Request, env: Env): boolean {
   // Without a configured token the admin endpoints are closed, not open.
   if (!env.ADMIN_TOKEN) return false;
 
@@ -1217,7 +1218,9 @@ export async function billingNotify(request: Request, env: Env): Promise<Respons
     }>();
 
   if (!subscription) {
-    console.error("[billing] ITN for an unknown subscription:", paymentId);
+    // Not a subscription — maybe a one-off event placement order.
+    const handled = await handleEventItn(env, request, itn, paymentId, status, grossCents);
+    if (!handled) console.error("[billing] ITN for an unknown payment:", paymentId);
     return ok();
   }
 
@@ -1684,6 +1687,7 @@ export async function adminSubmissions(request: Request, env: Env): Promise<Resp
     claims: claims.results ?? [],
     edits: (edits.results ?? []).map((row) => ({ ...row, fields: safeParse(row.fields) })),
     listings: (listings.results ?? []).map((row) => ({ ...row, fields: safeParse(row.fields) })),
+    events: await pendingEventSubmissions(env),
     enquiries: enquiries.results ?? [],
   });
 }
@@ -1701,6 +1705,11 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
   const note = typeof body.note === "string" ? clean(body.note).slice(0, 400) || null : null;
 
   if (!/^[a-f0-9]{16,80}$/.test(id)) return badRequest("Unknown submission.");
+
+  if (type === "event") {
+    if (decision !== "approve" && decision !== "reject") return badRequest("Unknown decision.");
+    return decideEvent(request, env, id, decision, note);
+  }
 
   if (type === "claim") {
     if (decision !== "approve" && decision !== "reject") return badRequest("Unknown decision.");

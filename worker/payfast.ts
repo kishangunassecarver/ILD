@@ -165,6 +165,10 @@ export interface CheckoutInput {
   /** Passed back to us in the ITN. */
   customSlug: string;
   customMemberId: string;
+  /** Rands. Defaults to the Premium listing subscription price. */
+  amountRands?: number;
+  /** false = a single once-off charge (event tiers). Defaults to monthly recurring. */
+  recurring?: boolean;
 }
 
 /**
@@ -178,7 +182,7 @@ export function buildCheckout(
   input: CheckoutInput
 ): { action: string; fields: Record<string, string>; sandbox: boolean } {
   const config = payfastConfig(env);
-  const amount = PREMIUM_PRICE_RANDS.toFixed(2);
+  const amount = (input.amountRands ?? PREMIUM_PRICE_RANDS).toFixed(2);
 
   const ordered: [string, string][] = [
     ["merchant_id", config.merchantId],
@@ -193,12 +197,17 @@ export function buildCheckout(
     ["item_description", input.itemDescription],
     ["custom_str1", input.customSlug],
     ["custom_str2", input.customMemberId],
-    // Recurring: subscription_type 1, monthly (frequency 3), forever (cycles 0).
-    ["subscription_type", "1"],
-    ["recurring_amount", amount],
-    ["frequency", "3"],
-    ["cycles", "0"],
   ];
+
+  if (input.recurring !== false) {
+    // Recurring: subscription_type 1, monthly (frequency 3), forever (cycles 0).
+    ordered.push(
+      ["subscription_type", "1"],
+      ["recurring_amount", amount],
+      ["frequency", "3"],
+      ["cycles", "0"]
+    );
+  }
 
   const fields = Object.fromEntries(ordered);
   fields.signature = pfSignature(ordered, config.passphrase);

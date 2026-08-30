@@ -146,6 +146,10 @@ export interface Event {
   ticketUrl?: string;
   featured?: boolean;
   image?: string;
+  /** Paid placement ladder: premium sits above featured sits above free. */
+  tier?: "free" | "featured" | "premium";
+  /** Added through the publisher dashboard. */
+  ownerManaged?: boolean;
 }
 
 export interface Deal {

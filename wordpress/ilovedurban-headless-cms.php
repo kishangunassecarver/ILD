@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.11.0
+ * Version:      3.12.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -2491,11 +2491,27 @@ function ild_notify_listing_removed( string $slug ): void {
 	}
 }
 
+/** The event twin: closes the publisher's dashboard entry and open checkouts. */
+function ild_notify_event_removed( string $slug ): void {
+	$slug = preg_replace( '/__trashed(-\d+)?$/', '', $slug );
+	if ( ! $slug ) {
+		return;
+	}
+
+	$res = ild_worker_request( 'POST', '/api/admin/event-removed', array( 'slug' => $slug ) );
+	if ( is_wp_error( $res ) ) {
+		error_log( '[ilovedurban] could not sync an event removal: ' . $res->get_error_message() );
+	}
+}
+
 add_action( 'wp_trash_post', 'ild_on_listing_trashed' );
 function ild_on_listing_trashed( $post_id ): void {
 	$post = get_post( $post_id );
 	if ( $post && 'ild_listing' === $post->post_type ) {
 		ild_notify_listing_removed( (string) $post->post_name );
+	}
+	if ( $post && 'ild_event' === $post->post_type ) {
+		ild_notify_event_removed( (string) $post->post_name );
 	}
 }
 
@@ -2503,6 +2519,9 @@ add_action( 'before_delete_post', 'ild_on_listing_hard_deleted', 10, 2 );
 function ild_on_listing_hard_deleted( $post_id, $post ): void {
 	if ( $post instanceof WP_Post && 'ild_listing' === $post->post_type ) {
 		ild_notify_listing_removed( (string) $post->post_name );
+	}
+	if ( $post instanceof WP_Post && 'ild_event' === $post->post_type ) {
+		ild_notify_event_removed( (string) $post->post_name );
 	}
 }
 
@@ -2561,11 +2580,56 @@ function ild_premium_slugs(): ?array {
 	return $slugs;
 }
 
+/**
+ * Paid event placement from the Worker: { featured: [slugs], premium: [slugs] }.
+ * Same caching and failure posture as the premium list above — null means
+ * "leave placement alone".
+ */
+function ild_event_tiers(): ?array {
+	$cached = ild_wants_fresh() ? false : get_transient( 'ild_event_tiers' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
+	$data = ild_worker_request( 'GET', '/api/admin/event-tiers' );
+	if ( is_wp_error( $data ) || ! isset( $data['featured'], $data['premium'] ) ) {
+		return null;
+	}
+
+	$tiers = array(
+		'featured' => array_map( 'strval', (array) $data['featured'] ),
+		'premium'  => array_map( 'strval', (array) $data['premium'] ),
+	);
+	set_transient( 'ild_event_tiers', $tiers, 5 * MINUTE_IN_SECONDS );
+
+	return $tiers;
+}
+
+/** Events their publisher deleted from the dashboard. */
+function ild_removed_event_slugs(): ?array {
+	$cached = ild_wants_fresh() ? false : get_transient( 'ild_removed_event_slugs' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
+	$data = ild_worker_request( 'GET', '/api/admin/removed-events' );
+	if ( is_wp_error( $data ) || ! isset( $data['slugs'] ) || ! is_array( $data['slugs'] ) ) {
+		return null;
+	}
+
+	$slugs = array_map( 'strval', $data['slugs'] );
+	set_transient( 'ild_removed_event_slugs', $slugs, 5 * MINUTE_IN_SECONDS );
+
+	return $slugs;
+}
+
 function ild_rest_content(): WP_REST_Response {
 	$payload = ild_settings_payload();
 
-	$premium = ild_premium_slugs();
-	$removed = ild_removed_slugs();
+	$premium        = ild_premium_slugs();
+	$removed        = ild_removed_slugs();
+	$event_tiers    = ild_event_tiers();
+	$removed_events = ild_removed_event_slugs();
 
 	foreach ( ild_schema() as $type => $config ) {
 		$entries = array();
@@ -2605,6 +2669,28 @@ function ild_rest_content(): WP_REST_Response {
 			// perks alone" posture as the gallery above.)
 			if ( 'ild_listing' === $type && null !== $premium && ! empty( $entry['ownerManaged'] ) ) {
 				$entry['featured'] = in_array( $slug, $premium, true );
+			}
+
+			// Events the publisher deleted from their dashboard: stop publishing.
+			if ( 'ild_event' === $type && null !== $removed_events && in_array( $slug, $removed_events, true ) ) {
+				continue;
+			}
+
+			// Event placement is a paid three-tier ladder: premium > featured >
+			// free. The Worker says which slugs bought what; the manual Featured
+			// checkbox still works for curated (non-publisher) events.
+			if ( 'ild_event' === $type && null !== $event_tiers ) {
+				if ( in_array( $slug, $event_tiers['premium'], true ) ) {
+					$entry['tier']     = 'premium';
+					$entry['featured'] = true;
+				} elseif ( in_array( $slug, $event_tiers['featured'], true ) ) {
+					$entry['tier']     = 'featured';
+					$entry['featured'] = true;
+				} elseif ( ! empty( $entry['ownerManaged'] ) ) {
+					// A publisher event earns its badge through payment alone.
+					$entry['tier']     = 'free';
+					$entry['featured'] = false;
+				}
 			}
 
 			$entries[] = $entry;
@@ -2950,6 +3036,81 @@ function ild_create_owner_listing( array $submission ) {
 	return 'Created and published "' . $name . '" in ' . $hub . '.';
 }
 
+/** Find the ild_event post behind a slug, whatever its status. */
+function ild_find_event( string $slug ): ?WP_Post {
+	$posts = get_posts(
+		array(
+			'post_type'   => 'ild_event',
+			'post_status' => 'any',
+			'name'        => sanitize_title( $slug ),
+			'numberposts' => 1,
+		)
+	);
+
+	return $posts[0] ?? null;
+}
+
+/**
+ * Create and publish an event post from an approved publisher submission.
+ * Mirrors ild_create_owner_listing.
+ */
+function ild_create_owner_event( array $submission ) {
+	$slug   = sanitize_title( (string) ( $submission['slug'] ?? '' ) );
+	$fields = is_array( $submission['fields'] ?? null ) ? $submission['fields'] : array();
+	$title  = sanitize_text_field( (string) ( $fields['title'] ?? '' ) );
+
+	if ( ! $slug || ! $title ) {
+		return new WP_Error( 'ild_invalid', 'The event submission is missing its title or slug.' );
+	}
+
+	if ( ild_find_event( $slug ) ) {
+		return new WP_Error(
+			'ild_exists',
+			'An event with the slug "' . esc_html( $slug ) . '" already exists. Reject this submission, or rename one of them.'
+		);
+	}
+
+	$post_id = wp_insert_post(
+		array(
+			'post_type'   => 'ild_event',
+			'post_status' => 'publish',
+			'post_title'  => $title,
+			'post_name'   => $slug,
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		return $post_id;
+	}
+
+	// Publisher-managed: the badge and placement come from payment alone.
+	update_post_meta( $post_id, '_ild_ownerManaged', '1' );
+
+	$schema  = ild_schema()['ild_event']['fields'];
+	$allowed = array( 'date', 'dateLabel', 'venue', 'area', 'category', 'blurb', 'body', 'price', 'ticketUrl' );
+
+	foreach ( $allowed as $key ) {
+		if ( ! isset( $fields[ $key ] ) ) {
+			continue;
+		}
+
+		$type = $schema[ $key ]['type'] ?? 'text';
+		update_post_meta( $post_id, '_ild_' . $key, ild_owner_serialise( $fields[ $key ], $type ) );
+	}
+
+	// The photo the publisher uploaded, served from the site's own /api/media/.
+	$image = (string) ( $submission['image_url'] ?? '' );
+	if ( $image ) {
+		if ( str_starts_with( $image, '/' ) ) {
+			$image = rtrim( get_option( ILD_WORKER_URL_OPT, '' ), '/' ) . $image;
+		}
+		update_post_meta( $post_id, '_ild_imageUrl', esc_url_raw( $image ) );
+	}
+
+	return 'Created and published the event "' . $title . '".';
+}
+
 /** Current value of one listing field, in its stored text form, for the diff. */
 function ild_owner_current( ?WP_Post $post, string $key ): string {
 	if ( ! $post ) {
@@ -3019,12 +3180,30 @@ function ild_owners_page(): void {
 				}
 				ild_trigger_deploy( 'owner listing approved' );
 			}
+		} elseif ( 'event' === $type && 'approve' === $decision ) {
+			// Create the event post first; only mark it approved once that worked.
+			$result = is_array( $payload )
+				? ild_create_owner_event( $payload )
+				: new WP_Error( 'ild_payload', 'The submission payload could not be read. Refresh and try again.' );
+
+			if ( is_wp_error( $result ) ) {
+				$notices[] = array( 'error', $result->get_error_message() );
+			} else {
+				$decided = ild_worker_decide( 'event', $id, 'approve', $note );
+				if ( is_wp_error( $decided ) ) {
+					$notices[] = array( 'warning', $result . ' But the queue could not be updated: ' . $decided->get_error_message() );
+				} else {
+					$notices[] = array( 'success', $result . ' The site is rebuilding.' );
+				}
+				ild_trigger_deploy( 'publisher event approved' );
+			}
 		} else {
 			$map = array(
 				'claim:approve'  => array( 'claim', 'approve' ),
 				'claim:reject'   => array( 'claim', 'reject' ),
 				'edit:reject'    => array( 'edit', 'reject' ),
 				'listing:reject' => array( 'listing', 'reject' ),
+				'event:reject'   => array( 'event', 'reject' ),
 				'enquiry:handle' => array( 'enquiry', 'handled' ),
 			);
 
@@ -3088,6 +3267,7 @@ function ild_owners_page(): void {
 	$edits       = $queue['edits'] ?? array();
 	$enquiries   = $queue['enquiries'] ?? array();
 	$new_listings = $queue['listings'] ?? array();
+	$new_events   = $queue['events'] ?? array();
 
 	/* ---- New listings ---- */
 
@@ -3145,6 +3325,69 @@ function ild_owners_page(): void {
 
 		ild_owner_decide_form( 'listing', (string) $submission['id'], 'approve', 'Approve &amp; publish', false, $submission );
 		ild_owner_decide_form( 'listing', (string) $submission['id'], 'reject', 'Reject', true );
+		echo '</div>';
+	}
+
+	/* ---- New events ---- */
+
+	printf( '<h2>New events awaiting review (%d)</h2>', count( $new_events ) );
+
+	if ( ! $new_events ) {
+		echo '<p>None. Events publishers add from their dashboard appear here, and go live the moment they are approved.</p>';
+	}
+
+	$event_schema = ild_schema()['ild_event']['fields'];
+
+	foreach ( $new_events as $submission ) {
+		$fields = is_array( $submission['fields'] ?? null ) ? $submission['fields'] : array();
+		$image  = (string) ( $submission['image_url'] ?? '' );
+		if ( $image && str_starts_with( $image, '/' ) ) {
+			$image = rtrim( $base, '/' ) . $image;
+		}
+
+		$tier      = (string) ( $submission['tier'] ?? 'free' );
+		$tier_note = 'premium' === $tier
+			? ' <span style="color:#996800;font-weight:600">&#9733; Premium (paid)</span>'
+			: ( 'featured' === $tier ? ' <span style="color:#b32d2e;font-weight:600">&#9733; Featured (paid)</span>' : '' );
+
+		echo '<div style="border:1px solid #c3c4c7;border-radius:4px;padding:16px;margin-bottom:12px;background:#fff;max-width:900px">';
+		printf(
+			'<p style="margin:0 0 4px"><strong>%s</strong> &middot; <code>events/%s</code>%s</p>',
+			esc_html( (string) ( $fields['title'] ?? $submission['slug'] ) ),
+			esc_html( (string) $submission['slug'] ),
+			$tier_note // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		);
+		printf(
+			'<p style="margin:0 0 8px">Submitted by <strong>%s</strong> (%s)</p>',
+			esc_html( (string) ( $submission['member_name'] ?: $submission['member_email'] ) ),
+			esc_html( (string) $submission['member_email'] )
+		);
+
+		if ( $image ) {
+			printf(
+				'<p style="margin:0 0 8px"><img src="%s" alt="" style="max-width:280px;max-height:180px;border-radius:6px;object-fit:cover"></p>',
+				esc_url( $image )
+			);
+		}
+
+		echo '<table class="widefat striped" style="margin:8px 0"><tbody>';
+		foreach ( $fields as $key => $value ) {
+			if ( 'title' === $key ) {
+				continue;
+			}
+			$type = $event_schema[ $key ]['type'] ?? 'text';
+			printf(
+				'<tr><td style="width:18%%"><strong>%s</strong></td><td><pre style="white-space:pre-wrap;margin:0;font-size:12px">%s</pre></td></tr>',
+				esc_html( (string) $key ),
+				esc_html( ild_owner_serialise( $value, $type ) ?: '—' )
+			);
+		}
+		echo '</tbody></table>';
+
+		echo '<p style="margin:8px 0 0;color:#50575e;font-size:12px">Approving creates and publishes this event. Once its date passes it comes off the site by itself.</p>';
+
+		ild_owner_decide_form( 'event', (string) $submission['id'], 'approve', 'Approve &amp; publish', false, $submission );
+		ild_owner_decide_form( 'event', (string) $submission['id'], 'reject', 'Reject', true );
 		echo '</div>';
 	}
 

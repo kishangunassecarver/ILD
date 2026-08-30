@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "@/components/cards/EventCard";
 import type { Event } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -9,10 +9,25 @@ import { cn } from "@/lib/utils";
 export function EventsBrowser({ events, categories }: { events: Event[]; categories: string[] }) {
   const [category, setCategory] = useState<string | null>(null);
 
-  const results = useMemo(
-    () => (category ? events.filter((e) => e.category === category) : events),
-    [events, category]
-  );
+  /*
+   * An ended event leaves the page. The cutoff is the VISITOR's clock, not the
+   * build machine's — a static export is served for days, and the site must
+   * not keep advertising Saturday's gig on Sunday. Computed in an effect so
+   * the first client render matches the server HTML (no hydration mismatch);
+   * events end at midnight after their date.
+   */
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    const d = new Date();
+    setToday(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+    );
+  }, []);
+
+  const results = useMemo(() => {
+    const live = today ? events.filter((e) => !e.date || e.date >= today) : events;
+    return category ? live.filter((e) => e.category === category) : live;
+  }, [events, category, today]);
 
   return (
     <div>
