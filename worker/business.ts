@@ -227,6 +227,20 @@ export async function claimListing(request: Request, env: Env): Promise<Response
     );
   }
 
+  // A listing somebody is actively paying for is spoken for, whoever published
+  // it — a Premium (featured) listing with a live subscription cannot be claimed.
+  const premium = await env.DB.prepare(
+    "SELECT 1 AS x FROM subscriptions WHERE slug = ?1 AND status = 'active' AND member_id != ?2"
+  )
+    .bind(slug, member.id)
+    .first();
+
+  if (premium) {
+    return badRequest(
+      "That listing has an active Premium subscription and is already managed by its owner. If you believe that is wrong, contact us and we will look into it."
+    );
+  }
+
   const existing = await env.DB.prepare(
     "SELECT id, status FROM listing_claims WHERE member_id = ?1 AND slug = ?2"
   )
@@ -264,7 +278,64 @@ export async function claimListing(request: Request, env: Env): Promise<Response
     )
     .run();
 
+  const businessName = text(body.businessName, 120) ?? slug;
+
+  // The reviewer's nudge, so the claim is not waiting on someone remembering
+  // to check the queue.
+  await notifyNewClaim(env, member, slug, businessName);
+
+  // And the customer's receipt.
+  const dashboard = `${siteBase(env, request)}/my-business/`;
+  await sendMemberEmail(env, member.email, {
+    subject: `We've received your claim: ${businessName}`,
+    heading: "Your claim is in review",
+    paragraphs: [
+      `Thanks — you have asked to manage "${businessName}" on I Love Durban.`,
+      "A person reviews every claim, usually within two working days. We may phone the number you gave to verify it.",
+      "You will get an email the moment it is decided, and once approved the listing appears on your dashboard, ready to edit.",
+    ],
+    cta: { label: "Open my dashboard", href: dashboard },
+    footnote: "You are getting this because a claim was submitted from your I Love Durban account.",
+    link: dashboard,
+  });
+
   return json({ status: "pending", id });
+}
+
+/** Best-effort alert to the review inbox about a new claim. */
+async function notifyNewClaim(
+  env: Env,
+  member: Member,
+  slug: string,
+  businessName: string
+): Promise<void> {
+  if (!env.RESEND_API_KEY || !env.MAIL_FROM || !env.REVIEW_EMAIL) {
+    console.log(`[business] claim queued: ${slug} by ${member.email}`);
+    return;
+  }
+
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: env.MAIL_FROM,
+        to: env.REVIEW_EMAIL,
+        subject: `New claim awaiting review: ${businessName}`,
+        text: [
+          `${member.email} has claimed "${businessName}" (${slug}).`,
+          "",
+          "Review it under I Love Durban → Owner Submissions in WordPress.",
+          "Edit access stays off until the claim is approved there.",
+        ].join("\n"),
+      }),
+    });
+  } catch (error) {
+    console.error("[business] could not notify about the new claim:", error);
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -1634,15 +1705,59 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
   if (type === "claim") {
     if (decision !== "approve" && decision !== "reject") return badRequest("Unknown decision.");
 
-    const { meta } = await env.DB.prepare(
+    // RETURNING tells us both that it was still pending (else no row) and who
+    // to email about the outcome.
+    const claim = await env.DB.prepare(
       `UPDATE listing_claims SET status = ?1, decided_at = ?2, decided_note = ?3
-        WHERE id = ?4 AND status = 'pending'`
+        WHERE id = ?4 AND status = 'pending'
+        RETURNING member_id, slug, hub, business_name`
     )
       .bind(decision === "approve" ? "approved" : "rejected", now(), note, id)
-      .run();
+      .first<{ member_id: string; slug: string; hub: string; business_name: string | null }>();
 
-    // changes === 0 means it was already decided; say so rather than pretending.
-    return json({ ok: (meta?.changes ?? 0) > 0 });
+    // No row means it was already decided; say so rather than pretending.
+    if (!claim) return json({ ok: false });
+
+    const ownerEmail = await memberEmailById(env, claim.member_id);
+    if (ownerEmail) {
+      const site = siteBase(env, request);
+      const name = claim.business_name || claim.slug;
+      const dashboard = `${site}/my-business/`;
+      const listingUrl = `${site}/${claim.hub}/${claim.slug}/`;
+
+      await sendMemberEmail(
+        env,
+        ownerEmail,
+        decision === "approve"
+          ? {
+              subject: `Your claim is approved: ${name}`,
+              heading: `"${name}" is yours to manage`,
+              paragraphs: [
+                "Your claim has been verified and approved — the listing now shows on your dashboard.",
+                "From there you can:",
+                "• Update your details, hours and photos any time (every edit is reviewed before it goes live)",
+                "• Go Premium for a photo gallery and top placement with the Featured badge",
+                "Welcome aboard — support local!",
+              ],
+              cta: { label: "Manage my listing", href: dashboard },
+              footnote: `Your listing: ${listingUrl}`,
+              link: dashboard,
+            }
+          : {
+              subject: `About your claim: ${name}`,
+              heading: "Your claim was not approved",
+              paragraphs: [
+                `We could not verify your claim on "${name}" this time.`,
+                ...(note ? [`Note from the review team: ${note}`] : []),
+                "If you can share more proof — an email address on the business domain, a company registration — you are welcome to submit the claim again, or contact us and a person will help.",
+              ],
+              cta: { label: "Open my dashboard", href: dashboard },
+              link: dashboard,
+            }
+      );
+    }
+
+    return json({ ok: true });
   }
 
   if (type === "edit") {

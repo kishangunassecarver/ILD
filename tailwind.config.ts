@@ -66,7 +66,7 @@ const config: Config = {
         // Text on the night theme.
         snow: "#FFFFFF",
         mist: "#B8C9D7",
-        paper: "#01122C", // the page itself
+        paper: "#08275D", // the page itself
         // Soft blue-white, translucent so it reads evenly on every surface.
         line: "rgba(184, 201, 215, 0.16)",
         muted: "#8CA3B8", // secondary text

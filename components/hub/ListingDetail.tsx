@@ -241,7 +241,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                 Claim this listing to update your details, hours and description yourself.
               </p>
               <Link
-                href={`/my-business/?claim=${listing.slug}`}
+                href={`/claim/?slug=${listing.slug}`}
                 className="btn-ghost mt-3 w-full py-2 text-xs"
               >
                 Claim this listing

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  I Love Durban Headless CMS
  * Description:  Serves the I Love Durban directory as JSON and triggers a Cloudflare rebuild when content is published.
- * Version:      3.10.2
+ * Version:      3.11.0
  * Author:       I Love Durban
  * License:      GPL-2.0-or-later
  *
@@ -2592,8 +2592,11 @@ function ild_rest_content(): WP_REST_Response {
 			// Premium buys placement: the Featured badge, and the top of every
 			// list — the same treatment as an editorially featured listing.
 			// (The manual Featured checkbox still works for curated content.)
+			// A live subscription also means the listing has an active owner,
+			// so the site stops offering "claim" on it.
 			if ( 'ild_listing' === $type && null !== $premium && in_array( $slug, $premium, true ) ) {
-				$entry['featured'] = true;
+				$entry['featured']     = true;
+				$entry['ownerManaged'] = true;
 			}
 
 			// Owner-added listings earn Featured through Premium ALONE — when
