@@ -20,7 +20,10 @@ export function Tile({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={cn("tile-art", className)} style={image ? undefined : artStyle(seed)}>
+    // The gradient is painted even when there IS an image: a slow or broken
+    // photo URL (demo content, a dead link) then degrades to the deliberate
+    // slug-derived art instead of a flat empty tile.
+    <div className={cn("tile-art", className)} style={artStyle(seed)}>
       {image && (
         // eslint-disable-next-line @next/next/no-img-element -- static export, images are unoptimized
         <img
