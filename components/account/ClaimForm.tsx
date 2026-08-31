@@ -88,7 +88,7 @@ export function ClaimForm({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-snow/5 hover:text-snow"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
@@ -97,7 +97,7 @@ export function ClaimForm({
 
       {chosen ? (
         <div className="flex items-center gap-3 rounded-lg bg-paper p-4">
-          <BadgeCheck className="h-5 w-5 shrink-0 text-aqua-300" aria-hidden />
+          <BadgeCheck className="h-5 w-5 shrink-0 text-aqua-600" aria-hidden />
           <div className="min-w-0">
             <p className="text-sm font-bold text-snow">{chosen.name}</p>
             <p className="text-xs text-muted">
@@ -107,7 +107,7 @@ export function ClaimForm({
           <button
             type="button"
             onClick={() => setChosen(null)}
-            className="ml-auto text-xs font-semibold text-aqua-300 underline"
+            className="ml-auto text-xs font-semibold text-aqua-600 underline"
           >
             Change
           </button>
@@ -115,7 +115,7 @@ export function ClaimForm({
       ) : (
         <div>
           <label htmlFor="claim-search" className="mb-1.5 block text-xs font-semibold text-snow">
-            Find your business <span className="text-brand-400">*</span>
+            Find your business <span className="text-brand-600">*</span>
           </label>
           <div className="relative">
             <Search
@@ -139,7 +139,7 @@ export function ClaimForm({
                   <button
                     type="button"
                     onClick={() => setChosen(listing)}
-                    className="flex w-full items-baseline gap-2 px-4 py-2.5 text-left transition hover:bg-white/5"
+                    className="flex w-full items-baseline gap-2 px-4 py-2.5 text-left transition hover:bg-snow/5"
                   >
                     <span className="text-sm font-semibold text-snow">{listing.name}</span>
                     <span className="text-xs text-muted">
@@ -202,7 +202,7 @@ export function ClaimForm({
           {state === "sending" ? "Sending…" : "Submit claim"}
         </button>
         {state === "error" && (
-          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-400">
+          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-600">
             {error}
           </p>
         )}
@@ -229,7 +229,7 @@ function ClaimField({
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
       <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-snow">
-        {label} {required && <span className="text-brand-400">*</span>}
+        {label} {required && <span className="text-brand-600">*</span>}
       </label>
       {children}
       {hint && <p className="mt-1 text-[0.6875rem] text-muted">{hint}</p>}

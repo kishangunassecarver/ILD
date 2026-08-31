@@ -65,7 +65,7 @@ export function SaveButton({
           className={cn(
             "h-4 w-4 transition",
             // The heart stays red — it is the brand mark, not an action.
-            saved ? "scale-110 fill-brand-500 text-brand-500" : "text-muted hover:text-brand-400"
+            saved ? "scale-110 fill-brand-500 text-brand-500" : "text-muted hover:text-brand-600"
           )}
           aria-hidden
         />
@@ -100,13 +100,13 @@ function SignInPrompt({ label, onClose }: { label: string; onClose: () => void }
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
+          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-snow/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
 
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-brand-500/15">
-          <Heart className="h-5 w-5 text-brand-400" aria-hidden />
+          <Heart className="h-5 w-5 text-brand-600" aria-hidden />
         </span>
 
         <h2 id="save-prompt-title" className="mt-3 text-base font-bold text-snow">

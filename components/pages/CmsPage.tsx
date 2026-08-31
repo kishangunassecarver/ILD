@@ -39,7 +39,7 @@ const PROSE = [
   "[&_h3]:mt-8 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-snow",
   "[&_ul]:mt-5 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5",
   "[&_ol]:mt-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5",
-  "[&_a]:font-semibold [&_a]:text-aqua-300 [&_a]:decoration-brand-200 [&_a]:decoration-2 [&_a]:underline-offset-[3px] [&_a]:underline hover:[&_a]:decoration-brand-500",
+  "[&_a]:font-semibold [&_a]:text-aqua-600 [&_a]:decoration-brand-200 [&_a]:decoration-2 [&_a]:underline-offset-[3px] [&_a]:underline hover:[&_a]:decoration-brand-500",
   "[&_strong]:font-bold [&_strong]:text-snow",
   "[&_blockquote]:mt-6 [&_blockquote]:border-l-[3px] [&_blockquote]:border-brand-500 [&_blockquote]:bg-paper [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:text-snow [&_blockquote]:rounded-r-lg [&_blockquote]:not-italic",
   "[&_img]:mt-6 [&_img]:rounded-card",
@@ -94,7 +94,7 @@ export function CmsPage({ page }: { page: Page }) {
               {section && (
                 <Link
                   href={`/${section.path}`}
-                  className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-aqua-300 transition hover:text-aqua-200"
+                  className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-aqua-600 transition hover:text-aqua-500"
                 >
                   <Compass className="h-3.5 w-3.5" aria-hidden />
                   {section.title}
@@ -177,7 +177,7 @@ function SectionLinks({
                 "block rounded-lg px-3 py-2 text-xs leading-snug transition",
                 current
                   ? "bg-aqua-500 font-bold text-white"
-                  : "font-medium text-mist hover:bg-white/5 hover:text-snow"
+                  : "font-medium text-mist hover:bg-snow/5 hover:text-snow"
               )}
             >
               {item.title}
@@ -219,7 +219,7 @@ function SectionNav({
         {section.title}
       </span>
       <ArrowUpRight
-        className="h-3.5 w-3.5 shrink-0 text-muted transition group-hover:text-aqua-300"
+        className="h-3.5 w-3.5 shrink-0 text-muted transition group-hover:text-aqua-600"
         aria-hidden
       />
     </Link>
@@ -268,14 +268,14 @@ function PrevNext({ previous, next }: { previous?: Page; next?: Page }) {
           className="panel card-hover group flex items-center gap-3 p-4"
         >
           <ArrowLeft
-            className="h-4 w-4 shrink-0 text-muted transition group-hover:text-aqua-300"
+            className="h-4 w-4 shrink-0 text-muted transition group-hover:text-aqua-600"
             aria-hidden
           />
           <span className="min-w-0">
             <span className="block text-[0.625rem] font-bold uppercase tracking-wider text-muted">
               Previous
             </span>
-            <span className="mt-0.5 block truncate text-sm font-bold text-snow transition group-hover:text-aqua-300">
+            <span className="mt-0.5 block truncate text-sm font-bold text-snow transition group-hover:text-aqua-600">
               {previous.title}
             </span>
           </span>
@@ -293,12 +293,12 @@ function PrevNext({ previous, next }: { previous?: Page; next?: Page }) {
             <span className="block text-[0.625rem] font-bold uppercase tracking-wider text-muted">
               Next
             </span>
-            <span className="mt-0.5 block truncate text-sm font-bold text-snow transition group-hover:text-aqua-300">
+            <span className="mt-0.5 block truncate text-sm font-bold text-snow transition group-hover:text-aqua-600">
               {next.title}
             </span>
           </span>
           <ArrowRight
-            className="h-4 w-4 shrink-0 text-muted transition group-hover:text-aqua-300"
+            className="h-4 w-4 shrink-0 text-muted transition group-hover:text-aqua-600"
             aria-hidden
           />
         </Link>
@@ -335,7 +335,7 @@ function PopularListings() {
           <li key={`${listing.hub}-${listing.slug}`}>
             <Link
               href={`/${listing.hub}/${listing.slug}`}
-              className="group flex items-center gap-3 p-3 transition hover:bg-white/5"
+              className="group flex items-center gap-3 p-3 transition hover:bg-snow/5"
             >
               <Tile
                 seed={listing.slug}
@@ -343,7 +343,7 @@ function PopularListings() {
                 className="h-14 w-14 shrink-0 rounded-lg"
               />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[0.8125rem] font-bold text-snow transition group-hover:text-aqua-300">
+                <span className="block truncate text-[0.8125rem] font-bold text-snow transition group-hover:text-aqua-600">
                   {listing.name}
                 </span>
                 <span className="mt-0.5 block truncate text-[0.6875rem] text-muted">
@@ -359,7 +359,7 @@ function PopularListings() {
 
       <Link
         href="/discover"
-        className="flex items-center justify-between gap-2 border-t border-line px-4 py-3 text-xs font-semibold text-mist transition hover:bg-white/5 hover:text-aqua-300"
+        className="flex items-center justify-between gap-2 border-t border-line px-4 py-3 text-xs font-semibold text-mist transition hover:bg-snow/5 hover:text-aqua-600"
       >
         Explore Durban
         <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -387,7 +387,7 @@ function SectionIndex({ page }: { page: Page }) {
           >
             <Tile seed={child.path} image={child.image} className="h-36" />
             <div className="flex flex-1 flex-col p-4">
-              <h3 className="text-sm font-bold leading-snug text-snow transition group-hover:text-aqua-300">
+              <h3 className="text-sm font-bold leading-snug text-snow transition group-hover:text-aqua-600">
                 {child.title}
               </h3>
               {child.excerpt && (
@@ -395,7 +395,7 @@ function SectionIndex({ page }: { page: Page }) {
                   {child.excerpt}
                 </p>
               )}
-              <span className="mt-auto pt-3 text-[0.6875rem] font-bold uppercase tracking-wider text-aqua-300 opacity-0 transition group-hover:opacity-100">
+              <span className="mt-auto pt-3 text-[0.6875rem] font-bold uppercase tracking-wider text-aqua-600 opacity-0 transition group-hover:opacity-100">
                 Read more →
               </span>
             </div>

@@ -60,7 +60,7 @@ export function EnquiryForm({
     return (
       <div className="panel p-8 text-center">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <Check className="h-5 w-5 text-aqua-300" aria-hidden />
+          <Check className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h3 className="mt-3 text-base font-bold text-snow">{successTitle}</h3>
         <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted">{successBody}</p>
@@ -78,7 +78,7 @@ export function EnquiryForm({
           <div key={field.name} className={spanClass}>
             <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-snow">
               {field.label}
-              {field.required && <span className="text-brand-400"> *</span>}
+              {field.required && <span className="text-brand-600"> *</span>}
             </label>
 
             {field.type === "textarea" ? (
@@ -138,7 +138,7 @@ export function EnquiryForm({
         )}
 
         {state === "error" && (
-          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-400">
+          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-600">
             That didn&apos;t send. Please try again, or email us directly.
           </p>
         )}

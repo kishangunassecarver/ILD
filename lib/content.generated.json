@@ -1426,6 +1426,23 @@
   ],
   "events": [
     {
+      "slug": "test",
+      "title": "Test",
+      "date": "2026-09-05",
+      "venue": "ICC",
+      "area": "Durban",
+      "category": "Music",
+      "blurb": "test",
+      "body": [
+        "test"
+      ],
+      "price": "899",
+      "image": "https://ild.kishan-bde.workers.dev/api/media/listings/f66563a67efefe7595b61194063884a49730a5e64507d315cae7620cb48b379f.webp",
+      "ownerManaged": true,
+      "tier": "free",
+      "featured": false
+    },
+    {
       "slug": "durban-night-market",
       "title": "Durban Night Market",
       "date": "2026-09-24",

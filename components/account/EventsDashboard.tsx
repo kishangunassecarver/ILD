@@ -87,7 +87,7 @@ export function EventsDashboard() {
     return (
       <div className="panel p-12 text-center">
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
-          <CalendarDays className="h-5 w-5 text-aqua-300" aria-hidden />
+          <CalendarDays className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-4 text-base font-bold text-snow">Sign in to manage your events</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
@@ -108,7 +108,7 @@ export function EventsDashboard() {
     <div className="space-y-8">
       {banner && (
         <p className="panel-raised flex items-start gap-2.5 p-4 text-sm leading-relaxed text-snow">
-          <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-300" aria-hidden />
+          <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-600" aria-hidden />
           {banner}
         </p>
       )}
@@ -157,7 +157,7 @@ export function EventsDashboard() {
       {!adding && events.length === 0 && (
         <div className="panel p-8 text-center sm:p-12">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
-            <CalendarDays className="h-5 w-5 text-aqua-300" aria-hidden />
+            <CalendarDays className="h-5 w-5 text-aqua-600" aria-hidden />
           </span>
           <h2 className="mt-4 text-base font-bold text-snow">Put your event on Durban&apos;s calendar</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
@@ -222,7 +222,7 @@ function EventRow({
           {event.fields.dateLabel || event.fields.date} · {event.fields.venue}
         </p>
         {event.status === "rejected" && event.decided_note && (
-          <p className="mt-1 text-xs text-brand-400">{event.decided_note}</p>
+          <p className="mt-1 text-xs text-brand-600">{event.decided_note}</p>
         )}
       </div>
 
@@ -249,7 +249,7 @@ function TierBadge({ tier }: { tier: string }) {
   }
   if (tier === "featured") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-pill bg-brand-500/15 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-brand-400">
+      <span className="inline-flex items-center gap-1 rounded-pill bg-brand-500/15 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-brand-600">
         <Star className="h-3 w-3" aria-hidden />
         Featured
       </span>
@@ -270,12 +270,12 @@ function StatusChip({ event, ended }: { event: EventSubmission; ended: boolean }
 
   const tone =
     event.status === "pending"
-      ? "bg-aqua-400/10 text-aqua-300"
+      ? "bg-aqua-400/10 text-aqua-600"
       : event.status === "rejected"
-        ? "bg-brand-500/15 text-brand-400"
+        ? "bg-brand-500/15 text-brand-600"
         : ended
-          ? "bg-white/5 text-muted"
-          : "bg-aqua-400/15 text-aqua-300";
+          ? "bg-snow/5 text-muted"
+          : "bg-aqua-400/15 text-aqua-600";
 
   return (
     <span
@@ -335,7 +335,7 @@ function BoostButtons({
         </button>
       </span>
       {error && (
-        <span role="alert" className="text-[0.6875rem] font-medium text-brand-400">
+        <span role="alert" className="text-[0.6875rem] font-medium text-brand-600">
           {error}
         </span>
       )}
@@ -376,7 +376,7 @@ function RemoveEventButton({
         type="button"
         onClick={() => setConfirming(true)}
         aria-label={`Remove ${title}`}
-        className="grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-brand-400"
+        className="grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-snow/5 hover:text-brand-600"
       >
         <Trash2 className="h-4 w-4" aria-hidden />
       </button>
@@ -404,7 +404,7 @@ function RemoveEventButton({
         </button>
       </span>
       {error && (
-        <span role="alert" className="text-[0.6875rem] font-medium text-brand-400">
+        <span role="alert" className="text-[0.6875rem] font-medium text-brand-600">
           {error}
         </span>
       )}
@@ -510,7 +510,7 @@ function AddEventForm({
     return (
       <div className="panel p-8 text-center">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <BadgeCheck className="h-5 w-5 text-aqua-300" aria-hidden />
+          <BadgeCheck className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">Event submitted</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
@@ -567,7 +567,7 @@ function AddEventForm({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-snow/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -597,11 +597,11 @@ function AddEventForm({
               <span className="flex items-center gap-1.5 text-sm font-bold text-snow">
                 {option.value === "premium" && <Crown className="h-3.5 w-3.5 text-gold" aria-hidden />}
                 {option.value === "featured" && (
-                  <Star className="h-3.5 w-3.5 text-brand-400" aria-hidden />
+                  <Star className="h-3.5 w-3.5 text-brand-600" aria-hidden />
                 )}
                 {option.name}
               </span>
-              <span className="mt-0.5 block text-xs font-semibold text-aqua-300">{option.price}</span>
+              <span className="mt-0.5 block text-xs font-semibold text-aqua-600">{option.price}</span>
               <span className="mt-1 block text-[0.75rem] leading-snug text-muted">
                 {option.blurb}
               </span>
@@ -717,7 +717,7 @@ function AddEventForm({
               : `Submit & pay R${tier === "premium" ? prices.premium : prices.featured} once-off`}
         </button>
         {state === "error" && (
-          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-400">
+          <p role="alert" className="mt-2.5 text-xs font-medium text-brand-600">
             {error}
           </p>
         )}
@@ -744,7 +744,7 @@ function EventField({
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
       <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-snow">
-        {label} {required && <span className="text-brand-400">*</span>}
+        {label} {required && <span className="text-brand-600">*</span>}
       </label>
       {children}
       {hint && <p className="mt-1 text-[0.6875rem] text-muted">{hint}</p>}

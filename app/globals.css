@@ -36,7 +36,7 @@
   }
 
   ::selection {
-    @apply bg-aqua-500/40 text-white;
+    @apply bg-aqua-500/25 text-snow;
   }
 
   /* Keyboard users get a visible ring; pointer users do not. */
@@ -57,8 +57,8 @@
     @apply mx-auto w-full max-w-shell px-4 sm:px-6;
   }
 
-  /* The night cards the whole site is built from. Borders are soft blue-white
-     at low opacity; separation comes mostly from tone. */
+  /* The white cards the whole site is built from. Borders are soft navy at
+     low opacity; separation comes from tone and soft shadow. */
   .panel {
     @apply rounded-card border border-line bg-night shadow-card;
   }
@@ -88,7 +88,7 @@
 
   /* Outline pills, like the reference's filter row. */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-pill border border-snow/25 bg-transparent px-3.5 py-2 text-xs font-medium text-snow transition hover:border-aqua-400/70 hover:text-aqua-200;
+    @apply inline-flex items-center gap-1.5 rounded-pill border border-snow/25 bg-white px-3.5 py-2 text-xs font-medium text-snow transition hover:border-aqua-500/70 hover:text-aqua-600;
   }
 
   /* Filled aqua — the "Near me" pill from the reference. */
@@ -105,7 +105,7 @@
   }
 
   .btn-ghost {
-    @apply btn border border-snow/25 bg-transparent text-snow hover:border-aqua-400/70 hover:text-aqua-200;
+    @apply btn border border-snow/25 bg-transparent text-snow hover:border-aqua-500/70 hover:text-aqua-600;
   }
 
   .btn-dark {
@@ -113,11 +113,11 @@
   }
 
   .field {
-    @apply w-full rounded-pill border border-snow/20 bg-white/[0.06] px-4 py-2.5 text-sm text-snow placeholder:text-mist/80 focus:border-aqua-400 focus:outline-none focus:ring-1 focus:ring-aqua-400;
+    @apply w-full rounded-pill border border-snow/20 bg-white px-4 py-2.5 text-sm text-snow placeholder:text-muted focus:border-aqua-500 focus:outline-none focus:ring-1 focus:ring-aqua-500;
   }
 
   .link-more {
-    @apply inline-flex items-center gap-1 text-sm font-semibold text-aqua-300 transition hover:text-aqua-200;
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-aqua-600 transition hover:text-aqua-500;
   }
 
   /* Section labels: "What's happening in Durban" etc. */

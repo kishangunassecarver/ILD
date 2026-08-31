@@ -58,7 +58,7 @@ export function EventCard({
 
       <div className="flex flex-1 flex-col gap-1.5 p-3.5">
         <h3 className="line-clamp-2 text-sm font-bold leading-snug text-snow">
-          <Link href={href} className="transition hover:text-aqua-300">
+          <Link href={href} className="transition hover:text-aqua-600">
             {event.title}
           </Link>
         </h3>

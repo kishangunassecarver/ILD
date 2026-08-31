@@ -27,7 +27,7 @@ export default function JoinPage() {
             {APP_PROMO.points.map((point) => (
               <li key={point} className="flex items-start gap-2.5 text-sm text-mist">
                 <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
-                  <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
+                  <Check className="h-2.5 w-2.5 text-aqua-600" aria-hidden />
                 </span>
                 {point}
               </li>

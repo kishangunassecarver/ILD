@@ -140,7 +140,7 @@ export function HubBrowser({
                 setCategory(null);
                 setArea("");
               }}
-              className="chip gap-1 border-aqua-500/40 text-aqua-300"
+              className="chip gap-1 border-aqua-500/40 text-aqua-600"
             >
               <X className="h-3 w-3" aria-hidden />
               Clear

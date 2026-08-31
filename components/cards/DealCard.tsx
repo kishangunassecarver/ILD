@@ -30,10 +30,10 @@ export function DealCard({
         </Tile>
 
         <div className="p-2.5 pt-3">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-snow transition group-hover:text-aqua-300">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-snow transition group-hover:text-aqua-600">
             {deal.business}
           </h3>
-          <p className="line-clamp-2 mt-0.5 text-[0.8125rem] font-semibold text-aqua-300">
+          <p className="line-clamp-2 mt-0.5 text-[0.8125rem] font-semibold text-aqua-600">
             {deal.title}
           </p>
           {layout === "wide" && (

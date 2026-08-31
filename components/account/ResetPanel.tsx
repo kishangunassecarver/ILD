@@ -69,7 +69,7 @@ export function ResetPanel() {
   return (
     <form onSubmit={onSubmit} className="panel p-6 sm:p-8">
       <span className="grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-        <KeyRound className="h-5 w-5 text-aqua-300" aria-hidden />
+        <KeyRound className="h-5 w-5 text-aqua-600" aria-hidden />
       </span>
 
       <h1 className="mt-3 text-base font-bold text-snow">Choose a new password</h1>
@@ -80,7 +80,7 @@ export function ResetPanel() {
       <div className="mt-5 space-y-4">
         <div>
           <label htmlFor="reset-password" className="mb-1.5 block text-xs font-semibold text-snow">
-            New password <span className="text-brand-400">*</span>
+            New password <span className="text-brand-600">*</span>
           </label>
           <input
             id="reset-password"
@@ -97,7 +97,7 @@ export function ResetPanel() {
 
         <div>
           <label htmlFor="reset-confirm" className="mb-1.5 block text-xs font-semibold text-snow">
-            Confirm it <span className="text-brand-400">*</span>
+            Confirm it <span className="text-brand-600">*</span>
           </label>
           <input
             id="reset-confirm"
@@ -118,7 +118,7 @@ export function ResetPanel() {
       </button>
 
       {error && (
-        <p role="alert" className="mt-3 text-xs font-medium leading-relaxed text-brand-400">
+        <p role="alert" className="mt-3 text-xs font-medium leading-relaxed text-brand-600">
           {error}
         </p>
       )}

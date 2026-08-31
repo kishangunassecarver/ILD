@@ -103,7 +103,7 @@ export function BottomNav() {
                     <span
                       className={cn(
                         "w-full truncate text-center text-[0.625rem] leading-none tracking-tight",
-                        active ? "font-bold text-aqua-300" : "font-medium text-mist"
+                        active ? "font-bold text-aqua-600" : "font-medium text-mist"
                       )}
                     >
                       {item.label}
@@ -120,7 +120,7 @@ export function BottomNav() {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group flex flex-col items-center gap-1 rounded-xl px-1 py-2 transition-colors duration-200",
-                    active ? "text-aqua-300" : "text-mist hover:bg-white/5"
+                    active ? "text-aqua-600" : "text-mist hover:bg-snow/5"
                   )}
                 >
                   <Icon

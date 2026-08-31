@@ -19,7 +19,7 @@ export function TrustBar() {
       <ul className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         {PROMISES.map((promise) => (
           <li key={promise.title} className="flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-aqua-300">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-aqua-600">
               <promise.icon className="h-[1.1rem] w-[1.1rem]" strokeWidth={1.75} aria-hidden />
             </span>
             <span className="leading-tight">

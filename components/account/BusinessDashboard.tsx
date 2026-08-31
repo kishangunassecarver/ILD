@@ -114,7 +114,7 @@ export function BusinessDashboard() {
     return (
       <div className="panel p-12 text-center">
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
-          <Building2 className="h-5 w-5 text-aqua-300" aria-hidden />
+          <Building2 className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-4 text-base font-bold text-snow">Sign in to manage your listings</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
@@ -160,7 +160,7 @@ export function BusinessDashboard() {
     <div className="space-y-8">
       {banner && (
         <p className="panel-raised flex items-start gap-2.5 p-4 text-sm leading-relaxed text-snow">
-          <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-300" aria-hidden />
+          <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-600" aria-hidden />
           {banner}
         </p>
       )}
@@ -238,7 +238,7 @@ export function BusinessDashboard() {
       {!adding && !hasAnything && (
         <div className="panel p-8 text-center sm:p-12">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
-            <Building2 className="h-5 w-5 text-aqua-300" aria-hidden />
+            <Building2 className="h-5 w-5 text-aqua-600" aria-hidden />
           </span>
           <h2 className="mt-4 text-base font-bold text-snow">Put your business on I Love Durban</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
@@ -258,7 +258,7 @@ export function BusinessDashboard() {
           <button
             type="button"
             onClick={() => setClaiming(true)}
-            className="font-semibold text-aqua-300 underline"
+            className="font-semibold text-aqua-600 underline"
           >
             Claim the existing listing
           </button>{" "}
@@ -331,7 +331,7 @@ export function BusinessDashboard() {
                   href={`/api/billing/invoice?id=${encodeURIComponent(invoice.pf_payment_id)}`}
                   target="_blank"
                   rel="noopener"
-                  className="ml-auto text-xs font-semibold text-aqua-300 underline transition hover:text-aqua-200"
+                  className="ml-auto text-xs font-semibold text-aqua-600 underline transition hover:text-aqua-500"
                 >
                   View invoice
                 </a>
@@ -382,7 +382,7 @@ function StatusChip({ status, className }: { status: string; className?: string 
     approved: "bg-emerald-400/15 text-emerald-300",
     applied: "bg-emerald-400/15 text-emerald-300",
     active: "bg-emerald-400/15 text-emerald-300",
-    rejected: "bg-brand-500/15 text-brand-400",
+    rejected: "bg-brand-500/15 text-brand-600",
     cancelled: "bg-paper text-muted",
     superseded: "bg-paper text-muted",
   };
@@ -454,7 +454,7 @@ function PremiumControls({
         >
           {busy ? "Cancelling…" : "Cancel subscription"}
         </button>
-        {error && <p className="w-full text-xs text-brand-400">{error}</p>}
+        {error && <p className="w-full text-xs text-brand-600">{error}</p>}
       </div>
     );
   }
@@ -496,7 +496,7 @@ function PremiumControls({
         <Crown className="h-3.5 w-3.5" aria-hidden />
         {busy ? "Opening PayFast…" : "Upgrade to Premium"}
       </button>
-      {error && <p className="w-full text-xs text-brand-400">{error}</p>}
+      {error && <p className="w-full text-xs text-brand-600">{error}</p>}
     </div>
   );
 }
@@ -541,7 +541,7 @@ function RemoveListingButton({
       disabled={busy}
       aria-label={`Remove ${name}`}
       title="Remove this listing"
-      className="grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-brand-500/15 hover:text-brand-400"
+      className="grid h-8 w-8 place-items-center rounded-full text-muted transition hover:bg-brand-500/15 hover:text-brand-600"
     >
       <Trash2 className="h-4 w-4" aria-hidden />
     </button>
@@ -580,7 +580,7 @@ function SubmissionRow({
           className="h-14 w-14 shrink-0 rounded-xl object-cover"
         />
       ) : (
-        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-white/5 text-muted">
+        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-snow/5 text-muted">
           <Building2 className="h-5 w-5" aria-hidden />
         </span>
       )}
@@ -813,7 +813,7 @@ function AddListingForm({
     return (
       <div className="panel p-8 text-center">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <BadgeCheck className="h-5 w-5 text-aqua-300" aria-hidden />
+          <BadgeCheck className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">Listing submitted</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
@@ -852,7 +852,7 @@ function AddListingForm({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-snow/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -928,7 +928,7 @@ function AddListingForm({
               <button
                 type="button"
                 onClick={() => fileInput.current?.click()}
-                className="block text-xs font-semibold text-aqua-300 underline"
+                className="block text-xs font-semibold text-aqua-600 underline"
               >
                 Replace photo
               </button>
@@ -946,7 +946,7 @@ function AddListingForm({
             type="button"
             onClick={() => fileInput.current?.click()}
             disabled={uploading}
-            className="flex h-24 w-full items-center justify-center gap-2.5 rounded-xl border border-dashed border-snow/25 text-sm font-semibold text-mist transition hover:border-aqua-400/70 hover:text-aqua-200"
+            className="flex h-24 w-full items-center justify-center gap-2.5 rounded-xl border border-dashed border-snow/25 text-sm font-semibold text-mist transition hover:border-aqua-400/70 hover:text-aqua-500"
           >
             <ImagePlus className="h-5 w-5" aria-hidden />
             {uploading ? "Uploading…" : "Upload a photo (JPEG, PNG or WebP, up to 5 MB)"}
@@ -1045,7 +1045,7 @@ function AddListingForm({
           Cancel
         </button>
         {error && (
-          <p role="alert" className="text-xs font-medium text-brand-400">
+          <p role="alert" className="text-xs font-medium text-brand-600">
             {error}
           </p>
         )}
@@ -1265,7 +1265,7 @@ function ListingEditor({
     return (
       <div className="panel p-8 text-center">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <BadgeCheck className="h-5 w-5 text-aqua-300" aria-hidden />
+          <BadgeCheck className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">Changes submitted</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
@@ -1294,7 +1294,7 @@ function ListingEditor({
           type="button"
           onClick={onClose}
           aria-label="Close editor"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-white/5 hover:text-snow"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-snow/5 hover:text-snow"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -1424,7 +1424,7 @@ function ListingEditor({
                 type="button"
                 onClick={() => photoInput.current?.click()}
                 disabled={uploading}
-                className="block text-xs font-semibold text-aqua-300 underline"
+                className="block text-xs font-semibold text-aqua-600 underline"
               >
                 {uploading ? "Uploading…" : "Replace photo"}
               </button>
@@ -1442,7 +1442,7 @@ function ListingEditor({
             type="button"
             onClick={() => photoInput.current?.click()}
             disabled={uploading}
-            className="flex h-20 w-full items-center justify-center gap-2.5 rounded-lg border border-dashed border-snow/25 text-sm font-semibold text-mist transition hover:border-aqua-400/70 hover:text-aqua-200"
+            className="flex h-20 w-full items-center justify-center gap-2.5 rounded-lg border border-dashed border-snow/25 text-sm font-semibold text-mist transition hover:border-aqua-400/70 hover:text-aqua-500"
           >
             <ImagePlus className="h-5 w-5" aria-hidden />
             {uploading ? "Uploading…" : "Upload a photo (JPEG, PNG or WebP, up to 5 MB)"}
@@ -1492,7 +1492,7 @@ function ListingEditor({
                   type="button"
                   onClick={() => galleryInput.current?.click()}
                   disabled={uploading}
-                  className="grid h-20 w-28 place-items-center rounded-lg border border-dashed border-snow/25 text-muted transition hover:border-aqua-400/70 hover:text-aqua-200"
+                  className="grid h-20 w-28 place-items-center rounded-lg border border-dashed border-snow/25 text-muted transition hover:border-aqua-400/70 hover:text-aqua-500"
                 >
                   {uploading ? (
                     <span className="text-[0.625rem] font-semibold">Uploading…</span>
@@ -1526,7 +1526,7 @@ function ListingEditor({
           Cancel
         </button>
         {state === "error" && (
-          <p role="alert" className="text-xs font-medium text-brand-400">
+          <p role="alert" className="text-xs font-medium text-brand-600">
             {error}
           </p>
         )}
@@ -1553,7 +1553,7 @@ function Field({
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
       <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-snow">
-        {label} {required && <span className="text-brand-400">*</span>}
+        {label} {required && <span className="text-brand-600">*</span>}
       </label>
       {children}
       {hint && <p className="mt-1 text-[0.6875rem] text-muted">{hint}</p>}

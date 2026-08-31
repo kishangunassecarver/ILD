@@ -93,7 +93,7 @@ export default function ListYourBusinessPage() {
           {BENEFITS.map((benefit) => (
             <div key={benefit.title} className="panel p-5">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
-                <benefit.icon className="h-4 w-4 text-aqua-300" aria-hidden />
+                <benefit.icon className="h-4 w-4 text-aqua-600" aria-hidden />
               </span>
               <h3 className="mt-3 text-sm font-bold text-snow">{benefit.title}</h3>
               <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted">{benefit.body}</p>
@@ -135,7 +135,7 @@ export default function ListYourBusinessPage() {
                 {plan.includes.map((item) => (
                   <li key={item} className="flex gap-2 text-[0.8125rem] leading-relaxed text-mist">
                     <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
-                      <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
+                      <Check className="h-2.5 w-2.5 text-aqua-600" aria-hidden />
                     </span>
                     {item}
                   </li>
@@ -160,7 +160,7 @@ export default function ListYourBusinessPage() {
           Both plans are self-service: sign in, add your listing, and upgrade whenever you like
           from your dashboard. Premium is billed as a monthly PayFast subscription — the upgrade
           button appears on your listing once it is live. Questions?{" "}
-          <Link href="/contact" className="font-semibold text-aqua-300 underline">
+          <Link href="/contact" className="font-semibold text-aqua-600 underline">
             Talk to us
           </Link>
           .

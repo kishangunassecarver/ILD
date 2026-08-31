@@ -111,7 +111,7 @@ export function Spotlights() {
             <h2 className="text-base font-bold text-snow">{spot.column}</h2>
             <Link
               href={spot.href}
-              className="inline-flex items-center gap-0.5 text-sm font-semibold text-aqua-300 transition hover:text-aqua-200"
+              className="inline-flex items-center gap-0.5 text-sm font-semibold text-aqua-600 transition hover:text-aqua-500"
             >
               View all
               <ChevronRight className="h-4 w-4" aria-hidden />

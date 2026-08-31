@@ -47,7 +47,7 @@ export function AppPromo() {
               <div className="h-1.5 w-10 rounded-full bg-line" aria-hidden />
               <p className="text-[0.6875rem] font-bold text-snow">Good morning, Sam!</p>
               <div className="rounded-lg bg-aqua-400/10 px-2.5 py-2">
-                <p className="text-[0.5625rem] font-semibold uppercase tracking-wider text-aqua-300">
+                <p className="text-[0.5625rem] font-semibold uppercase tracking-wider text-aqua-600">
                   Your points
                 </p>
                 <p className="text-sm font-extrabold text-snow">2 430</p>

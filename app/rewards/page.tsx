@@ -46,7 +46,7 @@ export default function RewardsPage() {
           <div key={step.title} className="panel p-5">
             <div className="flex items-center gap-2.5">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
-                <step.icon className="h-4 w-4 text-aqua-300" aria-hidden />
+                <step.icon className="h-4 w-4 text-aqua-600" aria-hidden />
               </span>
               <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">
                 Step {i + 1}

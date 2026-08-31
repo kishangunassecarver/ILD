@@ -127,7 +127,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                 {listing.amenities.map((amenity) => (
                   <li key={amenity} className="flex items-center gap-2 text-xs text-muted">
                     <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-aqua-400/10">
-                      <Check className="h-2.5 w-2.5 text-aqua-300" aria-hidden />
+                      <Check className="h-2.5 w-2.5 text-aqua-600" aria-hidden />
                     </span>
                     {amenity}
                   </li>
@@ -181,7 +181,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                     <dd>
                       <a
                         href={`tel:${listing.phone.replace(/\s/g, "")}`}
-                        className="text-mist hover:text-aqua-300"
+                        className="text-mist hover:text-aqua-600"
                       >
                         {listing.phone}
                       </a>
@@ -200,7 +200,7 @@ export function ListingDetail({ hub: hubSlug, slug }: { hub: HubSlug; slug: stri
                         href={listing.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="break-all text-mist hover:text-aqua-300"
+                        className="break-all text-mist hover:text-aqua-600"
                       >
                         {listing.website.replace(/^https?:\/\//, "")}
                       </a>

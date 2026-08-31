@@ -40,7 +40,7 @@ export default function ClaimPage() {
         {STEPS.map((step) => (
           <div key={step.title} className="panel p-5">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
-              <step.icon className="h-4 w-4 text-aqua-300" aria-hidden />
+              <step.icon className="h-4 w-4 text-aqua-600" aria-hidden />
             </span>
             <h2 className="mt-3 text-sm font-bold text-snow">{step.title}</h2>
             <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted">{step.body}</p>
@@ -51,7 +51,7 @@ export default function ClaimPage() {
       <ClaimPageBody />
 
       <p className="flex items-start gap-2 text-[0.8125rem] leading-relaxed text-muted">
-        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-300" aria-hidden />
+        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-aqua-600" aria-hidden />
         <span>
           Listings managed by their owner — including every Premium listing with an active
           subscription — cannot be claimed. If you believe a listing is wrongly claimed, contact us

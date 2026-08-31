@@ -39,7 +39,7 @@ export function ListingCard({
         <div className="flex flex-1 flex-col gap-1.5 p-1.5 pt-2.5">
           <div className="flex items-start justify-between gap-2">
             <h3 className="line-clamp-1 text-sm font-bold leading-snug text-snow">
-              <Link href={href} className="transition hover:text-aqua-300">
+              <Link href={href} className="transition hover:text-aqua-600">
                 {listing.name}
               </Link>
             </h3>
@@ -81,7 +81,7 @@ export function ListingCard({
       <div className="flex min-w-0 flex-1 flex-col py-0.5 pr-0.5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[1.0625rem] font-bold leading-snug tracking-tight text-snow">
-            <Link href={href} className="transition hover:text-aqua-300">
+            <Link href={href} className="transition hover:text-aqua-600">
               {listing.name}
             </Link>
           </h3>
@@ -114,7 +114,7 @@ export function ListingCard({
             {cta ? (
               <Link
                 href={href}
-                className="shrink-0 rounded-pill border border-snow/25 px-3.5 py-1.5 text-[0.6875rem] font-semibold text-snow transition hover:border-aqua-400/70 hover:text-aqua-200"
+                className="shrink-0 rounded-pill border border-snow/25 px-3.5 py-1.5 text-[0.6875rem] font-semibold text-snow transition hover:border-aqua-400/70 hover:text-aqua-500"
               >
                 {cta}
               </Link>
@@ -140,7 +140,7 @@ function IdentityLine({ listing, className }: { listing: Listing; className?: st
   return (
     <p
       className={cn(
-        "flex items-center gap-1.5 text-[0.8125rem] font-semibold text-aqua-300",
+        "flex items-center gap-1.5 text-[0.8125rem] font-semibold text-aqua-600",
         className
       )}
     >

@@ -68,7 +68,7 @@ export function SearchHub() {
             expectation the app experience delivers on. */}
         <Link
           href="/search"
-          className="btn hidden h-14 shrink-0 items-center rounded-2xl border border-aqua-400/50 bg-aqua-400/10 px-5 text-[0.9375rem] font-semibold text-aqua-200 transition hover:border-aqua-300 hover:text-aqua-100 lg:inline-flex"
+          className="btn hidden h-14 shrink-0 items-center rounded-2xl border border-aqua-400/50 bg-aqua-400/10 px-5 text-[0.9375rem] font-semibold text-aqua-600 transition hover:border-aqua-300 hover:text-aqua-100 lg:inline-flex"
         >
           <Sparkles className="h-[1.1rem] w-[1.1rem]" aria-hidden />
           Ask I Love Durban
@@ -79,7 +79,7 @@ export function SearchHub() {
           the search bar rather than crowding the input row. */}
       <Link
         href="/search"
-        className="mt-2.5 inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-aqua-300 transition hover:text-aqua-200 lg:hidden"
+        className="mt-2.5 inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-aqua-600 transition hover:text-aqua-500 lg:hidden"
       >
         <Sparkles className="h-4 w-4" aria-hidden />
         Ask I Love Durban — &ldquo;What can I do with kids this weekend?&rdquo;
@@ -94,7 +94,7 @@ export function SearchHub() {
               href={action.href}
               className="group flex h-full flex-col gap-2.5 rounded-2xl border border-line bg-night p-4 transition hover:-translate-y-0.5 hover:border-aqua-400/60"
             >
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-line bg-white/5 text-snow transition group-hover:border-aqua-400/70 group-hover:text-aqua-300">
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-line bg-snow/5 text-snow transition group-hover:border-aqua-400/70 group-hover:text-aqua-600">
                 <Icon name={action.icon} className="h-5 w-5" />
               </span>
               <span>

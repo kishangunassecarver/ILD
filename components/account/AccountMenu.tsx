@@ -43,7 +43,7 @@ export function AccountMenu() {
         href="/join"
         aria-label="Join or sign in"
         title="Join or sign in"
-        className="grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5"
+        className="grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-snow/5"
       >
         <User className="h-[1.15rem] w-[1.15rem]" aria-hidden />
       </Link>
@@ -79,7 +79,7 @@ export function AccountMenu() {
             href="/saved"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-white/5"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-snow/5"
           >
             <Heart className="h-4 w-4 text-muted" aria-hidden />
             Saved places
@@ -89,7 +89,7 @@ export function AccountMenu() {
             href="/my-business"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-white/5"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-snow/5"
           >
             <Building2 className="h-4 w-4 text-muted" aria-hidden />
             My business
@@ -99,7 +99,7 @@ export function AccountMenu() {
             href="/my-events"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-white/5"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mist transition hover:bg-snow/5"
           >
             <CalendarDays className="h-4 w-4 text-muted" aria-hidden />
             My events
@@ -112,7 +112,7 @@ export function AccountMenu() {
               setOpen(false);
               void signOut();
             }}
-            className="flex w-full items-center gap-2.5 border-t border-line px-4 py-2.5 text-left text-sm text-mist transition hover:bg-white/5"
+            className="flex w-full items-center gap-2.5 border-t border-line px-4 py-2.5 text-left text-sm text-mist transition hover:bg-snow/5"
           >
             <LogOut className="h-4 w-4 text-muted" aria-hidden />
             Sign out

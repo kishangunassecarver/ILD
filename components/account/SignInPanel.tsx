@@ -115,7 +115,7 @@ export function SignInPanel() {
     return (
       <div className="panel p-8 text-center">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <Check className="h-5 w-5 text-aqua-300" aria-hidden />
+          <Check className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">
           You are signed in{member.name ? `, ${member.name}` : ""}
@@ -141,7 +141,7 @@ export function SignInPanel() {
     return (
       <div className="panel p-8 text-center">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <Mail className="h-5 w-5 text-aqua-300" aria-hidden />
+          <Mail className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">Check your inbox</h2>
         <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted">{notice}</p>
@@ -229,7 +229,7 @@ export function SignInPanel() {
 
         <div>
           <label htmlFor="auth-email" className="mb-1.5 block text-xs font-semibold text-snow">
-            Email address <span className="text-brand-400">*</span>
+            Email address <span className="text-brand-600">*</span>
           </label>
           <input
             id="auth-email"
@@ -247,13 +247,13 @@ export function SignInPanel() {
           <div>
             <div className="mb-1.5 flex items-baseline justify-between gap-2">
               <label htmlFor="auth-password" className="block text-xs font-semibold text-snow">
-                Password <span className="text-brand-400">*</span>
+                Password <span className="text-brand-600">*</span>
               </label>
               {mode === "signin" && (
                 <button
                   type="button"
                   onClick={() => switchMode("forgot")}
-                  className="text-xs font-semibold text-aqua-300 transition hover:text-aqua-200"
+                  className="text-xs font-semibold text-aqua-600 transition hover:text-aqua-500"
                 >
                   Forgot password?
                 </button>
@@ -286,7 +286,7 @@ export function SignInPanel() {
         </button>
 
         {error && (
-          <p role="alert" className="text-xs font-medium leading-relaxed text-brand-400">
+          <p role="alert" className="text-xs font-medium leading-relaxed text-brand-600">
             {error}
           </p>
         )}
@@ -297,7 +297,7 @@ export function SignInPanel() {
           <button
             type="button"
             onClick={() => switchMode("link")}
-            className="font-semibold text-aqua-300 transition hover:text-aqua-200"
+            className="font-semibold text-aqua-600 transition hover:text-aqua-500"
           >
             Email me a sign-in link instead
           </button>
@@ -305,7 +305,7 @@ export function SignInPanel() {
           <button
             type="button"
             onClick={() => switchMode("signin")}
-            className="font-semibold text-aqua-300 transition hover:text-aqua-200"
+            className="font-semibold text-aqua-600 transition hover:text-aqua-500"
           >
             Sign in with a password instead
           </button>
@@ -325,7 +325,7 @@ export function SignInPanel() {
       </div>
 
       <p className="mt-5 flex items-start gap-2 text-[0.6875rem] leading-relaxed text-muted">
-        <Heart className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-400" aria-hidden />
+        <Heart className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" aria-hidden />
         We store your email address, your password as a salted hash, and what you save. Nothing
         else, and nothing is passed to advertisers. See our{" "}
         <Link href="/privacy" className="underline">

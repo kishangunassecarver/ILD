@@ -82,7 +82,7 @@ export function Header() {
                 const labelClass = cn(
                   "whitespace-nowrap rounded-md py-2 text-sm font-medium transition",
                   isCurrent(item.href) || isOpen
-                    ? "text-aqua-300"
+                    ? "text-aqua-600"
                     : "text-mist hover:text-snow"
                 );
 
@@ -120,7 +120,7 @@ export function Header() {
                           onClick={() => (isOpen ? setOpenMenu(null) : open(item.label))}
                           aria-expanded={isOpen}
                           aria-label={`${item.label} menu`}
-                          className="ml-0.5 grid h-7 w-5 place-items-center text-muted transition hover:text-aqua-300"
+                          className="ml-0.5 grid h-7 w-5 place-items-center text-muted transition hover:text-aqua-600"
                         >
                           <ChevronDown
                             className={cn(
@@ -161,7 +161,7 @@ export function Header() {
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
               aria-expanded={drawerOpen}
-              className="ml-1 grid h-10 w-10 place-items-center rounded-md text-snow transition hover:bg-white/5 lg:hidden"
+              className="ml-1 grid h-10 w-10 place-items-center rounded-md text-snow transition hover:bg-snow/5 lg:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden />
             </button>
@@ -208,7 +208,7 @@ function IconLink({
       aria-label={label}
       title={label}
       className={cn(
-        "grid h-9 w-9 place-items-center rounded-full text-mist transition hover:bg-white/5 hover:text-aqua-300",
+        "grid h-9 w-9 place-items-center rounded-full text-mist transition hover:bg-snow/5 hover:text-aqua-600",
         className
       )}
     >
@@ -232,7 +232,7 @@ function MegaMenu({ item, onNavigate }: { item: (typeof NAV)[number]; onNavigate
                   <Link
                     href={link.href}
                     onClick={onNavigate}
-                    className="block text-sm font-medium text-mist transition hover:text-aqua-300"
+                    className="block text-sm font-medium text-mist transition hover:text-aqua-600"
                   >
                     {link.label}
                   </Link>
@@ -243,13 +243,13 @@ function MegaMenu({ item, onNavigate }: { item: (typeof NAV)[number]; onNavigate
         ))}
 
         {item.feature && (
-          <div className="rounded-lg bg-white/5 p-4">
+          <div className="rounded-lg bg-snow/5 p-4">
             <p className="text-sm font-bold text-snow">{item.feature.title}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted">{item.feature.body}</p>
             <Link
               href={item.feature.href}
               onClick={onNavigate}
-              className="mt-3 inline-block text-xs font-semibold text-aqua-300 hover:text-aqua-200"
+              className="mt-3 inline-block text-xs font-semibold text-aqua-600 hover:text-aqua-500"
             >
               {item.feature.cta} →
             </Link>
@@ -312,7 +312,7 @@ function MobileDrawer({
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-white/5"
+            className="grid h-9 w-9 place-items-center rounded-md text-snow transition hover:bg-snow/5"
           >
             <X className="h-5 w-5" aria-hidden />
           </button>
@@ -333,7 +333,7 @@ function MobileDrawer({
                         onClick={onClose}
                         className={cn(
                           "flex-1 py-2.5 text-[0.9375rem] font-semibold",
-                          isCurrent(item.href) ? "text-aqua-300" : "text-snow"
+                          isCurrent(item.href) ? "text-aqua-600" : "text-snow"
                         )}
                       >
                         {item.label}
@@ -354,7 +354,7 @@ function MobileDrawer({
                         onClick={() => setExpanded(isOpen ? null : item.label)}
                         aria-expanded={isOpen}
                         aria-label={`${item.label} sub-menu`}
-                        className="grid h-9 w-9 place-items-center rounded-md text-muted transition hover:bg-white/5"
+                        className="grid h-9 w-9 place-items-center rounded-md text-muted transition hover:bg-snow/5"
                       >
                         <ChevronDown
                           className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
@@ -373,7 +373,7 @@ function MobileDrawer({
                             <Link
                               href={link.href}
                               onClick={onClose}
-                              className="block py-1 text-[0.8125rem] text-muted transition hover:text-aqua-300"
+                              className="block py-1 text-[0.8125rem] text-muted transition hover:text-aqua-600"
                             >
                               {link.label}
                             </Link>

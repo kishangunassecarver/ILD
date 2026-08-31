@@ -72,7 +72,7 @@ export function FeaturedBusinesses() {
                 {/* One line, always. The hub label is the part that must survive,
                     so the category truncates rather than wrapping and making
                     card heights ragged across a row. */}
-                <p className="flex items-center gap-1.5 overflow-hidden text-[0.625rem] font-bold uppercase tracking-[0.12em] text-aqua-300">
+                <p className="flex items-center gap-1.5 overflow-hidden text-[0.625rem] font-bold uppercase tracking-[0.12em] text-aqua-600">
                   <Store className="h-3 w-3 shrink-0" aria-hidden />
                   <span className="shrink-0">{hub?.label ?? "Durban"}</span>
                   {listing.category && (
@@ -82,7 +82,7 @@ export function FeaturedBusinesses() {
 
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="text-base font-bold leading-snug text-snow">
-                    <Link href={href} className="transition hover:text-aqua-300">
+                    <Link href={href} className="transition hover:text-aqua-600">
                       {listing.name}
                     </Link>
                   </h3>
@@ -115,7 +115,7 @@ export function FeaturedBusinesses() {
 
                 <Link
                   href={href}
-                  className="btn-ghost w-full py-2 text-xs group-hover:border-aqua-500/40 group-hover:text-aqua-200"
+                  className="btn-ghost w-full py-2 text-xs group-hover:border-aqua-500/40 group-hover:text-aqua-500"
                 >
                   {listing.cta ?? hub?.defaultCta ?? "View"}
                 </Link>

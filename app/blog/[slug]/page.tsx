@@ -43,7 +43,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       />
 
       <article className="mx-auto max-w-3xl">
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-aqua-300">
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-aqua-600">
           {post.category}
         </p>
         <h1 className="mt-2 text-2xl font-extrabold leading-tight tracking-tight text-snow sm:text-4xl">
@@ -80,7 +80,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             {more.map((other) => (
               <li key={other.slug}>
                 <Link href={`/blog/${other.slug}`} className="panel card-hover block p-4">
-                  <p className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-aqua-300">
+                  <p className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-aqua-600">
                     {other.category}
                   </p>
                   <p className="mt-1 text-sm font-bold text-snow">{other.title}</p>

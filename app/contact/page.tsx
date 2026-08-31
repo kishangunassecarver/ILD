@@ -47,7 +47,7 @@ export default function ContactPage() {
         {ROUTES.map((route) => (
           <div key={route.title} className="panel flex flex-col p-5">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-aqua-400/10">
-              <route.icon className="h-4 w-4 text-aqua-300" aria-hidden />
+              <route.icon className="h-4 w-4 text-aqua-600" aria-hidden />
             </span>
             <h2 className="mt-3 text-sm font-bold text-snow">{route.title}</h2>
             <p className="mt-1.5 flex-1 text-xs leading-relaxed text-muted">{route.body}</p>

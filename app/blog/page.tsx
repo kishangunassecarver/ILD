@@ -29,10 +29,10 @@ export default function BlogPage() {
         >
           <Tile seed={lead.slug} image={lead.image} className="h-52 md:h-full md:min-h-[16rem]" />
           <div className="flex flex-col justify-center p-6">
-            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-aqua-300">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-aqua-600">
               {lead.category}
             </p>
-            <h2 className="mt-2 text-xl font-extrabold leading-tight tracking-tight text-snow transition group-hover:text-aqua-300 sm:text-2xl">
+            <h2 className="mt-2 text-xl font-extrabold leading-tight tracking-tight text-snow transition group-hover:text-aqua-600 sm:text-2xl">
               {lead.title}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">{lead.excerpt}</p>
@@ -50,11 +50,11 @@ export default function BlogPage() {
               <Tile seed={post.slug} image={post.image} className="h-36" />
             </Link>
             <div className="flex flex-1 flex-col p-4">
-              <p className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-aqua-300">
+              <p className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-aqua-600">
                 {post.category}
               </p>
               <h2 className="mt-1.5 line-clamp-2 text-sm font-bold leading-snug text-snow">
-                <Link href={`/blog/${post.slug}`} className="transition hover:text-aqua-300">
+                <Link href={`/blog/${post.slug}`} className="transition hover:text-aqua-600">
                   {post.title}
                 </Link>
               </h2>

@@ -77,7 +77,7 @@ export function GoogleRating({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-aqua-300 transition hover:text-aqua-200"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-aqua-600 transition hover:text-aqua-500"
         >
           See reviews on Google
           <ArrowUpRight className="h-4 w-4" aria-hidden />

@@ -53,7 +53,7 @@ export function ClaimPageBody() {
     return (
       <div className="panel p-8 text-center sm:p-12">
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
-          <Building2 className="h-5 w-5 text-aqua-300" aria-hidden />
+          <Building2 className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-4 text-base font-bold text-snow">Sign in to claim your listing</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
@@ -71,7 +71,7 @@ export function ClaimPageBody() {
     return (
       <div className="panel p-8 text-center sm:p-12">
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-aqua-400/10">
-          <BadgeCheck className="h-5 w-5 text-aqua-300" aria-hidden />
+          <BadgeCheck className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
         <h2 className="mt-3 text-base font-bold text-snow">Claim submitted</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">

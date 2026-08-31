@@ -7,7 +7,7 @@ export default function NotFound() {
     <div className="shell py-16">
       <div className="panel mx-auto max-w-xl p-10 text-center">
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-aqua-400/10">
-          <Compass className="h-5 w-5 text-aqua-300" aria-hidden />
+          <Compass className="h-5 w-5 text-aqua-600" aria-hidden />
         </span>
 
         <p className="mt-4 font-display text-4xl font-extrabold leading-none tracking-tight text-snow">

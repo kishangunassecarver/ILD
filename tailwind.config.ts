@@ -49,27 +49,29 @@ const config: Config = {
           600: "#274468",
           400: "#5A7291",
         },
-        // The layered surfaces — the client's four blues, darkest to lightest:
-        // page < header < raised section < card.
+        // The layered surfaces of the LIGHT theme (the token names date from
+        // the original night theme; every call site reads these, so the theme
+        // lives here): page < raised section < card.
         night: {
-          DEFAULT: "#011F3B", // cards
-          800: "#041D3B", // raised sections, menus
-          900: "#021734", // the header bar
-          // Kept for hover-tint call sites; one step above the card tone.
-          700: "#06294B",
+          DEFAULT: "#FFFFFF", // cards
+          800: "#F0F5FA", // raised sections, menus sit slightly below cards
+          900: "#FFFFFF", // the header bar
+          // Hover tint — one visible step below a white card.
+          700: "#E9F0F7",
         },
         // Warm gold for rewards, points and ratings.
         gold: {
           DEFAULT: "#F5A623",
           600: "#D48806",
         },
-        // Text on the night theme.
-        snow: "#FFFFFF",
-        mist: "#B8C9D7",
-        paper: "#08275D", // the page itself
-        // Soft blue-white, translucent so it reads evenly on every surface.
-        line: "rgba(184, 201, 215, 0.16)",
-        muted: "#8CA3B8", // secondary text
+        // Text on the light theme: the client's deepest navy as "snow" keeps
+        // every text-snow call site correct without a sweep.
+        snow: "#01122C",
+        mist: "#33475C",
+        paper: "#F2F6FA", // the page itself
+        // Soft navy, translucent so it reads evenly on every surface.
+        line: "rgba(1, 18, 44, 0.12)",
+        muted: "#5C7186", // secondary text
       },
       fontFamily: {
         // One family throughout. `display` exists as a separate token so the
@@ -90,9 +92,9 @@ const config: Config = {
         pill: "999px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(2, 8, 20, 0.5), 0 2px 6px rgba(2, 8, 20, 0.35)",
-        lift: "0 16px 32px -10px rgba(2, 8, 20, 0.6)",
-        rail: "0 2px 10px rgba(2, 8, 20, 0.5)",
+        card: "0 1px 2px rgba(9, 30, 66, 0.06), 0 2px 8px rgba(9, 30, 66, 0.06)",
+        lift: "0 16px 32px -12px rgba(9, 30, 66, 0.16)",
+        rail: "0 2px 10px rgba(9, 30, 66, 0.14)",
         // Soft aqua bloom behind primary actions.
         glow: "0 4px 18px -4px rgba(4, 164, 180, 0.55)",
       },
