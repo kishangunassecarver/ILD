@@ -6,6 +6,21 @@ import { useRouter } from "next/navigation";
 import { Search, Sparkles } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { QUICK_ACTIONS, SITE } from "@/lib/cms";
+import { cn } from "@/lib/utils";
+
+/**
+ * One tint per shortcut, cycling in order: the brand aqua and coral first,
+ * then gold, harbour blue, botanic green and night-market purple from the
+ * placeholder-art palette, so the row shares the cards' colour world.
+ */
+const ACTION_TINTS = [
+  "bg-aqua-500/12 text-aqua-600",
+  "bg-[#5B2AA8]/10 text-[#5B2AA8]",
+  "bg-coral-500/12 text-coral-500",
+  "bg-gold/15 text-gold-600",
+  "bg-[#1F6F4A]/10 text-[#1F6F4A]",
+  "bg-[#0E4C92]/10 text-[#0E4C92]",
+];
 
 /**
  * The platform's primary action: one raised panel holding search, the AI
@@ -86,15 +101,22 @@ export function SearchHub() {
       </Link>
 
       {/* The six shortcuts: a scrollable row on phones, three across on
-          tablets, and always one row of six on desktop. */}
+          tablets, and always one row of six on desktop. Each gets its own
+          tinted icon disc — on the light theme, colour is what keeps this row
+          from reading as six grey boxes. */}
       <ul className="mt-4 flex gap-3 overflow-x-auto no-scrollbar sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-6">
-        {QUICK_ACTIONS.map((action) => (
+        {QUICK_ACTIONS.map((action, index) => (
           <li key={action.label} className="w-[11.5rem] shrink-0 sm:w-auto">
             <Link
               href={action.href}
               className="group flex h-full flex-col gap-2.5 rounded-2xl border border-line bg-night p-4 transition hover:-translate-y-0.5 hover:border-aqua-400/60"
             >
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-line bg-snow/5 text-snow transition group-hover:border-aqua-400/70 group-hover:text-aqua-600">
+              <span
+                className={cn(
+                  "grid h-10 w-10 place-items-center rounded-full transition group-hover:scale-105",
+                  ACTION_TINTS[index % ACTION_TINTS.length]
+                )}
+              >
                 <Icon name={action.icon} className="h-5 w-5" />
               </span>
               <span>

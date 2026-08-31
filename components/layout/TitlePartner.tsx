@@ -77,9 +77,30 @@ export function TitlePartner({ slim = false }: { slim?: boolean }) {
       />
 
       {/* Gentle fade into the page below, so the search hub reads as sitting in
-          the hero's tail rather than under a hard edge. */}
+          the hero's tail rather than under a hard edge. A plain two-stop
+          gradient into the light page produced a visible milky band over dark
+          artwork; these smoothstep-eased stops make the fade read as natural. */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent via-paper/40 to-paper"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-36"
+        style={{
+          backgroundImage: `linear-gradient(to bottom,
+            rgba(242, 246, 250, 0)     0%,
+            rgba(242, 246, 250, 0.013) 8.1%,
+            rgba(242, 246, 250, 0.049) 15.5%,
+            rgba(242, 246, 250, 0.104) 22.5%,
+            rgba(242, 246, 250, 0.175) 29%,
+            rgba(242, 246, 250, 0.259) 35.3%,
+            rgba(242, 246, 250, 0.352) 41.2%,
+            rgba(242, 246, 250, 0.45)  47.1%,
+            rgba(242, 246, 250, 0.55)  52.9%,
+            rgba(242, 246, 250, 0.648) 58.8%,
+            rgba(242, 246, 250, 0.741) 64.7%,
+            rgba(242, 246, 250, 0.825) 71%,
+            rgba(242, 246, 250, 0.896) 77.5%,
+            rgba(242, 246, 250, 0.951) 84.5%,
+            rgba(242, 246, 250, 0.987) 91.9%,
+            rgba(242, 246, 250, 1)     100%)`,
+        }}
         aria-hidden
       />
 
